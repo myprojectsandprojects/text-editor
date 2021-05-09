@@ -79,8 +79,12 @@ void on_tree_view_row_activated(GtkTreeView *tree_view, GtkTreePath *path, GtkTr
 
 	if (S_ISDIR(fs_node_info.st_mode)) {
 		printf("\"%s\" is a directory\n", node_full_path);
+		sprintf(root_dir, "%s", node_full_path);
+		gtk_tree_view_set_model(GTK_TREE_VIEW(tree_view), GTK_TREE_MODEL(create_tree_store()));
 	} else if(S_ISREG(fs_node_info.st_mode)) {
 		printf("\"%s\" is a regular file\n", node_full_path);
+		//@ cant open a file which is not a text file. well get gtk errors for now
+		create_tab(node_full_path); //@ we havent seen the declaration
 	} else {
 		printf("\"%s\" is an unknown thing\n", node_full_path);
 	}
