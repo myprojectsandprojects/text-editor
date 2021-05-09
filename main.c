@@ -1,5 +1,6 @@
 
 //@ bug: cant type single-quotes inside the search-entry
+//@ bug: highlighting: double quotes inside block-comments
 
 #include <gtk/gtk.h>
 #include <fcntl.h>
@@ -1085,7 +1086,7 @@ void activate_handler(GtkApplication *app, gpointer data) {
 	key_combinations[CTRL][43] = toggle_command_entry; // ctrl + h
 
 
-	char *css_file = "css";
+	char *css_file = "themes/css";
 	apply_css_from_file(css_file);
 
 	pthread_t id;
