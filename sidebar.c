@@ -55,7 +55,7 @@ void on_tree_view_row_activated(GtkTreeView *tree_view, GtkTreePath *path, GtkTr
 	GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
 
 	char node_rel_path[100]; node_rel_path[0] = 0;
-	char node_full_path[100]; node_full_path[0] = 0;
+	char *node_full_path = malloc(100); node_full_path[0] = 0;
 
 	while (gtk_tree_path_get_depth(path) > 0) // 1 -- root node, 0 -- nowhere
 	{
@@ -298,8 +298,14 @@ void init_file_browser(GtkContainer *file_browser_container)
 	GtkWidget *scrolled_window = gtk_scrolled_window_new(NULL, NULL);
 	gtk_widget_set_vexpand(scrolled_window, TRUE);
 
+	/*uid_t real_uid = getuid();
+	uid_t effective_uid = geteuid();
+	printf("real uid: %d, effective uid: %d\n", real_uid, effective_uid);*/
+
 	GtkWidget *root_selection = gtk_combo_box_text_new();
-	gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(root_selection), NULL, "/");
+	if (getuid() == 0) { // We have root-privileges
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(root_selection), NULL, "/");
+	}
 	gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(root_selection), NULL, "/home/eero");
 	g_signal_connect(G_OBJECT(root_selection), "changed", G_CALLBACK(root_selection_changed), NULL);
 	//gtk_style_context_add_class (gtk_widget_get_style_context(root_selection), "root-selection");
