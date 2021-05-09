@@ -25,7 +25,7 @@ struct UserAction {
 	int text_length;
 };
 
-struct UserAction *last_actions[100]; // As a global variable it should be initialized to NULLs by default (?)
+struct UserAction *last_actions[100]; // This is a global variable, so it should be initialized to defaults (NULLs in this case) (?)
 
 gboolean ignore = FALSE;
 /*
