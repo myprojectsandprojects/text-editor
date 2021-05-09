@@ -1,0 +1,7 @@
+/**/
+
+GtkTextView {
+	font: Source Code Pro 12;
+	color: black;
+	background: gray;
+}
