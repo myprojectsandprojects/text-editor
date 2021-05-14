@@ -7,11 +7,15 @@
 
 
 GtkTreeStore *create_tree_store();
+GtkWidget *root_selection;
+int root_selection_index; // index of the last item in root-selection. we need to know that because each time user selects a new root by double-clicking on a directory well set the last item to that directory.
 
+GtkWidget *search_results_scroll;
+GtkWidget *search_results;
+GtkWidget *list;
 
 GtkWidget *tree_view;
 char root_dir[100];
-
 
 enum {
 	COLUMN_ICON,
@@ -22,8 +26,8 @@ enum {
 
 void root_selection_changed(GtkComboBoxText *root_selection, gpointer data)
 {
-	g_print("root selection changed!\n");
 	const char *text = gtk_combo_box_text_get_active_text(root_selection);
+	if (text == NULL) return;
 	g_print("text: %s\n", text);
 
 	sprintf(root_dir, "%s", text);
@@ -81,6 +85,10 @@ void on_tree_view_row_activated(GtkTreeView *tree_view, GtkTreePath *path, GtkTr
 		printf("\"%s\" is a directory\n", node_full_path);
 		sprintf(root_dir, "%s", node_full_path);
 		gtk_tree_view_set_model(GTK_TREE_VIEW(tree_view), GTK_TREE_MODEL(create_tree_store()));
+		printf("removing an item at index %d\n", root_selection_index);
+		gtk_combo_box_text_remove(GTK_COMBO_BOX_TEXT(root_selection), root_selection_index);
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(root_selection), NULL, node_full_path);
+		gtk_combo_box_set_active(GTK_COMBO_BOX(root_selection), root_selection_index);
 	} else if(S_ISREG(fs_node_info.st_mode)) {
 		printf("\"%s\" is a regular file\n", node_full_path);
 		//@ cant open a file which is not a text file. well get gtk errors for now
@@ -270,22 +278,100 @@ GtkWidget *create_tree_view()
 	return tree_view;
 }
 
-
-void init_file_browser(GtkContainer *file_browser_container)
+void on_search_button_clicked(GtkButton *search_button, gpointer data)
 {
-	// Apply css from file:
-	/*GtkCssProvider *provider = NULL;
-	provider = gtk_css_provider_new();
-	GFile *css_file = g_file_new_for_path("css");
-	gtk_css_provider_load_from_file(provider, css_file, NULL);
-	GdkScreen *screen = gdk_screen_get_default();
-	assert(screen != NULL); assert(provider != NULL);
-	gtk_style_context_add_provider_for_screen(screen, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+	GtkSearchEntry *search_entry = (GtkSearchEntry *) data;
+	const char *text = gtk_entry_get_text(GTK_ENTRY(search_entry));
+
+	/*
+	grep:
+		-I -> ignore binary files (?)
+		-n -> display line numbers
+		-i -> do insensitive search
+	*/
+	char command[1000]; command[0] = 0;
+	sprintf(command, "find %s ! -regex '.*/\\..*' -type f | xargs grep -Ini \"%s\"", root_dir, text);
+	printf("command: %s\n", command);
+	FILE *fd = popen(command, "r");
+	if (fd == NULL) {
+		printf("ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+		return;
+	}
+
+	/*printf("sleeping for 3 secs\n");
+	sleep(3);
+	printf("done sleeping\n");*/
+
+	long int size = 10000000;
+	char *contents = malloc(size+1);
+	if (contents == NULL) {
+		printf("malloc() failed!!!!!!!!!!!!!!!!!\n");
+	}
+
+	long int i = 0;
+	while((contents[i] = fgetc(fd)) != -1) {/*printf("%c ", contents[i]);*/ i++;}
+	contents[i] = 0;
+
+	printf("Search results:\n");
+	printf("%s\n", contents);
+
+	GList *previous_results, *p;
+	previous_results = gtk_container_get_children(GTK_CONTAINER(list));
+	for (p = previous_results; p != NULL; p = p->next) {
+		//printf("previous search result...\n");
+		gtk_widget_destroy(p->data);
+	}
+	g_list_free(previous_results); //@ are we freeing everything?
+
+	char *line;
+	char *get_slice_by(char **p_s, char ch); //@ ...
+	while ((line = get_slice_by(&contents, '\n')) != NULL) {
+		//printf("line: %s\n", line);
+		char *file_path = get_slice_by(&line, ':');
+		char *line_number = get_slice_by(&line, ':');
+		printf("file path: %s\n", file_path);
+		printf("line number: %s\n", line_number);
+		printf("remainder: %s\n\n", line);
+
+		GtkWidget *search_result = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+
+		int root_length = strlen(root_dir);
+		GtkWidget *file_path_label = gtk_label_new(&file_path[root_length + 1]);
+		char line_text[100];
+		char *p = line;
+		while (*p == ' ' || *p == '\t') ++p;
+		sprintf(line_text, "%s:%s", line_number, p);
+		//GtkWidget *line_number_label = gtk_label_new(line_number);
+		GtkWidget *line_text_label = gtk_label_new(line_text);
+
+		gtk_widget_set_halign(file_path_label, GTK_ALIGN_START);
+		//gtk_widget_set_halign(line_number_label, GTK_ALIGN_START);
+		gtk_widget_set_halign(line_text_label, GTK_ALIGN_START);
+
+		gtk_container_add(GTK_CONTAINER(search_result), file_path_label);
+		//gtk_container_add(GTK_CONTAINER(search_result), line_number_label);
+		gtk_container_add(GTK_CONTAINER(search_result), line_text_label);
+
+		gtk_style_context_add_class (gtk_widget_get_style_context(file_path_label), "search-result");
+
+		gtk_list_box_insert(GTK_LIST_BOX(list), search_result, -1);
+	}
+
+	gtk_widget_show_all(list);
+
+	pclose(fd);
+}
+
+void on_list_row_selected(GtkListBox *list, GtkListBoxRow *row, gpointer data)
+{
+	printf("on_list_row_selected() called..\n");
+
+	gtk_widget_set_size_request(search_results_scroll, 1000, 300);
+}
 
 
-	GtkWidget *window = gtk_application_window_new(GTK_APPLICATION(application));
-	gtk_window_set_default_size(GTK_WINDOW(window), 1000, 600);*/
-
+GtkWidget* create_sidebar()
+{
 	tree_view = create_tree_view();
 	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(tree_view), FALSE);
 	//gtk_tree_view_set_level_indentation(GTK_TREE_VIEW(tree_view), 9);
@@ -302,45 +388,59 @@ void init_file_browser(GtkContainer *file_browser_container)
 	uid_t effective_uid = geteuid();
 	printf("real uid: %d, effective uid: %d\n", real_uid, effective_uid);*/
 
-	GtkWidget *root_selection = gtk_combo_box_text_new();
+	root_selection = gtk_combo_box_text_new();
 	if (getuid() == 0) { // We have root-privileges
 		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(root_selection), NULL, "/");
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(root_selection), NULL, "/home/eero");
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(root_selection), NULL, "/home/eero");
+		root_selection_index = 2;
+	} else {
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(root_selection), NULL, "/home/eero");
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(root_selection), NULL, "/home/eero");
+		root_selection_index = 1;
 	}
-	gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(root_selection), NULL, "/home/eero");
 	g_signal_connect(G_OBJECT(root_selection), "changed", G_CALLBACK(root_selection_changed), NULL);
 	//gtk_style_context_add_class (gtk_widget_get_style_context(root_selection), "root-selection");
+	gtk_combo_box_set_active(GTK_COMBO_BOX(root_selection), 0);
 
 	GtkWidget *notebook = gtk_notebook_new();
 	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(notebook), GTK_POS_BOTTOM);
 	GtkWidget *page_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-	gtk_container_add(GTK_CONTAINER(page_container), root_selection);
+	//gtk_container_add(GTK_CONTAINER(page_container), root_selection);
 	gtk_container_add(GTK_CONTAINER(scrolled_window), tree_view);
 	gtk_container_add(GTK_CONTAINER(page_container), scrolled_window);
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), page_container, gtk_label_new("Hello world!"));
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), page_container, gtk_label_new("Browse Files"));
+
+	GtkWidget *search_entry = gtk_search_entry_new();
+	GtkWidget *search_button = gtk_button_new_with_label("Search");
+	g_signal_connect(search_button, "clicked", G_CALLBACK(on_search_button_clicked), search_entry);
 
 	GtkWidget *page_container2 = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-	gtk_container_add(GTK_CONTAINER(page_container2), gtk_label_new("Hello multiverse!"));
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), page_container2, gtk_label_new("Hello universe!"));
-	
 
-	/*GtkWidget *sidebar_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	list = gtk_list_box_new();
+	//g_signal_connect(list, "row-selected", G_CALLBACK(on_list_row_selected), NULL);
+	//search_results = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	search_results_scroll = gtk_scrolled_window_new(NULL, NULL);
+	gtk_widget_set_vexpand(search_results_scroll, TRUE);
+	//gtk_scrolled_window_set_policy(search_results_scroll, GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+
+	gtk_container_add(GTK_CONTAINER(page_container2), search_entry);
+	gtk_container_add(GTK_CONTAINER(page_container2), search_button);
+	gtk_container_add(GTK_CONTAINER(search_results_scroll), list);
+	gtk_container_add(GTK_CONTAINER(page_container2), search_results_scroll);
+
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), page_container2, gtk_label_new("Search in Files"));
+
+	GtkWidget *sidebar_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	gtk_container_add(GTK_CONTAINER(sidebar_container), root_selection);
 	gtk_container_add(GTK_CONTAINER(sidebar_container), notebook);
-	gtk_container_add(GTK_CONTAINER(window), sidebar_container);*/
-	gtk_container_add(file_browser_container, notebook);
+	//gtk_container_add(file_browser_container, sidebar_container);
 
-	gtk_widget_show_all(GTK_WIDGET(file_browser_container));
-}/*
+	//gtk_widget_show_all(GTK_WIDGET(file_browser_container));
+	gtk_widget_show_all(GTK_WIDGET(sidebar_container));
 
-
-int main()
-{
-	GtkApplication *application;
-
-	application = gtk_application_new(NULL, G_APPLICATION_FLAGS_NONE);
-
-	g_signal_connect(G_OBJECT(application), "activate", G_CALLBACK(on_application_activate), NULL);
-	return g_application_run(G_APPLICATION(application), 0, NULL);
-}*/
+	return sidebar_container;
+}
 
 
 

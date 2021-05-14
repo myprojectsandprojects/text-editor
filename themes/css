@@ -56,3 +56,32 @@ GtkNotebook tab
 /*.info-bar-emphasis {
 	font: Source Code Pro 13;
 }*/
+
+/*.search-result {
+	color: blue;
+	background: yellow;
+	decoration: none;
+	border: none;
+	border-radius: 0;
+}
+
+.search-result:hover {
+	color: red;
+	background: green;
+}
+
+.search-result:active {
+	color: red;
+	background: green;
+}*/
+
+GtkListBox {background: yellow;}
+
+.search-result {/*color: red;*/ font-weight: bold;}
+
+.sidebar_revealer {background: white;}
+
+
+
+
+

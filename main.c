@@ -1,6 +1,8 @@
 
 //@ bug: cant type single-quotes inside the search-entry
 //@ bug: highlighting: double quotes inside block-comments
+//@ bug: highlighting: backslash inside a string
+//@ bug: changing css of search results from another editor may crash the application...
 
 #include <gtk/gtk.h>
 #include <fcntl.h>
@@ -709,7 +711,7 @@ gboolean on_notebook_focus_in_event(GtkWidget *widget, GdkEvent *event, gpointer
 	GtkWidget *tab = gtk_notebook_get_nth_page(GTK_NOTEBOOK(notebook), page);
 
 	GtkTextView *text_view = tab_get_text_view(tab);
-	gtk_widget_grab_focus(GTK_WIDGET(text_view)); // @doesnt work!
+	gtk_widget_grab_focus(GTK_WIDGET(text_view));
 }
 
 
@@ -1097,39 +1099,35 @@ void activate_handler(GtkApplication *app, gpointer data) {
 
 	window = gtk_application_window_new(app);
 	gtk_window_set_title(GTK_WINDOW(window), "Hello world!");
-	gtk_window_set_default_size(GTK_WINDOW(window), 1000, 600);
+	gtk_window_set_default_size(GTK_WINDOW(window), 500, 300);
 
 	GtkWidget *container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-
-	//$ GtkWidget *header_bar = gtk_header_bar_new();
 
 	GtkWidget *content = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 
 	sidebar_revealer = gtk_revealer_new();
 	//gtk_revealer_set_reveal_child(GTK_REVEALER(sidebar_revealer), FALSE);
 	gtk_revealer_set_transition_type(GTK_REVEALER(sidebar_revealer), GTK_REVEALER_TRANSITION_TYPE_SLIDE_RIGHT);
+	gtk_style_context_add_class (gtk_widget_get_style_context(sidebar_revealer), "sidebar_revealer");
 
-	init_file_browser(sidebar_revealer);
-	//GtkWidget *sidebar_placeholder = gtk_label_new("sidebar");
-
-
-	/*$ stack = gtk_stack_new();
-	g_signal_connect(stack, "notify::visible-child", G_CALLBACK(stack_visible_child_changed), NULL);
-
-	GtkWidget *stack_switcher = gtk_stack_switcher_new();
-	gtk_stack_switcher_set_stack(GTK_STACK_SWITCHER(stack_switcher), GTK_STACK(stack));*/
+	GtkWidget *create_sidebar(); //@
+	GtkWidget *sidebar = create_sidebar();
+	gtk_container_add(GTK_CONTAINER(sidebar_revealer), sidebar);
 
 	notebook = gtk_notebook_new();
 	g_signal_connect(notebook, "switch-page", G_CALLBACK(on_notebook_switch_page), NULL);
 	g_signal_connect(notebook, "focus-in-event", G_CALLBACK(on_notebook_focus_in_event), NULL);
 
-
 	g_signal_connect(window, "key-press-event", G_CALLBACK(on_window_key_press_event), NULL);
+
+	/*GtkWidget *paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL); // Lots of problems with the UI
+	gtk_paned_add1(GTK_PANED(paned), sidebar_revealer);
+	gtk_paned_add2(GTK_PANED(paned), notebook);
+	gtk_container_add(GTK_CONTAINER(content), paned);*/
 
 	gtk_container_add(GTK_CONTAINER(window), container);
 	gtk_container_add(GTK_CONTAINER(container), content);
 	gtk_container_add(GTK_CONTAINER(content), sidebar_revealer);
-	//gtk_container_add(GTK_CONTAINER(sidebar_revealer), sidebar_placeholder);
 	gtk_container_add(GTK_CONTAINER(content), notebook);
 
 	create_tab(NULL);
