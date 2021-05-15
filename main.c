@@ -34,6 +34,10 @@ GtkWidget *window;
 //GtkWidget *stack;
 GtkWidget *notebook;
 GtkWidget *sidebar_revealer;
+GtkWidget *sidebar;
+#define SIDEBAR_WIDTH_BIG 800
+#define SIDEBAR_WIDTH_SMALL 200
+int sidebar_width = SIDEBAR_WIDTH_SMALL;
 
 /*void add_highlighting(GtkTextBuffer *text_buffer) {
 	g_print("add_highlighting()\n");
@@ -811,6 +815,26 @@ gboolean toggle_sidebar(GdkEventKey *key_event)
 	return TRUE;
 }
 
+gboolean toggle_sidebar_size(GdkEventKey *key_event)
+{
+	printf("Should toggle the size of the sidebar...\n");
+	/*if(gtk_revealer_get_reveal_child(GTK_REVEALER(sidebar_revealer)) == TRUE) { // If revealed:
+		printf("Should toggle the size of the sidebar...\n");
+	} else { // If not revealed:
+		printf("Sidebar not revealed. Shouldnt do anything...\n");
+	}*/
+
+	if (sidebar_width == SIDEBAR_WIDTH_SMALL) {
+		sidebar_width = SIDEBAR_WIDTH_BIG;
+	} else { // SIDEBAR_BIG
+		sidebar_width = SIDEBAR_WIDTH_SMALL;
+	}
+	gtk_widget_set_size_request(sidebar, sidebar_width, -1);
+
+
+	return TRUE;
+}
+
 gboolean toggle_search_entry(GdkEventKey *key_event)
 {
 	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
@@ -1086,6 +1110,7 @@ void activate_handler(GtkApplication *app, gpointer data) {
 	key_combinations[CTRL][41] = toggle_search_entry; // ctrl + f
 	key_combinations[CTRL][42] = toggle_sidebar; // ctrl + g
 	key_combinations[CTRL][43] = toggle_command_entry; // ctrl + h
+	key_combinations[CTRL][44] = toggle_sidebar_size; // ctrl + j
 
 
 	char *css_file = "themes/css";
@@ -1111,7 +1136,8 @@ void activate_handler(GtkApplication *app, gpointer data) {
 	gtk_style_context_add_class (gtk_widget_get_style_context(sidebar_revealer), "sidebar_revealer");
 
 	GtkWidget *create_sidebar(); //@
-	GtkWidget *sidebar = create_sidebar();
+	sidebar = create_sidebar();
+	gtk_widget_set_size_request(sidebar, sidebar_width, -1);
 	gtk_container_add(GTK_CONTAINER(sidebar_revealer), sidebar);
 
 	notebook = gtk_notebook_new();

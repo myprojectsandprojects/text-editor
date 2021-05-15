@@ -369,6 +369,12 @@ void on_list_row_selected(GtkListBox *list, GtkListBoxRow *row, gpointer data)
 	gtk_widget_set_size_request(search_results_scroll, 1000, 300);
 }
 
+gboolean on_search_results_scroll_focus()
+{
+	printf("FOCUS!\n");
+	return FALSE;
+}
+
 
 GtkWidget* create_sidebar()
 {
