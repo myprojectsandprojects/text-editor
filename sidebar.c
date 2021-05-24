@@ -5,6 +5,11 @@
 #include <string.h>
 #include <assert.h>
 
+#include "tab.h"
+
+
+GtkWidget *create_tab(const char *file_name);
+
 
 GtkTreeStore *create_tree_store();
 GtkWidget *root_selection;
@@ -92,7 +97,7 @@ void on_tree_view_row_activated(GtkTreeView *tree_view, GtkTreePath *path, GtkTr
 	} else if(S_ISREG(fs_node_info.st_mode)) {
 		printf("\"%s\" is a regular file\n", node_full_path);
 		//@ cant open a file which is not a text file. well get gtk errors for now
-		create_tab(node_full_path); //@ we havent seen the declaration
+		create_tab(node_full_path);
 	} else {
 		printf("\"%s\" is an unknown thing\n", node_full_path);
 	}
@@ -159,7 +164,7 @@ GtkTreeIter append_node_to_store(GtkTreeStore *store, GtkTreeIter *parent, const
 
 void create_nodes_for_directory(GtkTreeStore *store, GtkTreeIter *parent, const char *dir_path, int max_depth)
 {
-	g_print("create_nodes_for_directory called!\n");
+	//g_print("create_nodes_for_directory called!\n");
 	--max_depth;
 
 	DIR *dir = opendir(dir_path);
@@ -335,6 +340,12 @@ void on_search_button_clicked(GtkButton *search_button, gpointer data)
 
 		GtkWidget *search_result = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
+		char *file_path_copy = malloc(strlen(file_path) + 1);
+		strcpy(file_path_copy, file_path);
+		g_object_set_data(G_OBJECT(search_result), "file-path", file_path_copy); //@ free?
+		unsigned long line_num = atoi(line_number); // void * -> 64 bits, unsigned long -> 64 bits
+		g_object_set_data(G_OBJECT(search_result), "line-num", (void *) line_num);
+
 		int root_length = strlen(root_dir);
 		GtkWidget *file_path_label = gtk_label_new(&file_path[root_length + 1]);
 		char line_text[100];
@@ -362,18 +373,59 @@ void on_search_button_clicked(GtkButton *search_button, gpointer data)
 	pclose(fd);
 }
 
+gboolean tab_scroll_to(gpointer data)
+{
+	printf("tab_scroll_to() called!\n");
+
+	void **args = (void **) data;
+	GtkWidget *tab = (GtkWidget *) args[0];
+	unsigned long line_num = (unsigned long) args[1]; // void * -> 64 bits, unsigned long -> 64 bits
+
+	GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
+	GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
+	assert(text_view != NULL && GTK_IS_TEXT_VIEW(text_view));
+	assert(text_buffer != NULL && GTK_IS_TEXT_BUFFER(text_buffer));
+	printf("should scroll to line: %lu\n", line_num);
+	
+	GtkTextIter iter;
+	gtk_text_buffer_get_iter_at_line(text_buffer, &iter, line_num - 1);
+	gtk_widget_grab_focus(GTK_WIDGET(text_view));
+	gtk_text_buffer_place_cursor(text_buffer, &iter);
+	gtk_text_view_scroll_to_iter(text_view, &iter, 0.0, FALSE, 0.0, 0.0);
+
+	return FALSE; // dont call again!
+	//return TRUE; // call again!
+}
+
 void on_list_row_selected(GtkListBox *list, GtkListBoxRow *row, gpointer data)
 {
 	printf("on_list_row_selected() called..\n");
 
-	gtk_widget_set_size_request(search_results_scroll, 1000, 300);
+	/* It seems that when we delete the list-boxes rows (meaning: search results) in on_search_button_clicked() and a list row is currently selected then this handler will run. In that case we dont want to do anything though. */
+	if (row == NULL) {
+		printf("on_list_row_selected(): nothing selected..\n");
+		return;
+	}
+
+	GtkWidget *search_result = gtk_bin_get_child(GTK_BIN(row));
+	char *file_path = g_object_get_data(G_OBJECT(search_result), "file-path");
+	unsigned long line_num = (unsigned long) g_object_get_data(G_OBJECT(search_result), "line-num"); // void * -> 64 bits, unsigned long -> 64 bits
+	GtkWidget *tab = create_tab(file_path);
+
+	/* Well wait for 1 secs, then scroll to the line that contains the search-phrase. We cant do it here immediately. No clue why. @ Need to look for a better way. */
+	void **args = malloc(2 * sizeof(void *));
+	args[0] = (void *) tab;
+	args[1] = (void *) line_num;
+
+	g_timeout_add_seconds(1, tab_scroll_to, args);
 }
 
-gboolean on_search_results_scroll_focus()
+/*void on_list_row_activated(GtkListBox *list, GtkListBoxRow *row, gpointer data)
 {
-	printf("FOCUS!\n");
-	return FALSE;
-}
+	printf("on_list_row_activated() called..\n");
+
+	//gtk_widget_set_size_request(search_results_scroll, 1000, 300);
+}*/
 
 
 GtkWidget* create_sidebar()
@@ -425,7 +477,7 @@ GtkWidget* create_sidebar()
 
 	list = gtk_list_box_new();
 	//g_signal_connect(list, "row-selected", G_CALLBACK(on_list_row_selected), NULL);
-	//search_results = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	g_signal_connect(list, "row-activated", G_CALLBACK(on_list_row_selected), NULL);
 	search_results_scroll = gtk_scrolled_window_new(NULL, NULL);
 	gtk_widget_set_vexpand(search_results_scroll, TRUE);
 	//gtk_scrolled_window_set_policy(search_results_scroll, GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);

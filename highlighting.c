@@ -203,6 +203,16 @@ void highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end)
 void create_tags(GtkTextBuffer *text_buffer)
 {
 	printf("create_tags called\n");
+
+	// check if we already have the tags to avoid gtk warnings..
+	GtkTextTagTable *table = gtk_text_buffer_get_tag_table(text_buffer);
+	int size = gtk_text_tag_table_get_size(table);
+	if (size != 0) {
+		printf("create_tags(): tags already created. no need to create them.\n");
+		return;
+	}
+
+	printf("create_tags(): creating tags.\n");
 	gtk_text_buffer_create_tag(text_buffer, "comment", "style", PANGO_STYLE_ITALIC, "foreground", "green", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "operator", "foreground", "red", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "number", "foreground", "blue", NULL);
@@ -222,7 +232,7 @@ void create_tags(GtkTextBuffer *text_buffer)
 
 void on_text_buffer_changed_for_highlighting(GtkTextBuffer *buffer, gpointer data)
 {
-	g_print("on_text_buffer_changed_for_highlighting() called!\n");
+	printf("on_text_buffer_changed_for_highlighting() called!\n");
 
 	if (strchr(global_text, '\"') || strchr(global_text, '\\')) { // backslash could escape a doublequote, hence
 		GtkTextIter text_start, text_end;
@@ -278,6 +288,7 @@ g_print("after\n");
 
 void on_text_buffer_insert_text_for_highlighting(GtkTextBuffer *buffer, GtkTextIter *location, char *text, int length, gpointer data)
 {
+	printf("on_text_buffer_insert_text_for_highlighting() called!\n");
 	/*GtkTextIter start, end;
 	gtk_text_buffer_get_bounds(buffer, &start, &end);
 	const char *contents = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);*/
@@ -290,6 +301,7 @@ void on_text_buffer_insert_text_for_highlighting(GtkTextBuffer *buffer, GtkTextI
 
 void on_text_buffer_delete_range_for_highlighting(GtkTextBuffer *buffer, GtkTextIter *start, GtkTextIter *end)
 {
+	printf("on_text_buffer_delete_range_for_highlighting() called!\n");
 	global_location_offset = gtk_text_iter_get_offset(start);
 	global_text = gtk_text_buffer_get_text(buffer, start, end, FALSE);
 	global_length = 0;
@@ -303,9 +315,29 @@ void init_highlighting(GtkTextBuffer *text_buffer)
 	gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
 	highlight(text_buffer, &start_buffer, &end_buffer);
 
-	g_signal_connect(text_buffer, "changed", G_CALLBACK(on_text_buffer_changed_for_highlighting), NULL);
-	g_signal_connect(text_buffer, "insert-text", G_CALLBACK(on_text_buffer_insert_text_for_highlighting), NULL);
-	g_signal_connect(text_buffer, "delete-range", G_CALLBACK(on_text_buffer_delete_range_for_highlighting), NULL);
+	unsigned long ids;
+	ids = g_signal_connect(text_buffer, "changed", G_CALLBACK(on_text_buffer_changed_for_highlighting), NULL);
+	g_object_set_data(G_OBJECT(text_buffer), "changed-handler-4-highlighting", (void *) ids);
+	ids = g_signal_connect(text_buffer, "insert-text", G_CALLBACK(on_text_buffer_insert_text_for_highlighting), NULL);
+	g_object_set_data(G_OBJECT(text_buffer), "insert-text-handler-4-highlighting", (void *) ids);
+	ids = g_signal_connect(text_buffer, "delete-range", G_CALLBACK(on_text_buffer_delete_range_for_highlighting), NULL);
+	g_object_set_data(G_OBJECT(text_buffer), "delete-range-handler-4-highlighting", (void *) ids);
+}
+
+void remove_highlighting(GtkTextBuffer *text_buffer)
+{
+	GtkTextIter range_start, range_end;
+	gtk_text_buffer_get_bounds(text_buffer, &range_start, &range_end);
+	gtk_text_buffer_remove_all_tags(text_buffer, &range_start, &range_end);
+
+	// remove signal handlers
+	unsigned long ids;
+	ids = (unsigned long) g_object_get_data(G_OBJECT(text_buffer), "changed-handler-4-highlighting");
+	g_signal_handler_disconnect(text_buffer, ids);
+	ids = (unsigned long) g_object_get_data(G_OBJECT(text_buffer), "insert-text-handler-4-highlighting");
+	g_signal_handler_disconnect(text_buffer, ids);
+	ids = (unsigned long) g_object_get_data(G_OBJECT(text_buffer), "delete-range-handler-4-highlighting");
+	g_signal_handler_disconnect(text_buffer, ids);
 }
 
 

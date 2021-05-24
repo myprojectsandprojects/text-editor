@@ -157,8 +157,10 @@ void init_undo(GtkWidget *tab)
 {
 	printf("init_undo() called\n");
 
-	GtkTextView *text_view = tab_get_text_view(tab);
-	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
+/*	GtkTextView *text_view = tab_get_text_view(tab);
+	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);*/
+
+	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
 
 	g_signal_connect(G_OBJECT(text_buffer), "insert-text", G_CALLBACK(on_text_buffer_insert_text), tab);
 	g_signal_connect(G_OBJECT(text_buffer), "delete-range", G_CALLBACK(on_text_buffer_delete_range), tab);
@@ -166,8 +168,10 @@ void init_undo(GtkWidget *tab)
 
 void actually_undo_last_action(GtkWidget *tab)
 {
-	GtkTextView *text_view = tab_get_text_view(tab);
-	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
+	/*GtkTextView *text_view = tab_get_text_view(tab);
+	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);*/
+
+	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
 
 	struct TabInfo *tab_info = (struct TabInfo *) g_object_get_data(G_OBJECT(tab), "tab-info");
 	//printf("actually_undo_last_action() for tab number %d called.\n", tab_info->id);

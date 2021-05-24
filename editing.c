@@ -1,8 +1,8 @@
 #include <gtk/gtk.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include "tab.h"
-//GtkTextView *tab_get_text_view(GtkWidget *tab); //@ mess
 
 extern GtkWidget *notebook;
 
@@ -56,15 +56,15 @@ void unindent_selected_block(GtkTextBuffer *text_buffer, GtkTextIter *selection_
 /*
 	returns TRUE if handled the tab, otherwise FALSE
 */
-gboolean handle_tab_key(GtkWidget *tab, GdkEventKey *key_event)
+gboolean handle_tab_key(GtkTextBuffer *text_buffer, GdkEventKey *key_event)
 {
 	g_print("handle_tab_key: called!\n");
 
 /* In Gedit tab + shift only unindents lines regardless of where in the line the cursor is... 
 tab inserts tabs or replaces selected text with a tab as long as the selection doesnt span across multiple lines in which case it indents the selected lines. */
 
-	GtkTextView *text_view = tab_get_text_view(tab);
-	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
+	assert(GTK_IS_TEXT_BUFFER(text_buffer));
+
 	GtkTextIter selection_start, selection_end;
 	gtk_text_buffer_get_selection_bounds(text_buffer, &selection_start, &selection_end);
 
@@ -169,7 +169,8 @@ void actually_autocomplete_character(GtkTextBuffer *text_buffer, char character)
 gboolean move_lines_up(GdkEventKey *key_event)
 {
 	GtkTextBuffer *text_buffer;
-	if ((text_buffer = get_visible_text_buffer(GTK_NOTEBOOK(notebook))) == NULL) {
+	text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
+	if (text_buffer == NULL) {
 		printf("No tabs open! Nothing to do...\n");
 		return FALSE;
 	}
@@ -206,7 +207,8 @@ gboolean move_lines_up(GdkEventKey *key_event)
 gboolean move_lines_down(GdkEventKey *key_event)
 {
 	GtkTextBuffer *text_buffer;
-	if ((text_buffer = get_visible_text_buffer(GTK_NOTEBOOK(notebook))) == NULL) {
+	text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
+	if (text_buffer == NULL) {
 		printf("No tabs open! Nothing to do...\n");
 		return FALSE;
 	}
@@ -245,7 +247,8 @@ gboolean move_lines_down(GdkEventKey *key_event)
 gboolean duplicate_line(GdkEventKey *key_event)
 {
 	GtkTextBuffer *text_buffer;
-	if ((text_buffer = get_visible_text_buffer(GTK_NOTEBOOK(notebook))) == NULL) {
+	text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
+	if (text_buffer == NULL) {
 		printf("No tabs open! Nothing to do...\n");
 		return FALSE;
 	}

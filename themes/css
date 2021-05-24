@@ -1,4 +1,7 @@
-/**/
+/*
+	random comments:
+	* GtkBox cant have a background-color
+*/
 
 GtkWidget {
 	font: Source Code Pro 11;
@@ -10,7 +13,9 @@ GtkApplicationWindow {
 }
 
 GtkTextView {
-	font: Source Code Pro 12;
+	/*font: Source Code Pro 12;*/
+	font: Courier 10 Pitch Bold 13;
+	/*background: #efefef;*/
 }
 
 .command-entry, .search-entry {
@@ -33,7 +38,7 @@ GtkNotebook
 {
 	border-radius: 0px;
 	/*border: solid 3px gray;*/
-	background: white;
+	background: white;/*#efefef;*/
 	color: black;
 	padding: 0 9px;
 }
@@ -46,40 +51,37 @@ GtkNotebook tab
 	padding: 10px 16px;
 }
 
-.info-bar, .info-bar-emphasis {
+/*.info-bar, .info-bar-emphasis {
 	border-top: solid 1px gray;
-	/*background: white;*/ 
 	color: black;
 	padding: 3px;
-}
-
-/*.info-bar-emphasis {
-	font: Source Code Pro 13;
 }*/
 
-/*.search-result {
-	color: blue;
-	background: yellow;
-	decoration: none;
+.status-message-label {
+	color: red;
+}
+
+.line-number-value-label {font-weight: Bold;}
+
+.menu-button {
+	/*border: solid 1px black;
+	border-radius: 0;*/
+	color: black;
 	border: none;
-	border-radius: 0;
+	background: rgba(0,0,0,0);
 }
-
-.search-result:hover {
-	color: red;
-	background: green;
-}
-
-.search-result:active {
-	color: red;
-	background: green;
-}*/
 
 GtkListBox {background: yellow;}
 
 .search-result {/*color: red;*/ font-weight: bold;}
 
 .sidebar_revealer {background: white;}
+
+.status-bar {
+	background: white;
+	border-top: solid 1px gray;
+	font: Ubuntu Mono Bold 16;
+}
 
 
 

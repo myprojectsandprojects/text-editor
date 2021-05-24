@@ -7,8 +7,10 @@
 
 void on_search_entry_changed(GtkEditable *search_entry, gpointer data)
 {
-	printf("search entry changed: make sure search-mark points at the beginning of the buffer!\n");
-
+	/*
+	search entry changed: make sure search-mark points at the beginning of the buffer!
+	*/
+	
 	GtkTextIter start;
 	GtkTextBuffer *text_buffer = (GtkTextBuffer *) data;
 	gtk_text_buffer_get_start_iter(text_buffer, &start);
@@ -19,10 +21,10 @@ void init_search(GtkWidget *tab)
 {
 	printf("init_search() called\n");
 
-	GtkRevealer *search_revealer = tab_get_search_revealer(tab);
-	GtkWidget *search_entry = gtk_bin_get_child(GTK_BIN(search_revealer));
-	GtkTextView *text_view = tab_get_text_view(tab);
-	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
+	GtkRevealer *search_revealer = GTK_REVEALER(tab_retrieve_widget(tab, SEARCH_REVEALER));
+	GtkEntry *search_entry = GTK_ENTRY(tab_retrieve_widget(tab, SEARCH_ENTRY));
+	GtkTextView *text_view = GTK_TEXT_VIEW(tab_retrieve_widget(tab, TEXT_VIEW));
+	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
 
 	GtkTextIter start;
 	gtk_text_buffer_get_start_iter(text_buffer, &start);
@@ -35,13 +37,17 @@ void do_search(GtkWidget *tab)
 {
 	printf("do_search() called!\n");
 
-	GtkRevealer *search_revealer = tab_get_search_revealer(tab);
-	GtkWidget *search_entry = gtk_bin_get_child(GTK_BIN(search_revealer));
-	GtkTextView *text_view = tab_get_text_view(tab);
+	GtkRevealer *search_revealer = GTK_REVEALER(tab_retrieve_widget(tab, SEARCH_REVEALER));
+	//GtkWidget *search_entry = gtk_bin_get_child(GTK_BIN(search_revealer));
+	GtkWidget *search_entry = tab_retrieve_widget(tab, SEARCH_ENTRY);
+	GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
 	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
 
 	const char *text = gtk_entry_get_text(GTK_ENTRY(search_entry)); //@ free?
-	if(strlen(text) == 0) return;
+	if(strlen(text) == 0) {
+		return;
+	}
+
 	g_print("search: searching \"%s\"\n", text);
 
 	GtkTextIter search_iter, match_start, match_end;

@@ -1,8 +1,42 @@
 
+//@ bug: large file + small window size (also toggling the sidebar) crashes application with an X Server message if adding text_view_container to scrolled window.
 //@ bug: cant type single-quotes inside the search-entry
 //@ bug: highlighting: double quotes inside block-comments
 //@ bug: highlighting: backslash inside a string
 //@ bug: changing css of search results from another editor may crash the application...
+//@ bug: autocomplete + entry 4 "search in files"
+//@ bug: highlighting: line comment & preprocessor directive
+
+
+// plausable feature: searching limited to a specific scope somehow? like only inside a function...
+
+// in progress: obviously search-in-files should open & scroll
+// plausable feature: search-in-files: ui should be responsive while searching, sort results, group results under filename, search depth, filter by filename
+// plausable feature: easy way to find & open files by name... in search-in-files we could filter by file name while leaving the search phrase empty (it makes sense to think about an empty string this way) and the results would be just clickable file names? use command entry somehow?
+
+// plausable feature: sort files & dirs in the file-browser? group by type?
+// plausable feature: keeping file browser up-to-date with fs-changes
+
+// plausable feature: can we hide the notebook entirely when maxing the search results window? or at least hide it when the notebook cant be made smaller? 
+
+// plausable feature: we have ctrl + <left/right>, what about ctrl + <up/down>?
+// plausable feature: indent when opening a line
+// plausable feature: delete end of line
+// plausable feature: select a whole line when double clicking on a wrapped line
+
+// plausable feature: shortcut 4 switching between tabs
+// plausable feature: tabs, file changes on disk...
+// plausable feature: opening & highlighting large files is really slow and ui becomes unresponsive (but it eventually manages to do it)
+// plausable feature: what ab opening non-text files?
+
+// in progress: highlighting... 4 different languages and how to support that? no-highlighting option
+
+// plausable feature: conf-file 4 key-combinations
+
+// plausable feature: GtkStatusbar...
+
+// plausable feature: icons...
+
 
 #include <gtk/gtk.h>
 #include <fcntl.h>
@@ -28,10 +62,10 @@ void init_search(GtkWidget *tab);
 void init_undo(GtkWidget *tab);
 void actually_undo_last_action(GtkWidget *tab);
 
-//const char *settings_file = "settings";
+void init_highlighting(GtkTextBuffer *text_buffer);
+void remove_highlighting(GtkTextBuffer *text_buffer);
 
 GtkWidget *window;
-//GtkWidget *stack;
 GtkWidget *notebook;
 GtkWidget *sidebar_revealer;
 GtkWidget *sidebar;
@@ -186,9 +220,8 @@ void tab_set_unsaved_changes_to(GtkWidget *tab, gboolean unsaved_changes)
 
 void text_buffer_changed(GtkTextBuffer *text_buffer, gpointer user_data)
 {
-	g_print("buffer changed!\n");
+	printf("buffer changed!\n");
 
-	//$ GtkWidget *tab = gtk_stack_get_visible_child(GTK_STACK(stack)); // Should really use text_buffer I think!
 	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
 	if (page == -1) {
 		// buffers contents changed, but we have no "current page"... is this possible?
@@ -199,17 +232,12 @@ void text_buffer_changed(GtkTextBuffer *text_buffer, gpointer user_data)
 	struct TabInfo *tab_info = (struct TabInfo *) g_object_get_data(G_OBJECT(tab), "tab-info");
 	if (tab_info->unsaved_changes == FALSE)
 		tab_set_unsaved_changes_to(tab, TRUE);
-
-	// Make sure the title reflects the fact that the tab has unsaved changes.
-	//$ refresh_tab_title(tab, TRUE); // @performance?
-
-	/*GtkTextIter start_buffer, end_buffer;
-	gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
-	highlight(text_buffer, &start_buffer, &end_buffer);*/
 }
 
-void text_buffer_cursor_position_changed(GObject *text_buffer, GParamSpec *pspec, gpointer user_data)
+/* Could use retrieve_widget functions instead of passing in the pointer as an argument to get the label... */
+void text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
 {
+	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
 	int position, line_number;
 	g_object_get(G_OBJECT(text_buffer), "cursor-position", &position, NULL);
 	GtkTextIter i;
@@ -221,15 +249,17 @@ void text_buffer_cursor_position_changed(GObject *text_buffer, GParamSpec *pspec
 	GtkLabel *label = (GtkLabel *) user_data;
 	gtk_label_set_text(label, buffer);
 
+	/* Line highlighting -- it messes up code highlighting. */
 	/*GtkTextIter start, end, start_buffer, end_buffer;
 	gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
 	gtk_text_buffer_remove_tag_by_name(text_buffer, "line-highlight", &start_buffer, &end_buffer);
 	gtk_text_iter_set_line_offset(&i, 0);
 	start = i;
 	gtk_text_iter_forward_line(&i);
-	gtk_text_iter_forward_char(&i);
+	//gtk_text_iter_forward_char(&i);
+	//gtk_text_iter_backward_char(&i);
 	end = i;
-	printf("applying the tag: %d, %d\n", gtk_text_iter_get_offset(&start), gtk_text_iter_get_offset(&end));
+	//printf("applying the tag: %d, %d\n", gtk_text_iter_get_offset(&start), gtk_text_iter_get_offset(&end));
 	gtk_text_buffer_apply_tag_by_name(text_buffer, "line-highlight", &start, &end);*/
 }
 
@@ -316,10 +346,18 @@ void on_button_clicked(GtkButton *button, gpointer data)
 
 void display_search_and_replace_dialog()
 {
-	GtkTextBuffer *text_buffer;
+	/*GtkTextBuffer *text_buffer;
 	if ((text_buffer = get_visible_text_buffer(GTK_NOTEBOOK(notebook))) == NULL) {
 		return; // No tabs, nothing to do..
+	}*/
+
+	GtkTextBuffer *text_buffer;
+	text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
+	if (text_buffer == NULL) {
+		printf("No tabs open! Nothing to do...\n");
+		return;
 	}
+
 	GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(window), "Search & Replace");
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_MOUSE);
@@ -365,14 +403,60 @@ void on_text_view_populate_popup(GtkTextView *text_view, GtkWidget *popup, gpoin
 	//gtk_widget_show(sep);
 	gtk_widget_show(item);
 }
+/*
+gdouble page_size;
+void adjustment_changed(GtkAdjustment *adjustment, gpointer data) {
+	page_size = gtk_adjustment_get_page_size(adjustment);
+	gtk_widget_set_size_request(bottom_margin, -1, page_size); //@ that is not working...
 
-void create_tab(const char *file_name)
+	g_print("adjustment: page-size: %f\n", page_size);
+}
+
+void on_scrolled_window_height_changed(GObject *scrolled_window)
+{
+	printf("scrolled window height changed!\n");
+}
+*/
+void on_scrolled_window_size_allocate(GtkWidget *scrolled_window, GdkRectangle *allocation, gpointer bottom_margin)
+{
+	printf("scrolled window size allocate!\n");
+	printf("width: %d, height: %d\n", allocation->width, allocation->height);
+	gtk_widget_set_size_request(GTK_WIDGET(bottom_margin), allocation->width, allocation->height);
+}
+
+void on_highlighting_selected(GtkMenuItem *item, gpointer data)
+{
+	printf("menuitem selected!\n");
+	const char *selected_item = gtk_menu_item_get_label(item);
+	//printf("label: %s\n", selected_item);
+	GtkLabel *button_label = GTK_LABEL(data);
+
+	const char *button_label_text = gtk_label_get_text(button_label);
+	if (strcmp(button_label_text, selected_item) == 0) {
+		printf("highlighting option already selected. no need to do anything\n");
+		return;
+	}
+
+	gtk_label_set_text(button_label, selected_item);
+
+	/* instead of visible_tab_retrieve_widget() maybe we should have something that gives us a tab to which the widget we already have belongs to. because we have a button label and we want the tab it belongs to. or really we want the buffer */
+	GtkTextBuffer *text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
+	if (strcmp(selected_item, "None") == 0) {
+		printf("removing highlighting...\n");
+		remove_highlighting(text_buffer);
+	} else {
+		printf("initializing highlighting...\n");
+		init_highlighting(text_buffer);
+	}
+}
+
+GtkWidget *create_tab(const char *file_name)
 {
 	static int count = 1;
 	GtkWidget *tab, *scrolled_window;
 	char *tab_title, *tab_name;
 	gchar *contents, *base_name;
-	GFile *file;
+	//GFile *file;
 
 	g_print("create_tab()\n");
 
@@ -380,6 +464,7 @@ void create_tab(const char *file_name)
 	gtk_widget_set_hexpand(tab, TRUE);
 
 	scrolled_window = gtk_scrolled_window_new(NULL, NULL);
+	//gtk_style_context_add_class (gtk_widget_get_style_context(scrolled_window), "scrolled-window");
 	gtk_widget_set_vexpand(scrolled_window, TRUE);
 
 	GtkTextView *text_view = GTK_TEXT_VIEW(gtk_text_view_new());
@@ -402,29 +487,74 @@ void create_tab(const char *file_name)
 	GtkWidget *command_entry = gtk_entry_new();
 	gtk_style_context_add_class(gtk_widget_get_style_context(command_entry), "command-entry");
 
-	GtkWidget *info_bar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	GtkWidget *line_number_label = gtk_label_new("Line ");
-	GtkWidget *line_number_value = gtk_label_new(NULL);
-	GtkWidget *fill = gtk_label_new(NULL);
-	gtk_widget_set_hexpand(fill, TRUE);
 
-	/*gtk_widget_set_name(line_number_label, "line_number_label");
-	gtk_widget_set_name(line_number_value, "line_number_value");
-	gtk_widget_set_name(line_number_value, "fill");*/
-	gtk_style_context_add_class (gtk_widget_get_style_context(line_number_label), "info-bar");
-	gtk_style_context_add_class (gtk_widget_get_style_context(line_number_value), "info-bar-emphasis");
-	gtk_style_context_add_class (gtk_widget_get_style_context(fill), "info-bar");
+	GtkWidget *line_nr_label = gtk_label_new("Line");
+	GtkWidget *line_nr_value = gtk_label_new(NULL);
+	GtkWidget *line_nr_label_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+	gtk_container_add(GTK_CONTAINER(line_nr_label_container), line_nr_label);
+	gtk_container_add(GTK_CONTAINER(line_nr_label_container), line_nr_value);
+
+
+
+	GtkWidget *highlighting_label = gtk_label_new(NULL);
+	//GtkWidget *image = gtk_image_new_from_icon_name("pan-down-symbolic", GTK_ICON_SIZE_LARGE_TOOLBAR);
+	GtkWidget *image = gtk_arrow_new(GTK_ARROW_UP, GTK_SHADOW_NONE); // Its deprecated, but we are using a very old version of gtk currently.
+	GtkWidget *highlighting_menu_button = gtk_menu_button_new();
+	GtkWidget *b = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	gtk_container_add(GTK_CONTAINER(b), highlighting_label);
+	gtk_container_add(GTK_CONTAINER(b), image);
+	gtk_container_add(GTK_CONTAINER(highlighting_menu_button), b);
+
+
+	/* Cant style it throught css. */
+	/*GtkWidget *statusbar = gtk_statusbar_new();
+	gtk_style_context_add_class (gtk_widget_get_style_context(statusbar), "status-bar");
+
+	int id = gtk_statusbar_get_context_id(GTK_STATUSBAR(statusbar), "test");
+	gtk_statusbar_push(GTK_STATUSBAR(statusbar), id, "Hello world!");*/
+	
+	
+	/* Cant set border throught css. */
+	/*GtkWidget *status_bar = gtk_frame_new(NULL);
+	gtk_frame_set_shadow_type(GTK_FRAME(status_bar), GTK_SHADOW_NONE);
+	gtk_style_context_add_class (gtk_widget_get_style_context(status_bar), "status-bar");
+	GtkWidget *status_label = gtk_label_new("Hello world!");
+	gtk_container_add(GTK_CONTAINER(status_bar), status_label);*/
+
+	const char *status_message = "Hello world!";
+	GtkWidget *status_message_label = gtk_label_new(status_message);
+	gtk_label_set_text(GTK_LABEL(status_message_label), "Hello world! Hello universe! Hello multiverse!");
+
+	GtkWidget *status_bar = gtk_grid_new();
+	gtk_grid_set_column_spacing(GTK_GRID(status_bar), 30);
+	gtk_grid_attach(GTK_GRID(status_bar), line_nr_label_container, 0, 0, 1, 1);
+	gtk_grid_attach(GTK_GRID(status_bar), highlighting_menu_button, 1, 0, 1, 1);
+	gtk_grid_attach(GTK_GRID(status_bar), status_message_label, 2, 0, 1, 1);
+
+
+	gtk_style_context_add_class (gtk_widget_get_style_context(line_nr_value), "line-number-value-label");
+	gtk_style_context_add_class (gtk_widget_get_style_context(highlighting_menu_button), "menu-button");
+	gtk_style_context_add_class (gtk_widget_get_style_context(status_message_label), "status-message-label");
+	gtk_style_context_add_class (gtk_widget_get_style_context(status_bar), "status-bar");
+
+
+	/*GtkWidget *text_view_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	GtkWidget *bottom_margin = gtk_frame_new(NULL);
+	gtk_frame_set_shadow_type(GTK_FRAME(bottom_margin), GTK_SHADOW_NONE);
+	//gtk_widget_set_vexpand(bottom_margin, TRUE);
+	gtk_style_context_add_class (gtk_widget_get_style_context(bottom_margin), "bottom-margin");*/
 
 	gtk_container_add(GTK_CONTAINER(tab), search_revealer);
 	gtk_container_add(GTK_CONTAINER(search_revealer), search_entry);
-	gtk_container_add(GTK_CONTAINER(tab), scrolled_window);
+	//gtk_container_add(GTK_CONTAINER(text_view_container), GTK_WIDGET(text_view));
+	//gtk_container_add(GTK_CONTAINER(text_view_container), bottom_margin);
+	//gtk_container_add(GTK_CONTAINER(scrolled_window), text_view_container);
 	gtk_container_add(GTK_CONTAINER(scrolled_window), GTK_WIDGET(text_view));
+	gtk_container_add(GTK_CONTAINER(tab), scrolled_window);
 	gtk_container_add(GTK_CONTAINER(tab), command_revealer);
 	gtk_container_add(GTK_CONTAINER(command_revealer), command_entry);
-	gtk_container_add(GTK_CONTAINER(tab), info_bar);
-	gtk_container_add(GTK_CONTAINER(info_bar), line_number_label);
-	gtk_container_add(GTK_CONTAINER(info_bar), line_number_value);
-	gtk_container_add(GTK_CONTAINER(info_bar), fill);
+	//gtk_container_add(GTK_CONTAINER(tab), statusbar);
+	gtk_container_add(GTK_CONTAINER(tab), status_bar);
 
 	gtk_widget_show_all(GTK_WIDGET(tab));
 
@@ -445,14 +575,22 @@ void create_tab(const char *file_name)
 	count += 1;
 	g_object_set_data(G_OBJECT(tab), "tab-info", tab_info);
 
+	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
 
-	//$ gtk_stack_add_titled(GTK_STACK(stack), tab, tab_name, tab_title);
+	tab_add_widget_4_retrieval(tab, COMMAND_REVEALER, command_revealer);
+	tab_add_widget_4_retrieval(tab, COMMAND_ENTRY, command_entry);
+	tab_add_widget_4_retrieval(tab, SEARCH_REVEALER, search_revealer);
+	tab_add_widget_4_retrieval(tab, SEARCH_ENTRY, search_entry);
+	tab_add_widget_4_retrieval(tab, TEXT_VIEW, text_view);
+	tab_add_widget_4_retrieval(tab, TEXT_BUFFER, text_buffer); //@ haa text-buffer is not a widget! void *?
+	//tab_add_widget_4_retrieval(tab, BOTTOM_MARGIN, bottom_margin);
+
+
 	int page = gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, NULL);
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page);
 
 	tab_set_unsaved_changes_to(tab, FALSE);
 
-	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
 
 	if(file_name != NULL) {
 		char *contents = read_file(file_name); //@ error handling. if we cant open a file, we shouldnt create a tab?
@@ -460,13 +598,43 @@ void create_tab(const char *file_name)
 		free(contents);
 	}
 
-	//add_highlighting(text_buffer);
-	init_highlighting(text_buffer);
+	/* we create the menu here (after we set buffer contents) because we want to do the initial highlighting while creating the menu */
+	GtkWidget *menu = gtk_menu_new();
+
+	//const char *default_highlighting = "None";
+	const char *default_highlighting = "C-ish Highlighting";
+	const char *highlightings[] = {
+		"C-ish Highlighting",
+		"None",
+		NULL
+	};
+
+	int i;
+	for (i = 0; highlightings[i] != NULL; ++i) {
+		//printf("%s\n", languages[i]);
+		GtkWidget *item = gtk_menu_item_new_with_label(highlightings[i]);
+		gtk_menu_attach(GTK_MENU(menu), item, 0, 1, i, i + 1);
+		g_signal_connect(item, "activate", G_CALLBACK(on_highlighting_selected), highlighting_label);
+
+		if (strcmp(highlightings[i], default_highlighting) == 0) {
+			on_highlighting_selected(GTK_MENU_ITEM(item), highlighting_label); // set the highlighting
+		}
+	}
+
+	gtk_widget_show_all(menu);
+
+	gtk_menu_button_set_popup(GTK_MENU_BUTTON(highlighting_menu_button), menu);
+	gtk_menu_button_set_direction(GTK_MENU_BUTTON(highlighting_menu_button), GTK_ARROW_UP);
+
+	/*if (strcmp(gtk_label_get_text(GTK_LABEL(highlighting_label)), "None") != 0) {
+		printf("adding highlighting to tab\n");
+		init_highlighting(text_buffer);
+	} else {
+		printf("adding no highlighting to tab\n");
+	}*/
 
 	init_search(tab);
 	init_undo(tab);
-
-	//$ gtk_stack_set_visible_child(GTK_STACK(stack), tab);
 
 	g_signal_connect(G_OBJECT(text_view), "copy-clipboard", G_CALLBACK(text_view_copy_clipboard), NULL);
 	g_signal_connect(G_OBJECT(text_view), "cut-clipboard", G_CALLBACK(text_view_cut_clipboard), NULL);
@@ -474,10 +642,31 @@ void create_tab(const char *file_name)
 
 	g_signal_connect(G_OBJECT(text_view), "populate-popup", G_CALLBACK(on_text_view_populate_popup), NULL);
 
-	//gtk_text_buffer_create_tag(text_buffer, "line-highlight", "background", "red", "background-set", TRUE, NULL);
-	g_signal_connect(G_OBJECT(text_buffer), "notify::cursor-position", G_CALLBACK(text_buffer_cursor_position_changed), line_number_value);
+	/*gtk_text_buffer_create_tag(text_buffer, "line-highlight", "paragraph-background", "lightgray", NULL);*/
+	text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, line_nr_value);
+	g_signal_connect(G_OBJECT(text_buffer), "notify::cursor-position", G_CALLBACK(text_buffer_cursor_position_changed), line_nr_value);
 
 	g_signal_connect(G_OBJECT(text_buffer), "changed", G_CALLBACK(text_buffer_changed), NULL);
+
+
+	/*GtkAdjustment *adjustment = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scrolled_window));
+	gdouble page_size = gtk_adjustment_get_page_size(adjustment);
+	printf("adjustment: page-size: %f\n", page_size); // 0.0
+	g_signal_connect(G_OBJECT(adjustment), "changed", G_CALLBACK(adjustment_changed), NULL);*/
+	//g_object_set(G_OBJECT(text_view), "margin-bottom", 200, NULL);
+	//gtk_widget_set_vexpand(GTK_WIDGET(text_view), TRUE);
+	/*int height, height_request;
+	gtk_widget_get_size_request(scrolled_window, NULL, &height);
+	g_object_get(G_OBJECT(scrolled_window), "height-request", &height_request, NULL);
+	printf("gtk_widget_get_size_request: height: %d\n", height);
+	printf("height-request: %d\n", height_request);*/
+
+	//g_signal_connect(G_OBJECT(scrolled_window), "notify::height-request", G_CALLBACK(on_scrolled_window_height_changed), NULL);
+	//g_signal_connect(G_OBJECT(scrolled_window), "size-allocate", G_CALLBACK(on_scrolled_window_size_allocate), bottom_margin);
+
+	//gtk_widget_set_size_request(bottom_margin, -1, 1000);
+
+	return tab;
 }
 
 char *get_file_name_from_user(GtkFileChooserAction dialog_type)
@@ -700,6 +889,7 @@ void refresh_application_title(GtkWidget *tab)
 
 void on_notebook_switch_page(GtkNotebook *notebook, GtkWidget *tab, guint page_num, gpointer data)
 {
+	printf("on_notebook_switch_page() called!\n");
 	refresh_application_title(tab);
 }
 
@@ -707,23 +897,29 @@ gboolean on_notebook_focus_in_event(GtkWidget *widget, GdkEvent *event, gpointer
 {
 	g_print("on_notebook_focus_in_event!\n");
 
-	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
-	if (page == -1) {
-		// no tabs open
-		return FALSE;
-	}
-	GtkWidget *tab = gtk_notebook_get_nth_page(GTK_NOTEBOOK(notebook), page);
-
-	GtkTextView *text_view = tab_get_text_view(tab);
-	gtk_widget_grab_focus(GTK_WIDGET(text_view));
+	GtkWidget *text_view = (GtkWidget *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
+	assert(GTK_IS_TEXT_VIEW(text_view));
+	gtk_widget_grab_focus(text_view);
 }
-
+/*
+void on_notebook_page_added(GtkNotebook *notebook, GtkWidget *tab, guint *page_num, gpointer data)
+{
+	printf("on_notebook_page_added!\n");
+}
+*/
 
 // Why not just call editing functions directly?
 gboolean autocomplete_character(GdkEventKey *key_event)
 {
-	GtkTextBuffer *text_buffer;
+	/*GtkTextBuffer *text_buffer;
 	if ((text_buffer = get_visible_text_buffer(GTK_NOTEBOOK(notebook))) == NULL) {
+		printf("No tabs open! Nothing to do...\n");
+		return FALSE;
+	}*/
+
+	GtkTextBuffer *text_buffer;
+	text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
+	if (text_buffer == NULL) {
 		printf("No tabs open! Nothing to do...\n");
 		return FALSE;
 	}
@@ -768,7 +964,7 @@ gboolean duplicate_line(GdkEventKey *key_event)
 gboolean open_line_before(GdkEventKey *key_event)
 {
 	GtkTextBuffer *text_buffer;
-	if ((text_buffer = get_visible_text_buffer(GTK_NOTEBOOK(notebook))) == NULL) {
+	if ((text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER)) == NULL) {
 		printf("No tabs open! Nothing to do...\n");
 		return FALSE;
 	}
@@ -779,7 +975,7 @@ gboolean open_line_before(GdkEventKey *key_event)
 gboolean open_line_after(GdkEventKey *key_event)
 {
 	GtkTextBuffer *text_buffer;
-	if ((text_buffer = get_visible_text_buffer(GTK_NOTEBOOK(notebook))) == NULL) {
+	if ((text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER)) == NULL) {
 		printf("No tabs open! Nothing to do...\n");
 		return FALSE;
 	}
@@ -837,23 +1033,26 @@ gboolean toggle_sidebar_size(GdkEventKey *key_event)
 
 gboolean toggle_search_entry(GdkEventKey *key_event)
 {
-	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
-	if (page == -1) {
-		// no tabs open
+	GtkWidget *search_entry = visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), SEARCH_ENTRY);
+	GtkRevealer *search_revealer = (GtkRevealer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), SEARCH_REVEALER);
+	//GtkRevealer *search_revealer = GTK_REVEALER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), SEARCH_REVEALER));
+	GtkWidget *text_view = visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
+
+	if (search_entry == NULL && search_revealer == NULL && text_view == NULL) {
+		printf("no tabs open -> doing nothing\n");
 		return FALSE;
 	}
-	GtkWidget *tab = gtk_notebook_get_nth_page(GTK_NOTEBOOK(notebook), page);
 
-	GtkRevealer *search_revealer = tab_get_search_revealer(tab);
-	GtkWidget *search_entry = gtk_bin_get_child(GTK_BIN(search_revealer));
-	GtkTextView *text_view = tab_get_text_view(tab);
+	assert(search_entry != NULL);
+	assert(search_revealer != NULL);
+	assert(text_view != NULL);
 
 	if(gtk_revealer_get_reveal_child(search_revealer) == FALSE) { // not revealed
 		gtk_revealer_set_reveal_child(search_revealer, TRUE);
 		gtk_widget_grab_focus(search_entry);
-	} else if(gtk_widget_is_focus(GTK_WIDGET(search_entry))) { // revealed
+	} else if(gtk_widget_is_focus(search_entry)) { // revealed
 		gtk_revealer_set_reveal_child(search_revealer, FALSE);
-		gtk_widget_grab_focus(GTK_WIDGET(text_view));
+		gtk_widget_grab_focus(text_view);
 	} else {
 		gtk_widget_grab_focus(search_entry);
 	}
@@ -870,16 +1069,19 @@ gboolean toggle_command_entry(GdkEventKey *key_event)
 	}
 	GtkWidget *tab = gtk_notebook_get_nth_page(GTK_NOTEBOOK(notebook), page);
 
-	GtkRevealer *command_revealer = tab_get_command_revealer(tab);
-	GtkWidget *command_entry = gtk_bin_get_child(GTK_BIN(command_revealer));
-	GtkTextView *text_view = tab_get_text_view(tab);
+	GtkRevealer *command_revealer = GTK_REVEALER(tab_retrieve_widget(tab, COMMAND_REVEALER));
+	assert(GTK_IS_REVEALER(command_revealer));
+	GtkWidget *command_entry = tab_retrieve_widget(tab, COMMAND_ENTRY);
+	assert(GTK_IS_ENTRY(command_entry));
+	GtkWidget *text_view = tab_retrieve_widget(tab, TEXT_VIEW);
+	assert(GTK_IS_TEXT_VIEW(text_view));
 
 	if(gtk_revealer_get_reveal_child(command_revealer) == FALSE) { // not revealed
 		gtk_revealer_set_reveal_child(command_revealer, TRUE);
 		gtk_widget_grab_focus(command_entry);
-	} else if(gtk_widget_is_focus(GTK_WIDGET(command_entry))) { // revealed
+	} else if(gtk_widget_is_focus(command_entry)) { // revealed & focus
 		gtk_revealer_set_reveal_child(command_revealer, FALSE);
-		gtk_widget_grab_focus(GTK_WIDGET(text_view));
+		gtk_widget_grab_focus(text_view);
 	} else {
 		gtk_widget_grab_focus(command_entry);
 	}
@@ -887,44 +1089,42 @@ gboolean toggle_command_entry(GdkEventKey *key_event)
 	return TRUE;
 }
 
+/* tab-handling should probably be refactored in a more sensible way */
 gboolean handle_tab(GdkEventKey *key_event)
 {
-	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
-	if (page == -1) {
-		// no tabs open
+	GtkTextBuffer *text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
+	if (text_buffer == NULL) {
+		printf("no tabs open\n");
 		return FALSE;
 	}
-	GtkWidget *tab = gtk_notebook_get_nth_page(GTK_NOTEBOOK(notebook), page);
 
-	if(handle_tab_key(tab, key_event) == TRUE) return TRUE; // We handled the tab...
+	if(handle_tab_key(text_buffer, key_event) == TRUE) return TRUE; // We handled the tab...
 	return FALSE; // Otherwise, we dont know...
 }
 
 gboolean handle_enter(GdkEventKey *key_event)
 {
-	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
-	if (page == -1) {
-		// no tabs open
+	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
+	if(tab == NULL) {
+		printf("no tabs open -> doing nothing\n");
 		return FALSE;
 	}
-	GtkWidget *tab = gtk_notebook_get_nth_page(GTK_NOTEBOOK(notebook), page);
 
-	//$$
-	GtkRevealer *search_revealer = tab_get_search_revealer(tab);
-	GtkWidget *search_entry = gtk_bin_get_child(GTK_BIN(search_revealer));
+	//GtkWidget *search_entry = visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), SEARCH_ENTRY);
+	GtkWidget *search_entry = tab_retrieve_widget(tab, SEARCH_ENTRY);
 	if(gtk_widget_is_focus(search_entry) == TRUE) {
 		do_search(tab);
 		return TRUE;
 	}
 
-	GtkRevealer *command_revealer = tab_get_command_revealer(tab);
-	GtkWidget *command_entry = gtk_bin_get_child(GTK_BIN(command_revealer));
+	//GtkWidget *command_entry = visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), COMMAND_ENTRY);
+	GtkWidget *command_entry = tab_retrieve_widget(tab, COMMAND_ENTRY);
 	if(gtk_widget_is_focus(command_entry) == TRUE) {
 		const char *text = gtk_entry_get_text(GTK_ENTRY(command_entry)); //@ free?
 		if(strlen(text) == 0) {
 			return TRUE;
 		}
-		GtkTextView *text_view = tab_get_text_view(tab);
+		GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
 		GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
 		int line_number = atoi(text);
 		//@ Should check if valid line number maybe...
@@ -956,14 +1156,14 @@ gboolean undo_last_action(GdkEventKey *key_event)
 
 gboolean do_save(GdkEventKey *key_event)
 {
-	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
-	if (page == -1) {
-		// no tabs open
+	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
+	if (tab == NULL) {
+		printf("no tabs open -> doing nothing\n");
 		return FALSE;
 	}
 
-	GtkWidget *tab = gtk_notebook_get_nth_page(GTK_NOTEBOOK(notebook), page);
-	GtkTextView *text_view = tab_get_text_view(tab);
+	GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
+	assert(text_view != NULL);
 	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
 
 	GtkTextIter start, end;
@@ -1014,7 +1214,11 @@ void apply_css_from_file(const char *file_name)
 	GFile *css_file = g_file_new_for_path(file_name);
 	gtk_css_provider_load_from_file(provider, css_file, NULL);
 	assert(screen != NULL); assert(provider != NULL);
+	//printf("before gtk_style_context_add_provider_for_screen\n");
 	gtk_style_context_add_provider_for_screen(screen, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+	//gtk_style_context_add_provider_for_screen(screen, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_FALLBACK);
+	//printf("after gtk_style_context_add_provider_for_screen\n");
+	//gtk_widget_show_all(window);
 }
 
 void *watch_for_changes(void *data)
@@ -1143,6 +1347,7 @@ void activate_handler(GtkApplication *app, gpointer data) {
 	notebook = gtk_notebook_new();
 	g_signal_connect(notebook, "switch-page", G_CALLBACK(on_notebook_switch_page), NULL);
 	g_signal_connect(notebook, "focus-in-event", G_CALLBACK(on_notebook_focus_in_event), NULL);
+	//g_signal_connect(notebook, "page-added", G_CALLBACK(on_notebook_page_added), NULL);
 
 	g_signal_connect(window, "key-press-event", G_CALLBACK(on_window_key_press_event), NULL);
 
