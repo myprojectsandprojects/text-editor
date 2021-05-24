@@ -5,10 +5,8 @@
 #include <string.h>
 #include <assert.h>
 
+#include "general.h"
 #include "tab.h"
-
-
-GtkWidget *create_tab(const char *file_name);
 
 
 GtkTreeStore *create_tree_store();
@@ -329,7 +327,6 @@ void on_search_button_clicked(GtkButton *search_button, gpointer data)
 	g_list_free(previous_results); //@ are we freeing everything?
 
 	char *line;
-	char *get_slice_by(char **p_s, char ch); //@ ...
 	while ((line = get_slice_by(&contents, '\n')) != NULL) {
 		//printf("line: %s\n", line);
 		char *file_path = get_slice_by(&line, ':');

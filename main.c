@@ -47,23 +47,8 @@
 #include <sys/inotify.h>
 #include <limits.h> // for NAME_MAX
 
+#include "general.h"
 #include "tab.h"
-
-//void apply_settings(GtkWidget *widget);
-char *read_file(const char *filename);
-void write_file(const char *filename, const char *contents); // @ can fail
-//void apply_style(GtkWidget *widget);
-char *get_base_name(const char *file_name);
-void refresh_application_title(GtkWidget *tab);
-//void on_text_buffer_delete_range(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end, gpointer data);
-//void on_text_buffer_insert_text(GtkTextBuffer *text_buffer, GtkTextIter *location, char *text, int len, gpointer user_data);
-
-void init_search(GtkWidget *tab);
-void init_undo(GtkWidget *tab);
-void actually_undo_last_action(GtkWidget *tab);
-
-void init_highlighting(GtkTextBuffer *text_buffer);
-void remove_highlighting(GtkTextBuffer *text_buffer);
 
 GtkWidget *window;
 GtkWidget *notebook;
@@ -625,13 +610,6 @@ GtkWidget *create_tab(const char *file_name)
 
 	gtk_menu_button_set_popup(GTK_MENU_BUTTON(highlighting_menu_button), menu);
 	gtk_menu_button_set_direction(GTK_MENU_BUTTON(highlighting_menu_button), GTK_ARROW_UP);
-
-	/*if (strcmp(gtk_label_get_text(GTK_LABEL(highlighting_label)), "None") != 0) {
-		printf("adding highlighting to tab\n");
-		init_highlighting(text_buffer);
-	} else {
-		printf("adding no highlighting to tab\n");
-	}*/
 
 	init_search(tab);
 	init_undo(tab);
