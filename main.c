@@ -893,14 +893,15 @@ gboolean autocomplete_character(GdkEventKey *key_event)
 		return FALSE;
 	}*/
 
-	GtkTextBuffer *text_buffer;
-	text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
-	if (text_buffer == NULL) {
-		printf("No tabs open! Nothing to do...\n");
+	GtkWidget *text_view = GTK_WIDGET(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
+	if (GTK_IS_TEXT_VIEW(text_view) == FALSE || gtk_widget_is_focus(text_view) == FALSE) {
+		printf("autocomplete_character(): early-out...\n");
 		return FALSE;
 	}
 
+	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
 	actually_autocomplete_character(text_buffer, (char) key_event->keyval);
+
 	return TRUE;
 }
 /*
