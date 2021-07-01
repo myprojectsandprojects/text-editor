@@ -977,6 +977,27 @@ gboolean close_tab(GdkEventKey *key_event)
 	return TRUE;
 }
 
+gboolean switch_tab(GdkEventKey *key_event)
+{
+	int n_pages = gtk_notebook_get_n_pages(GTK_NOTEBOOK(notebook));
+	//printf("switch_tab(): n_pages: %d\n", n_pages);
+	int current_page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook)); // returns -1 if no pages, starts counting from 0
+	//printf("switch_tab(): page_n: %d\n", current_page);
+
+	if (n_pages < 2) {
+		printf("switch_tab(): less than 2 tabs open -> nowhere to go...\n");
+		return TRUE;
+	}
+
+	int last_page = n_pages - 1;
+	int target_page = current_page + 1;
+	if (target_page > last_page) target_page = 0;
+
+	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), target_page);
+
+	return TRUE;
+}
+
 gboolean less_fancy_toggle_sidebar(GdkEventKey *key_event)
 {
 	if (gtk_widget_is_visible(sidebar_container) == TRUE)
@@ -1299,6 +1320,7 @@ void activate_handler(GtkApplication *app, gpointer data) {
 
 	key_combinations[CTRL][57] = create_empty_tab; // ctrl + n
 	key_combinations[CTRL][58] = close_tab; // ctrl + m
+	key_combinations[CTRL][45] = switch_tab; // ctrl + k
 
 	key_combinations[CTRL][39] = do_save; // ctrl + s
 	key_combinations[CTRL][32] = do_open; // ctrl + o
