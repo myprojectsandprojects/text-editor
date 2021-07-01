@@ -1406,8 +1406,9 @@ void activate_handler(GtkApplication *app, gpointer data) {
 	sidebar_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_container_add(GTK_CONTAINER(sidebar_container), root_selection);
 	gtk_container_add(GTK_CONTAINER(sidebar_container), sidebar_notebook);
-	/*gtk_container_add(GTK_CONTAINER(sidebar_scrollbars), sidebar_notebook);
-	gtk_container_add(GTK_CONTAINER(sidebar_container), sidebar_scrollbars);*/
+	gtk_style_context_add_class (
+		gtk_widget_get_style_context(sidebar_container),
+		"sidebar-container");
 
 	//gtk_widget_set_vexpand(sidebar_container, TRUE);
 	//gtk_widget_set_hexpand(sidebar_container, TRUE);

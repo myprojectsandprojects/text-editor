@@ -83,9 +83,7 @@ GtkListBox {background: yellow;}
 	font: Ubuntu Mono Bold 16;
 }
 
-.notebook-revealer {background: red;}
-
-
+.sidebar-container * {color: black;}
 
 
 
