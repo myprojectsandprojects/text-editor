@@ -34,3 +34,5 @@ void *visible_tab_retrieve_widget(GtkNotebook *notebook, enum WidgetName widget_
 	/*struct TabInfo *tab_info = (struct TabInfo *) g_object_get_data(G_OBJECT(tab), "tab-info");
 	return tab_widgets[tab_info->id][widget_name];*/
 }
+
+

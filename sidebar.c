@@ -31,7 +31,7 @@ void root_selection_changed(GtkComboBoxText *root_selection, gpointer data)
 {
 	const char *text = gtk_combo_box_text_get_active_text(root_selection);
 	if (text == NULL) return;
-	g_print("text: %s\n", text);
+	printf("text: %s\n", text);
 
 	sprintf(root_dir, "%s", text);
 	gtk_tree_view_set_model(GTK_TREE_VIEW(tree_view), GTK_TREE_MODEL(create_tree_store()));

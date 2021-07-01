@@ -75,13 +75,15 @@ GtkListBox {background: yellow;}
 
 .search-result {/*color: red;*/ font-weight: bold;}
 
-.sidebar_revealer {background: white;}
+.sidebar-revealer {background: white;}
 
 .status-bar {
 	background: white;
 	border-top: solid 1px gray;
 	font: Ubuntu Mono Bold 16;
 }
+
+.notebook-revealer {background: red;}
 
 
 
