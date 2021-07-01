@@ -1,11 +1,9 @@
 
 //@ bug: large file + small window size (also toggling the sidebar) crashes application with an X Server message if adding text_view_container to scrolled window.
-//@ bug: cant type single-quotes inside the search-entry
 //@ bug: highlighting: double quotes inside block-comments
 //@ bug: highlighting: backslash inside a string
-//@ bug: changing css of search results from another editor may crash the application... (try to time the procedure-call: g_timeout_add_seconds())
-//@ bug: autocomplete + entry 4 "search in files"
 //@ bug: highlighting: line comment & preprocessor directive
+//@ bug: changing css of search results from another editor may crash the application... (try to time the procedure-call: g_timeout_add_seconds())
 
 
 // bash commands: locate [pattern], sudo updatedb (fast)
@@ -884,15 +882,9 @@ void on_notebook_switch_page(GtkNotebook *notebook, GtkWidget *tab, guint page_n
 	refresh_application_title(tab);
 }
 
-// Why not just call editing functions directly?
+/* Another way to implement autocomplete would be to intercept later on when handling the buffers insert-text event. */
 gboolean autocomplete_character(GdkEventKey *key_event)
 {
-	/*GtkTextBuffer *text_buffer;
-	if ((text_buffer = get_visible_text_buffer(GTK_NOTEBOOK(notebook))) == NULL) {
-		printf("No tabs open! Nothing to do...\n");
-		return FALSE;
-	}*/
-
 	GtkWidget *text_view = GTK_WIDGET(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
 	if (GTK_IS_TEXT_VIEW(text_view) == FALSE || gtk_widget_is_focus(text_view) == FALSE) {
 		printf("autocomplete_character(): early-out...\n");

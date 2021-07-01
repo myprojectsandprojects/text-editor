@@ -133,9 +133,14 @@ void actually_open_line_after(GtkTextBuffer *text_buffer)
 
 	GtkTextMark *cursor = gtk_text_buffer_get_mark(text_buffer, "insert");
 	gtk_text_buffer_get_iter_at_mark(text_buffer, &iter, cursor);
-	gtk_text_iter_forward_line(&iter); // to the beginning of the next line 
-	gtk_text_buffer_insert(text_buffer, &iter, "\n", -1);
-	gtk_text_iter_backward_char(&iter); //@ at the end of the buffer -- bug?
+
+	gtk_text_iter_forward_line(&iter); // to the beginning of the next line or to the end of the current line (if already on the last line)
+	if (gtk_text_iter_is_end(&iter) == FALSE) {
+		gtk_text_buffer_insert(text_buffer, &iter, "\n", -1);
+		gtk_text_iter_backward_char(&iter);
+	} else {
+		gtk_text_buffer_insert(text_buffer, &iter, "\n", -1);
+	}
 	gtk_text_buffer_place_cursor(text_buffer, &iter);
 }
 

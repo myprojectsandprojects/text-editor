@@ -13,6 +13,9 @@ gboolean move_lines_up(GdkEventKey *key_event);
 gboolean move_lines_down(GdkEventKey *key_event);
 gboolean duplicate_line(GdkEventKey *key_event);
 gboolean delete_line(GdkEventKey *key_event);
+void actually_open_line_after(GtkTextBuffer *text_buffer);
+void actually_open_line_before(GtkTextBuffer *text_buffer);
+void actually_autocomplete_character(GtkTextBuffer *text_buffer, char character);
 
 /* fileio.c: */
 char *read_file(const char *filename);
