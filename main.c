@@ -464,7 +464,7 @@ GtkWidget *create_tab(const char *file_name)
 	gtk_widget_set_vexpand(scrolled_window, TRUE);
 
 	GtkTextView *text_view = GTK_TEXT_VIEW(gtk_text_view_new());
-	gtk_text_view_set_pixels_above_lines(text_view, 1);
+	gtk_text_view_set_pixels_above_lines(text_view, 3);
 	gtk_text_view_set_left_margin(text_view, 1);
 	gtk_text_view_set_wrap_mode(text_view, GTK_WRAP_WORD);
 	gint position = 30; // set_tab_stops_internal() in gtksourceview
@@ -1304,6 +1304,7 @@ void activate_handler(GtkApplication *app, gpointer data) {
 	key_combinations[ALT][111] = move_lines_up; // alt + <up arrow>
 	key_combinations[ALT][116] = move_lines_down; // alt + <down arrow>
 	key_combinations[ALT][40] = duplicate_line; // alt + d
+	key_combinations[ALT][119] = delete_line; // alt + <delete>
 	key_combinations[ALT][35] = open_line_before; // alt + õ (35)
 	key_combinations[ALT][51] = open_line_after; // alt + ' (51)
 

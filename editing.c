@@ -283,6 +283,29 @@ gboolean duplicate_line(GdkEventKey *key_event)
 	gtk_text_buffer_delete_mark(text_buffer, end_mark);
 }
 
+gboolean delete_line(GdkEventKey *key_event)
+{
+	printf("delete_line()\n");
+
+	GtkTextBuffer *text_buffer;
+	text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
+	if (text_buffer == NULL) {
+		printf("No tabs open! Nothing to do...\n");
+		return FALSE;
+	}
+
+	GtkTextIter start, end;
+
+	GtkTextMark *cursor = gtk_text_buffer_get_mark(text_buffer, "insert");
+	gtk_text_buffer_get_iter_at_mark(text_buffer, &start, cursor);
+	end = start,
+	gtk_text_iter_set_line_offset(&start, 0);
+	gtk_text_iter_forward_line(&end);
+	gtk_text_buffer_delete(text_buffer, &start, &end);
+
+	return TRUE;
+}
+
 
 
 

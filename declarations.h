@@ -12,6 +12,7 @@ GtkWidget *create_search_in_files_widget();
 gboolean move_lines_up(GdkEventKey *key_event);
 gboolean move_lines_down(GdkEventKey *key_event);
 gboolean duplicate_line(GdkEventKey *key_event);
+gboolean delete_line(GdkEventKey *key_event);
 
 /* fileio.c: */
 char *read_file(const char *filename);
