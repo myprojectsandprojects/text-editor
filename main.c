@@ -1388,14 +1388,20 @@ void activate_handler(GtkApplication *app, gpointer data) {
 	gtk_container_add(GTK_CONTAINER(file_browser_scrollbars), file_browser);
 	//gtk_container_add(GTK_CONTAINER(page_container1), file_browser); // Add file-browser widget directly to the notebook?
 	//gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), page_container1, gtk_label_new("Browse Files"));
-	gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), file_browser_scrollbars, gtk_label_new("Browse Files"));
+	//gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), file_browser_scrollbars, gtk_label_new("Browse Files"));
+	GtkWidget *title_image = gtk_image_new_from_file("icons/blackandwhite/file-browser.png");
+	gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), file_browser_scrollbars, title_image);
+	gtk_widget_set_tooltip_text(title_image, "File Browser");
 
 	//GtkWidget *page_container2 = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	GtkWidget *search_in_files = create_search_in_files_widget();
 	GtkWidget *search_in_files_scrollbars = gtk_scrolled_window_new(NULL, NULL);
 	gtk_container_add(GTK_CONTAINER(search_in_files_scrollbars), search_in_files);
 	//gtk_container_add(GTK_CONTAINER(page_container2), search_in_files);
-	gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), search_in_files_scrollbars, gtk_label_new("Search in Files"));
+	//gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), search_in_files_scrollbars, gtk_label_new("Search in Files"));
+	GtkWidget *title_image2 = gtk_image_new_from_file("icons/blackandwhite/search-in-files.png");
+	gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), search_in_files_scrollbars, title_image2);
+	gtk_widget_set_tooltip_text(title_image2, "Search in Files");
 
 	sidebar_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_container_add(GTK_CONTAINER(sidebar_container), root_selection);

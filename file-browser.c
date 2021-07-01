@@ -52,11 +52,11 @@ void create_nodes_for_directory(GtkTreeStore *store, GtkTreeIter *parent, const 
 			fprintf(stderr, "Failed to lstat \"%s\"\n", entry->d_name); // @error handling
 		
 		if (S_ISDIR(entry_info.st_mode)) {
-			GtkTreeIter this_node = append_node_to_store(store, parent, "folder.png", entry->d_name);
+			GtkTreeIter this_node = append_node_to_store(store, parent, "icons/blackandwhite/folder.png", entry->d_name);
 			if (max_depth > 0)
 				create_nodes_for_directory(store, &this_node, entry_path, max_depth);
 		} else {
-			append_node_to_store(store, parent, "file.png", entry->d_name);
+			append_node_to_store(store, parent, "icons/blackandwhite/file.png", entry->d_name);
 		}
 	}
 	closedir(dir);
@@ -216,3 +216,5 @@ GtkWidget *create_file_browser_widget()
 	//GtkWidget *label = gtk_label_new("file-browser hello world! hello world! hello world! hello world! hello world!");
 	return tree_view;
 }
+
+
