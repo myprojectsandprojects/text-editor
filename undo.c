@@ -233,7 +233,7 @@ void init_undo(GtkWidget *tab)
 
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
 
-	/* @ Could just pass in a tab-id directly? Performance? */
+	/* @ Could just pass in tab-id directly? Performance? */
 	g_signal_connect(G_OBJECT(text_buffer), "insert-text", G_CALLBACK(on_text_buffer_insert_text), tab);
 	g_signal_connect(G_OBJECT(text_buffer), "delete-range", G_CALLBACK(on_text_buffer_delete_range), tab);
 }
