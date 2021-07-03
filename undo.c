@@ -5,8 +5,6 @@
 
 #include "tab.h"
 
-GtkTextView *tab_get_text_view(GtkWidget *tab);
-
 #define DELETE_ACTION 0
 #define INSERT_ACTION 1
 
@@ -25,17 +23,72 @@ struct UserAction {
 	int text_length;
 };
 
-struct UserAction *last_actions[100]; // This is a global variable, so it should be initialized to defaults (NULLs in this case) (?)
+#define CAPACITY 3
+#define IS_EMPTY 0
+#define IS_FULL 1
+#define IS_NEITHER 2
+
+struct ActionsStack {
+	struct UserAction *actions[CAPACITY];
+	int top;
+	int bottom;
+	int state;
+};
+
+struct ActionsStack *create_actions_stack()
+{
+	struct ActionsStack *actions = malloc(sizeof(struct ActionsStack));
+	actions->top = 0;
+	actions->bottom = 0;
+	actions->state = IS_EMPTY;
+	return actions;
+}
+
+void add_action(struct ActionsStack *actions, struct UserAction *action) {
+	if(actions->state == IS_EMPTY) {
+		actions->state = IS_NEITHER;
+	}
+	if(actions->state == IS_FULL) {
+		free(actions->actions[actions->bottom]);
+		if(actions->bottom == CAPACITY - 1) {
+			actions->bottom = 0;
+		}else{
+			actions->bottom++;
+		}
+	}
+	actions->actions[actions->top] = action;
+	if(actions->top == CAPACITY - 1) {
+		actions->top = 0;
+	}else{
+		actions->top++;
+	}
+	if(actions->top == actions->bottom) {
+		actions->state = IS_FULL;
+	}
+}
+
+struct UserAction *get_action(struct ActionsStack *actions) {
+	if(actions->state == IS_FULL) {
+		actions->state = IS_NEITHER;
+	}
+	if(actions->state == IS_EMPTY) {
+		return NULL;
+	}
+	if(actions->top == 0) {
+		actions->top = CAPACITY - 1;
+	}else{
+		actions->top--;
+	}
+	if(actions->top == actions->bottom) {
+		actions->state = IS_EMPTY;
+	}
+	return actions->actions[actions->top];
+}
+
+// This is a global variable, so it should be initialized to defaults (NULLs in this case) (?)
+struct ActionsStack *tab_actions[100];
 
 gboolean ignore = FALSE;
-/*
-gboolean uninitialized = TRUE;
-void init_last_actions_array() {
-	g_print("init_last_actions_array()\n");
-	int i;
-	for(i = 0; i < 100; ++i) last_actions[i] = NULL;
-}
-*/
 
 void on_text_buffer_delete_range(
 	GtkTextBuffer *text_buffer,
@@ -61,7 +114,18 @@ void on_text_buffer_delete_range(
 
 	assert(index < 100);
 
-	if(last_actions[index] != NULL) {
+	if (tab_actions[index] == NULL) {
+		tab_actions[index] = create_actions_stack();
+	}
+
+	struct UserAction *action = malloc(sizeof(struct UserAction));
+	action->type = DELETE_ACTION;
+	action->start_offset = start_offset;
+	action->end_offset = end_offset;
+	sprintf(action->deleted_text_buffer, "%s", deleted_text);
+	add_action(tab_actions[index], action);
+
+	/*if(last_actions[index] != NULL) {
 		if(last_actions[index]->type == DELETE_ACTION
 		&& last_actions[index]->can_buffer == TRUE
 		&& end_offset - start_offset == 1 // 1 character
@@ -98,7 +162,7 @@ void on_text_buffer_delete_range(
 		last_actions[index]->end_offset = end_offset;
 		sprintf(last_actions[index]->deleted_text_buffer, "%s", deleted_text);
 		last_actions[index]->can_buffer = (end_offset - start_offset == 1) ? TRUE : FALSE;
-	}
+	}*/
 }
 
 void on_text_buffer_insert_text(
@@ -125,7 +189,17 @@ void on_text_buffer_insert_text(
 
 	assert(index < 100);
 
-	if(last_actions[index] == NULL) {
+	if (tab_actions[index] == NULL) {
+		tab_actions[index] = create_actions_stack();
+	}
+
+	struct UserAction *action = malloc(sizeof(struct UserAction));
+	action->type = INSERT_ACTION;
+	action->location_offset = location_offset;
+	action->text_length = length;
+	add_action(tab_actions[index], action);
+
+	/*if(last_actions[index] == NULL) {
 		// Create new action:
 		last_actions[index] = malloc(sizeof(struct UserAction));
 		last_actions[index]->type = INSERT_ACTION;
@@ -150,27 +224,22 @@ void on_text_buffer_insert_text(
 		last_actions[index]->last_location_offset = location_offset;
 		last_actions[index]->text_length = length;
 		last_actions[index]->can_buffer = (length == 1) ? TRUE : FALSE;
-	}
+	}*/
 }
 
 void init_undo(GtkWidget *tab)
 {
 	printf("init_undo() called\n");
 
-/*	GtkTextView *text_view = tab_get_text_view(tab);
-	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);*/
-
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
 
+	/* @ Could just pass in a tab-id directly? Performance? */
 	g_signal_connect(G_OBJECT(text_buffer), "insert-text", G_CALLBACK(on_text_buffer_insert_text), tab);
 	g_signal_connect(G_OBJECT(text_buffer), "delete-range", G_CALLBACK(on_text_buffer_delete_range), tab);
 }
 
 void actually_undo_last_action(GtkWidget *tab)
 {
-	/*GtkTextView *text_view = tab_get_text_view(tab);
-	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);*/
-
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
 
 	struct TabInfo *tab_info = (struct TabInfo *) g_object_get_data(G_OBJECT(tab), "tab-info");
@@ -178,22 +247,26 @@ void actually_undo_last_action(GtkWidget *tab)
 	unsigned index = tab_info->id;
 	assert(index < 100);
 
-	if(last_actions[index] == NULL) return;
+	struct UserAction *action = get_action(tab_actions[index]);
+	if(action == NULL) {
+		printf("No actions to undo for tab %d!\n", index);
+		return;
+	}
 
-	if(last_actions[index]->type == INSERT_ACTION) {
+	if(action->type == INSERT_ACTION) {
 		GtkTextIter start, end;
-		gtk_text_buffer_get_iter_at_offset(text_buffer, &start, last_actions[index]->location_offset);
-		gtk_text_buffer_get_iter_at_offset(text_buffer, &end, last_actions[index]->location_offset + last_actions[index]->text_length);
+		gtk_text_buffer_get_iter_at_offset(text_buffer, &start, action->location_offset);
+		gtk_text_buffer_get_iter_at_offset(text_buffer, &end, action->location_offset + action->text_length);
 		ignore = TRUE; 
 		gtk_text_buffer_delete(text_buffer, &start, &end);
 	} else { // DELETE_ACTION
 		GtkTextIter location;
-		gtk_text_buffer_get_iter_at_offset(text_buffer, &location, last_actions[index]->start_offset);
+		gtk_text_buffer_get_iter_at_offset(text_buffer, &location, action->start_offset);
 		ignore = TRUE;
-		gtk_text_buffer_insert(text_buffer, &location, last_actions[index]->deleted_text_buffer, -1);
+		gtk_text_buffer_insert(text_buffer, &location, action->deleted_text_buffer, -1);
 	}
-	
-	free(last_actions[index]); last_actions[index] = NULL;
+
+	free(action);
 }
 
 

@@ -1142,11 +1142,11 @@ gboolean undo_last_action(GdkEventKey *key_event)
 	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
 	if (page == -1) {
 		// no tabs open
+		printf("Ctrl + Z: No tabs open.\n");
 		return FALSE;
 	}
 	GtkWidget *tab = gtk_notebook_get_nth_page(GTK_NOTEBOOK(notebook), page);
 
-	g_print("SHOULD UNDO LAST ACTION\n");
 	actually_undo_last_action(tab);
 
 	return TRUE;
