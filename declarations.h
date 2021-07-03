@@ -39,5 +39,6 @@ void remove_highlighting(GtkTextBuffer *text_buffer);
 
 /* strings.c: */
 char *get_slice_by(char **p_s, char ch);
+char **slice_by(const char *s, char c);
 
 

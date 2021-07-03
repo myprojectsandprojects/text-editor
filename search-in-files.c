@@ -6,8 +6,10 @@
 #include "declarations.h"
 #include "tab.h"
 
-GtkWidget *search_results;
-extern char root_dir[100];
+GtkWidget 	*search_phrase_entry;
+GtkWidget 	*filename_filter_entry;
+GtkWidget 	*search_results;
+extern char 	root_dir[100];
 
 /* callback for g_timeout_add_seconds */
 gboolean tab_scroll_to(gpointer data)
@@ -38,17 +40,40 @@ void on_search_button_clicked(GtkButton *search_button, gpointer data)
 {
 	printf("on_search_button_clicked() called..\n");
 
-	GtkSearchEntry *search_entry = (GtkSearchEntry *) data;
-	const char *text = gtk_entry_get_text(GTK_ENTRY(search_entry));
+	const char *search_phrase = gtk_entry_get_text(GTK_ENTRY(search_phrase_entry));
+	const char *filename_filter_text = gtk_entry_get_text(GTK_ENTRY(filename_filter_entry));
+
+	/*
+		find -name "*.c" -and -name "*search*"
+		find -name "*.c" -or -name "*search*"
+		find -name "*.c" -or -not -name "*search*"
+		find -name "*.c" -and -not -name "*search*"
+	*/
 
 	/*
 	grep:
 		-I -> ignore binary files (?)
 		-n -> display line numbers
 		-i -> do insensitive search
+		-H -> display filename even if only 1 argument given
 	*/
 	char command[1000]; command[0] = 0;
-	sprintf(command, "find %s ! -regex '.*/\\..*' -type f | xargs grep -Ini \"%s\"", root_dir, text);
+	char filename_filter[100]; filename_filter[0] = 0;
+
+	char **filters = slice_by(filename_filter_text, ' ');
+	if (filters[0] != NULL) {
+		sprintf(filename_filter, "-name \"%s\"", filters[0]);
+		free(filters[0]);
+		int j = 1;
+		for (; filters[j] != NULL; ++j) {
+			sprintf(filename_filter, "%s -or -name \"%s\"", filename_filter, filters[j]);
+			free(filters[j]);
+		}
+	}
+	free(filters);
+	
+	//sprintf(command, "find %s ! -regex '.*/\\..*' -type f -name \"%s\" | xargs grep -IniH \"%s\"", root_dir, filename_filter, search_phrase);
+	sprintf(command, "find %s -type f -not -wholename \"*/.*\" %s | xargs grep -IniH \"%s\"", root_dir, filename_filter, search_phrase);
 	printf("command: %s\n", command);
 	FILE *fd = popen(command, "r");
 	if (fd == NULL) {
@@ -61,16 +86,17 @@ void on_search_button_clicked(GtkButton *search_button, gpointer data)
 	printf("done sleeping\n");*/
 
 	long int size = 10000000;
-	char *contents = malloc(size+1);
+	char *contents = malloc(size+1); //@ free
 	if (contents == NULL) {
 		printf("malloc() failed!!!!!!!!!!!!!!!!!\n");
+		return;
 	}
 
 	long int i = 0;
 	while((contents[i] = fgetc(fd)) != -1) {/*printf("%c ", contents[i]);*/ i++;}
 	contents[i] = 0;
 
-	printf("Search results:\n");
+	//printf("Search results:\n");
 	printf("%s\n", contents);
 
 	GList *previous_results, *p;
@@ -86,9 +112,9 @@ void on_search_button_clicked(GtkButton *search_button, gpointer data)
 		//printf("line: %s\n", line);
 		char *file_path = get_slice_by(&line, ':');
 		char *line_number = get_slice_by(&line, ':');
-		printf("file path: %s\n", file_path);
+		/*printf("file path: %s\n", file_path);
 		printf("line number: %s\n", line_number);
-		printf("remainder: %s\n\n", line);
+		printf("remainder: %s\n\n", line);*/
 
 		GtkWidget *search_result = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
@@ -165,10 +191,13 @@ GtkWidget *create_search_in_files_widget()
 {
 	printf("create_search_in_files_widget() called!\n");
 
-	GtkWidget *search_entry = gtk_search_entry_new();
-	GtkWidget *search_button = gtk_button_new_with_label("Search in Files");
+	search_phrase_entry = gtk_search_entry_new();
+	filename_filter_entry = gtk_entry_new();
+	GtkWidget *search_button = gtk_button_new_with_label("Search");
+
+	gtk_entry_set_text(GTK_ENTRY(filename_filter_entry), "*");
 	
-	g_signal_connect(search_button, "clicked", G_CALLBACK(on_search_button_clicked), search_entry);
+	g_signal_connect(search_button, "clicked", G_CALLBACK(on_search_button_clicked), /*search_entry*/NULL);
 
 	search_results = gtk_list_box_new();
 	//g_signal_connect(list, "row-selected", G_CALLBACK(on_list_row_selected), NULL);
@@ -176,9 +205,12 @@ GtkWidget *create_search_in_files_widget()
 
 	GtkWidget *container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
-	gtk_container_add(GTK_CONTAINER(container), widget_with_width(search_entry, 250));
-	gtk_container_add(GTK_CONTAINER(container), widget_with_width(search_button, 250));
+	gtk_container_add(GTK_CONTAINER(container), widget_with_width(search_phrase_entry, 250));
+	gtk_container_add(GTK_CONTAINER(container), widget_with_width(filename_filter_entry, 250));
+	gtk_container_add(GTK_CONTAINER(container), widget_with_width(search_button, 125));
 	gtk_container_add(GTK_CONTAINER(container), search_results);
 
 	return container;
 }
+
+

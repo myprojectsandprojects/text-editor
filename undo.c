@@ -23,7 +23,7 @@ struct UserAction {
 	int text_length;
 };
 
-#define CAPACITY 3
+#define CAPACITY 100
 #define IS_EMPTY 0
 #define IS_FULL 1
 #define IS_NEITHER 2
