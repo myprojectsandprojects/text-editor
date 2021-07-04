@@ -8,6 +8,7 @@
 
 GtkWidget 	*search_phrase_entry;
 GtkWidget 	*filename_filter_entry;
+GtkWidget 	*hidden_files_check_button;
 GtkWidget 	*search_results;
 extern char 	root_dir[100];
 
@@ -42,6 +43,8 @@ void on_search_button_clicked(GtkButton *search_button, gpointer data)
 
 	const char *search_phrase = gtk_entry_get_text(GTK_ENTRY(search_phrase_entry));
 	const char *filename_filter_text = gtk_entry_get_text(GTK_ENTRY(filename_filter_entry));
+	gboolean ignore_hidden = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(hidden_files_check_button));
+	//printf("%d\n", checked); return;
 
 	/*
 		find -name "*.c" -and -name "*search*"
@@ -93,7 +96,10 @@ void on_search_button_clicked(GtkButton *search_button, gpointer data)
 	free(words);
 	
 	//sprintf(command, "find %s ! -regex '.*/\\..*' -type f -name \"%s\" | xargs grep -IniH \"%s\"", root_dir, filename_filter, search_phrase);
-	sprintf(command, "find %s -type f -not -wholename \"*/.*\"%s | xargs grep -IniH \"%s\"", root_dir, filename_patterns, search_phrase);
+	sprintf(command,
+		"find %s -type f%s%s | xargs grep -IniH \"%s\"",
+		root_dir, (ignore_hidden) ? " -not -wholename \"*/.*\"": "", filename_patterns, search_phrase);
+
 	printf("command: %s\n", command);
 	FILE *fd = popen(command, "r");
 	if (fd == NULL) {
@@ -213,9 +219,10 @@ GtkWidget *create_search_in_files_widget()
 
 	search_phrase_entry = gtk_search_entry_new();
 	filename_filter_entry = gtk_entry_new();
+	hidden_files_check_button = gtk_check_button_new_with_label("ignore hidden");
 	GtkWidget *search_button = gtk_button_new_with_label("Search");
 
-	gtk_entry_set_text(GTK_ENTRY(filename_filter_entry), "*");
+	//gtk_entry_set_text(GTK_ENTRY(filename_filter_entry), "*");
 	
 	g_signal_connect(search_button, "clicked", G_CALLBACK(on_search_button_clicked), /*search_entry*/NULL);
 
@@ -227,7 +234,10 @@ GtkWidget *create_search_in_files_widget()
 
 	gtk_container_add(GTK_CONTAINER(container), widget_with_width(search_phrase_entry, 250));
 	gtk_container_add(GTK_CONTAINER(container), widget_with_width(filename_filter_entry, 250));
-	gtk_container_add(GTK_CONTAINER(container), widget_with_width(search_button, 125));
+	GtkWidget *horizontal_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+	gtk_container_add(GTK_CONTAINER(horizontal_container), widget_with_width(search_button, 125));
+	gtk_container_add(GTK_CONTAINER(horizontal_container), hidden_files_check_button);
+	gtk_container_add(GTK_CONTAINER(container), horizontal_container);
 	gtk_container_add(GTK_CONTAINER(container), search_results);
 
 	return container;
