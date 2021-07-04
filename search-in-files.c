@@ -58,9 +58,10 @@ void on_search_button_clicked(GtkButton *search_button, gpointer data)
 		-H -> display filename even if only 1 argument given
 	*/
 	char command[1000]; command[0] = 0;
-	char filename_filter[100]; filename_filter[0] = 0;
+	char filename_patterns[100]; filename_patterns[0] = 0;
 
-	char **filters = slice_by(filename_filter_text, ' ');
+	char **words = slice_by(filename_filter_text, ' ');
+/*
 	if (filters[0] != NULL) {
 		sprintf(filename_filter, "-name \"%s\"", filters[0]);
 		free(filters[0]);
@@ -70,10 +71,29 @@ void on_search_button_clicked(GtkButton *search_button, gpointer data)
 			free(filters[j]);
 		}
 	}
-	free(filters);
+*/
+	long int i = 0;
+	for (; words[i] != NULL; ++i) {
+		printf("word: %s\n", words[i]);
+
+		if (strcmp(words[i], "||") == 0) {
+			sprintf(filename_patterns, "%s -or", filename_patterns);
+		} else if (strcmp(words[i], "&&") == 0) {
+			sprintf(filename_patterns, "%s -and", filename_patterns);
+		} else {
+			if (words[i][0] == '!') {
+				sprintf(filename_patterns, "%s -not -name \"%s\"", filename_patterns, &words[i][1]);
+			} else {
+				sprintf(filename_patterns, "%s -name \"%s\"", filename_patterns, words[i]);
+			}
+		}
+
+		free(words[i]);
+	}
+	free(words);
 	
 	//sprintf(command, "find %s ! -regex '.*/\\..*' -type f -name \"%s\" | xargs grep -IniH \"%s\"", root_dir, filename_filter, search_phrase);
-	sprintf(command, "find %s -type f -not -wholename \"*/.*\" %s | xargs grep -IniH \"%s\"", root_dir, filename_filter, search_phrase);
+	sprintf(command, "find %s -type f -not -wholename \"*/.*\"%s | xargs grep -IniH \"%s\"", root_dir, filename_patterns, search_phrase);
 	printf("command: %s\n", command);
 	FILE *fd = popen(command, "r");
 	if (fd == NULL) {
@@ -92,7 +112,7 @@ void on_search_button_clicked(GtkButton *search_button, gpointer data)
 		return;
 	}
 
-	long int i = 0;
+	i = 0;
 	while((contents[i] = fgetc(fd)) != -1) {/*printf("%c ", contents[i]);*/ i++;}
 	contents[i] = 0;
 
