@@ -14,7 +14,7 @@ GtkApplicationWindow {
 
 GtkTextView {
 	/*font: Source Code Pro 12;*/
-	font: Courier 10 Pitch Bold 13;
+	font: Courier 10 Pitch 13;
 	/*background: #efefef;*/
 }
 

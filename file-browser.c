@@ -6,6 +6,7 @@
 #include <assert.h>
 
 extern GtkWidget *root_selection;
+extern gulong root_selection_changed_id;
 extern int root_selection_index;
 extern char root_dir[100];
 
@@ -64,6 +65,7 @@ void create_nodes_for_directory(GtkTreeStore *store, GtkTreeIter *parent, const 
 
 GtkTreeStore *create_tree_store()
 {
+	printf("create_tree_store()\n");
 	GtkTreeStore *store = gtk_tree_store_new(N_COLUMNS, GDK_TYPE_PIXBUF, G_TYPE_STRING);
 	create_nodes_for_directory(store, NULL, root_dir, 2);
 	return store;
@@ -156,7 +158,7 @@ void prepend_string(char *buffer, const char *str)
 
 void on_tree_view_row_activated(GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *column, gpointer data)
 {
-	g_print("ROW ACTIVATED!\n");
+	printf("ROW ACTIVATED!\n");
 
 	GtkTreeIter iter;
 	char *node_base_name;
@@ -186,13 +188,20 @@ void on_tree_view_row_activated(GtkTreeView *tree_view, GtkTreePath *path, GtkTr
 	}
 
 	if (S_ISDIR(fs_node_info.st_mode)) {
-		printf("\"%s\" is a directory\n", node_full_path);
-		sprintf(root_dir, "%s", node_full_path);
-		gtk_tree_view_set_model(GTK_TREE_VIEW(tree_view), GTK_TREE_MODEL(create_tree_store()));
-		printf("removing an item at index %d\n", root_selection_index);
+		//printf("\"%s\" is a directory\n", node_full_path);
+
+		// For some unknown reason we have problems when removing an item that is currently active. So we do this as a workaround.
+		g_signal_handler_block(G_OBJECT(root_selection), root_selection_changed_id);
+		gtk_combo_box_set_active(GTK_COMBO_BOX(root_selection), 0);
+		g_signal_handler_unblock(G_OBJECT(root_selection), root_selection_changed_id);
+
+		//printf("removing an item at index %d\n", root_selection_index);
 		gtk_combo_box_text_remove(GTK_COMBO_BOX_TEXT(root_selection), root_selection_index);
-		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(root_selection), NULL, node_full_path);
+		//gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(root_selection), node_full_path);
+		gtk_combo_box_text_insert_text(GTK_COMBO_BOX_TEXT(root_selection), root_selection_index, node_full_path);
+
 		gtk_combo_box_set_active(GTK_COMBO_BOX(root_selection), root_selection_index);
+
 	} else if(S_ISREG(fs_node_info.st_mode)) {
 		printf("\"%s\" is a regular file\n", node_full_path);
 		//@ cant open a file which is not a text file. well get gtk errors for now

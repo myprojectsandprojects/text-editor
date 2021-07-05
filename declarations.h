@@ -41,4 +41,7 @@ void remove_highlighting(GtkTextBuffer *text_buffer);
 char *get_slice_by(char **p_s, char ch);
 char **slice_by(const char *s, char c);
 
+/* autocomplete.c */
+void init_autocomplete();
+
 

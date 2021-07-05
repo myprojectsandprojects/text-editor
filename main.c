@@ -37,6 +37,8 @@
 
 // plausable feature: icons...
 
+// plausable feature: logging messages which have at least 2 possible levels associated with them, so that we can disable all logging messages except the ones we are currently interested in. otherwise its very hard to spot important messages.
+
 
 // UI: from some point onwards opening new tabs starts resizing the window.
 
@@ -61,6 +63,7 @@ GtkWidget *notebook_revealer;
 //GtkWidget *sidebar;
 GtkWidget *file_browser; // GtkTreeView
 GtkWidget *root_selection; // file-browser and find-in-files modules need access to it
+gulong root_selection_changed_id;
 int root_selection_index; // file-browser needs access to it // index of the last item in root-selection. we need to know that because each time user selects a new root by double-clicking on a directory well set the last item to that directory.
 char root_dir[100]; // file-browser and find-in-files modules need access to it
 #define SIDEBAR_WIDTH_BIG 800
@@ -217,10 +220,11 @@ void text_buffer_changed(GtkTextBuffer *text_buffer, gpointer user_data)
 	printf("buffer changed!\n");
 
 	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
-	if (page == -1) {
+	assert(page != -1);
+	/*if (page == -1) {
 		// buffers contents changed, but we have no "current page"... is this possible?
 		return;
-	}
+	}*/
 	GtkWidget *tab = gtk_notebook_get_nth_page(GTK_NOTEBOOK(notebook), page);
 
 	struct TabInfo *tab_info = (struct TabInfo *) g_object_get_data(G_OBJECT(tab), "tab-info");
@@ -624,6 +628,7 @@ GtkWidget *create_tab(const char *file_name)
 
 	init_search(tab);
 	init_undo(tab);
+	init_autocomplete(tab);
 
 	g_signal_connect(G_OBJECT(text_view), "copy-clipboard", G_CALLBACK(text_view_copy_clipboard), NULL);
 	g_signal_connect(G_OBJECT(text_view), "cut-clipboard", G_CALLBACK(text_view_cut_clipboard), NULL);
@@ -1259,7 +1264,8 @@ void root_selection_changed(GtkComboBoxText *root_selection, gpointer data)
 {
 	const char *text = gtk_combo_box_text_get_active_text(root_selection);
 	//if (text == NULL) return;
-	assert(text != NULL && GTK_IS_TREE_VIEW(file_browser) == TRUE);
+	assert(text != NULL);
+	assert(GTK_IS_TREE_VIEW(file_browser) == TRUE);
 	//printf("text: %s\n", text);
 
 	sprintf(root_dir, "%s", text);
@@ -1270,6 +1276,13 @@ void activate_handler(GtkApplication *app, gpointer data) {
 
 	g_print("activate_handler() called\n");
 
+	guint major = gtk_get_major_version();
+	guint minor = gtk_get_minor_version();
+	guint micro = gtk_get_micro_version();
+	printf("GTK version: %u.%u.%u\n", major, minor, micro);
+
+	//gtk_menu_popup_at_rect(); // -> undefined reference to `gtk_menu_popup_at_rect'
+	//gtk_menu_popdown (); // -> too few arguments to function ‘gtk_menu_popdown’
 
 	/*gboolean open_line_before(GtkTextBuffer *text_buffer);
 	gboolean open_line_after(GtkTextBuffer *text_buffer);
@@ -1369,7 +1382,7 @@ void activate_handler(GtkApplication *app, gpointer data) {
 	}
 	//gtk_style_context_add_class (gtk_widget_get_style_context(root_selection), "root-selection");
 	gtk_combo_box_set_active(GTK_COMBO_BOX(root_selection), 0);
-	g_signal_connect(G_OBJECT(root_selection), "changed", G_CALLBACK(root_selection_changed), NULL); // registering this handler after calling gtk_combo_box_set_active() because this handler assumes that file-browser is already created.
+	root_selection_changed_id = g_signal_connect(G_OBJECT(root_selection), "changed", G_CALLBACK(root_selection_changed), NULL); // registering this handler after calling gtk_combo_box_set_active() because this handler assumes that file-browser is already created.
 
 
 	GtkWidget *sidebar_notebook = gtk_notebook_new();
@@ -1467,6 +1480,26 @@ void activate_handler(GtkApplication *app, gpointer data) {
 	gtk_widget_hide(sidebar_container); // lets hide sidebar by default
 
 	create_tab(NULL); // re-factor: create_tab() could just create the tab widget, it doesnt have to depend on the notebook at all (?)
+
+	/*GtkWidget *popup_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_decorated(GTK_WINDOW(popup_window), FALSE);
+	gtk_window_set_position(GTK_WINDOW(popup_window), GTK_WIN_POS_CENTER);
+	gtk_window_set_transient_for(GTK_WINDOW(popup_window), GTK_WINDOW(window));
+	gtk_widget_show_all(popup_window);*/
+
+	/*GtkWidget *popup_window = gtk_window_new(GTK_WINDOW_POPUP);
+	//gtk_window_set_decorated(GTK_WINDOW(popup_window), FALSE);
+	//gtk_window_set_position(GTK_WINDOW(popup_window), GTK_WIN_POS_CENTER);
+	//gtk_window_set_position(GTK_WINDOW(popup_window), GTK_WIN_POS_MOUSE);
+	//gtk_window_set_transient_for(GTK_WINDOW(popup_window), GTK_WINDOW(window));
+	gtk_window_set_attached_to(GTK_WINDOW(popup_window), window);
+
+	GdkWindow *w = gtk_widget_get_window(window);
+	gint x, y;
+	gdk_window_get_origin(w, &x, &y);
+	//printf("x: %d, y: %d\n", x, y);
+	gtk_window_move(GTK_WINDOW(popup_window), x, y);
+	gtk_widget_show_all(popup_window);*/
 }
 
 int main() {
