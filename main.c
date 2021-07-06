@@ -24,26 +24,21 @@
 // plausable feature: delete end of line
 // plausable feature: select a whole line when double clicking on a wrapped line
 
-// plausable feature: shortcut 4 switching between tabs
 // plausable feature: tabs, file changes on disk...
 // plausable feature: opening & highlighting large files is really slow and ui becomes unresponsive (but it eventually manages to do it)
-// plausable feature: what ab opening non-text files?
 
 // in progress: highlighting... 4 different languages and how to support that? no-highlighting option
 
 // plausable feature: conf-file 4 key-combinations
 
-// plausable feature: GtkStatusbar...
-
-// plausable feature: icons...
-
 // plausable feature: logging messages which have at least 2 possible levels associated with them, so that we can disable all logging messages except the ones we are currently interested in. otherwise its very hard to spot important messages.
+
+// plausable feature: home-button and back-button in sidebar. current root selection widget is a terrible thing...
 
 
 // UI: from some point onwards opening new tabs starts resizing the window.
 
 // important:
-// * sort directory contents in file browser
 // * large n of tabs open
 // * panes?
 
@@ -1439,12 +1434,7 @@ void activate_handler(GtkApplication *app, gpointer data) {
 
 	//create_test_tabs();
 
-	/*GtkWidget *paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL); // Lots of problems with the UI
-	gtk_paned_add1(GTK_PANED(paned), sidebar_revealer);
-	gtk_paned_add2(GTK_PANED(paned), notebook);
-	gtk_container_add(GTK_CONTAINER(content), paned);*/
-
-	sidebar_revealer = gtk_revealer_new();
+	/*sidebar_revealer = gtk_revealer_new();
 	gtk_revealer_set_reveal_child(GTK_REVEALER(sidebar_revealer), TRUE);
 	gtk_revealer_set_transition_type(GTK_REVEALER(sidebar_revealer), GTK_REVEALER_TRANSITION_TYPE_SLIDE_RIGHT);
 	//gtk_revealer_set_transition_type(GTK_REVEALER(sidebar_revealer), GTK_REVEALER_TRANSITION_TYPE_NONE); // ... 4 some reason scrolled window doesnt get vertical expand
@@ -1455,7 +1445,7 @@ void activate_handler(GtkApplication *app, gpointer data) {
 	gtk_revealer_set_reveal_child(GTK_REVEALER(notebook_revealer), TRUE);
 	gtk_revealer_set_transition_type(GTK_REVEALER(notebook_revealer), GTK_REVEALER_TRANSITION_TYPE_SLIDE_LEFT);
 	gtk_style_context_add_class (gtk_widget_get_style_context(notebook_revealer), "notebook-revealer");
-	gtk_widget_set_hexpand(notebook_revealer, FALSE);
+	gtk_widget_set_hexpand(notebook_revealer, FALSE);*/
 
 	//gtk_container_add(GTK_CONTAINER(sidebar_revealer), sidebar_container);
 	//gtk_container_add(GTK_CONTAINER(notebook_revealer), notebook);
@@ -1472,14 +1462,20 @@ void activate_handler(GtkApplication *app, gpointer data) {
 	gtk_widget_set_hexpand(content, TRUE);
 	//gtk_widget_set_vexpand(content, TRUE);
 
-	gtk_container_add(GTK_CONTAINER(window), content);
+	GtkWidget *paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL); // Lots of problems with the UI
+	gtk_paned_add1(GTK_PANED(paned), sidebar_container);
+	gtk_paned_add2(GTK_PANED(paned), notebook);
+	//gtk_container_add(GTK_CONTAINER(content), paned);
+	gtk_container_add(GTK_CONTAINER(window), paned);
+
+	//gtk_container_add(GTK_CONTAINER(window), content);
 	//gtk_container_add(GTK_CONTAINER(content), sidebar_revealer);
-	gtk_container_add(GTK_CONTAINER(content), sidebar_container);
+	//gtk_container_add(GTK_CONTAINER(content), sidebar_container);
 	//gtk_box_pack_end(GTK_BOX(content), sidebar_revealer, FALSE, FALSE, 0);
 	//gtk_container_add(GTK_CONTAINER(content), notebook_revealer);
 	//gtk_box_pack_start(GTK_BOX(content), notebook_revealer, TRUE, TRUE, 0);
 	//gtk_box_pack_end(GTK_BOX(content), notebook_revealer, FALSE, FALSE, 0);
-	gtk_container_add(GTK_CONTAINER(content), notebook);
+	//gtk_container_add(GTK_CONTAINER(content), notebook);
 
 	gtk_widget_show_all(window);
 	gtk_widget_hide(sidebar_container); // lets hide sidebar by default
