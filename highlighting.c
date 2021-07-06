@@ -214,7 +214,7 @@ void create_tags(GtkTextBuffer *text_buffer)
 
 	printf("create_tags(): creating tags.\n");
 	gtk_text_buffer_create_tag(text_buffer, "comment", "style", PANGO_STYLE_ITALIC, "foreground", "green", NULL);
-	gtk_text_buffer_create_tag(text_buffer, "operator", "foreground", "red", "weight", "bold", NULL);
+	gtk_text_buffer_create_tag(text_buffer, "operator", "foreground", "red", /*"weight", "bold",*/ NULL);
 	gtk_text_buffer_create_tag(text_buffer, "number", "foreground", "blue", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "identifier", "foreground", "black", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "keyword", "weight", "bold", "foreground", "black", NULL);

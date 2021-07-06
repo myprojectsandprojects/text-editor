@@ -32,10 +32,67 @@ GtkTreeIter append_node_to_store(GtkTreeStore *store, GtkTreeIter *parent, const
 
 void create_nodes_for_directory(GtkTreeStore *store, GtkTreeIter *parent, const char *dir_path, int max_depth)
 {
-	//g_print("create_nodes_for_directory called!\n");
+	printf("create_nodes_for_directory()\n");
 	--max_depth;
 
 	DIR *dir = opendir(dir_path);
+	assert(dir != NULL); // permissions
+
+	char *basenames[1000];
+	int i = 0; // points at the end of the list (after last element)
+	struct dirent *fs_node;
+	while ((fs_node = readdir(dir)) != NULL) {
+		assert(i <= 999);
+
+		if (strcmp(fs_node->d_name, ".") == 0 || strcmp(fs_node->d_name, "..") == 0) continue;
+		if (fs_node->d_name[0] == '.') continue; // Ignore hidden files/directories
+
+		int len = strlen(fs_node->d_name);
+		basenames[i] = malloc(len + 1);
+		strcpy(basenames[i], fs_node->d_name);
+		i += 1;
+		//free(fs_node); // Thats an error
+	}
+	closedir(dir);
+
+	int compare(const void *a, const void *b) {
+		char *str1 = *((char **) a);
+		char *str2 = *((char **) b);
+		int d;
+		int i = 0;
+		while (str1[i] != 0 && str2[i] != 0) {
+			if ((d = str1[i] - str2[i]) != 0) return d;
+			i += 1;
+		}
+		return 0;
+	}
+
+	qsort(basenames, i, sizeof(char *), compare);
+
+	/*int j;
+	for (j = 0; j < i; ++j) {
+		printf("node basename: %s\n", basenames[j]);
+	}*/
+
+	int j;
+	for (j = 0; j < i; ++j) {
+		char entry_path[1000];
+		sprintf(entry_path, "%s/%s", dir_path, basenames[j]);
+
+		struct stat entry_info;
+		if (lstat(entry_path, &entry_info) == -1)
+			fprintf(stderr, "Failed to lstat \"%s\"\n", basenames[j]); // @error handling
+		
+		if (S_ISDIR(entry_info.st_mode)) {
+			GtkTreeIter this_node = append_node_to_store(store, parent, "icons/colors/folder.png", basenames[j]);
+			if (max_depth > 0)
+				create_nodes_for_directory(store, &this_node, entry_path, max_depth);
+		} else {
+			append_node_to_store(store, parent, "icons/colors/file.png", basenames[j]);
+		}
+	}
+
+	/*dir = opendir(dir_path);
 	assert(dir != NULL); // permissions
 
 	struct dirent *entry;
@@ -60,7 +117,7 @@ void create_nodes_for_directory(GtkTreeStore *store, GtkTreeIter *parent, const 
 			append_node_to_store(store, parent, "icons/colors/file.png", entry->d_name);
 		}
 	}
-	closedir(dir);
+	closedir(dir);*/
 }
 
 GtkTreeStore *create_tree_store()
@@ -85,7 +142,7 @@ GtkWidget *create_tree_view()
 	GtkCellRenderer *renderer = gtk_cell_renderer_pixbuf_new();
 	gtk_tree_view_column_pack_start(col, renderer, FALSE);
 	gtk_tree_view_column_set_attributes(col, renderer, "pixbuf", COLUMN_ICON, NULL);
-	
+
 	renderer = gtk_cell_renderer_text_new();
 	gtk_tree_view_column_pack_start(col, renderer, TRUE);
 	gtk_tree_view_column_set_attributes(col, renderer, "text", COLUMN_BASENAME, NULL);

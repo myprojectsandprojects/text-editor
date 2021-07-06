@@ -42,6 +42,11 @@
 
 // UI: from some point onwards opening new tabs starts resizing the window.
 
+// important:
+// * sort directory contents in file browser
+// * large n of tabs open
+// * panes?
+
 
 #include <gtk/gtk.h>
 #include <fcntl.h>
@@ -628,7 +633,7 @@ GtkWidget *create_tab(const char *file_name)
 
 	init_search(tab);
 	init_undo(tab);
-	init_autocomplete(tab);
+	//init_autocomplete(tab);
 
 	g_signal_connect(G_OBJECT(text_view), "copy-clipboard", G_CALLBACK(text_view_copy_clipboard), NULL);
 	g_signal_connect(G_OBJECT(text_view), "cut-clipboard", G_CALLBACK(text_view_cut_clipboard), NULL);
