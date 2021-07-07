@@ -33,14 +33,7 @@
 
 // plausable feature: logging messages which have at least 2 possible levels associated with them, so that we can disable all logging messages except the ones we are currently interested in. otherwise its very hard to spot important messages.
 
-// plausable feature: home-button and back-button in sidebar. current root selection widget is a terrible thing...
-
-
 // UI: from some point onwards opening new tabs starts resizing the window.
-
-// important:
-// * large n of tabs open
-// * panes?
 
 
 #include <gtk/gtk.h>
@@ -57,18 +50,31 @@
 
 GtkWidget *window;
 GtkWidget *notebook;
-GtkWidget *sidebar_revealer;
 GtkWidget *sidebar_container;
-GtkWidget *notebook_revealer;
-//GtkWidget *sidebar;
 GtkWidget *file_browser; // GtkTreeView
-GtkWidget *root_selection; // file-browser and find-in-files modules need access to it
+
+//GtkWidget *root_selection;
 gulong root_selection_changed_id;
 int root_selection_index; // file-browser needs access to it // index of the last item in root-selection. we need to know that because each time user selects a new root by double-clicking on a directory well set the last item to that directory.
+
+/*
+This is like a root directory of our project (or workspace or)
+*/
 char root_dir[100]; // file-browser and find-in-files modules need access to it
-#define SIDEBAR_WIDTH_BIG 800
-#define SIDEBAR_WIDTH_SMALL 200
-int sidebar_width = SIDEBAR_WIDTH_SMALL;
+
+extern GtkWidget *root_dir_label;
+
+void set_root_dir(const char *path)
+{
+	assert(path != NULL);
+	assert(strlen(path) < 100);
+	assert(strlen(path) > 0);
+
+	strcpy(root_dir, path);
+	
+	gtk_label_set_text(GTK_LABEL(root_dir_label), root_dir);
+	gtk_tree_view_set_model(GTK_TREE_VIEW(file_browser), GTK_TREE_MODEL(create_tree_store()));
+}
 
 /*void add_highlighting(GtkTextBuffer *text_buffer) {
 	g_print("add_highlighting()\n");
@@ -1015,25 +1021,7 @@ gboolean less_fancy_toggle_notebook(GdkEventKey *key_event)
 
 	return TRUE;
 }
-/*
-gboolean toggle_sidebar(GdkEventKey *key_event)
-{
-	if(gtk_revealer_get_reveal_child(GTK_REVEALER(sidebar_revealer)) == TRUE) { // If revealed:
-		gtk_revealer_set_reveal_child(GTK_REVEALER(sidebar_revealer), FALSE);
-	} else { // If not revealed:
-		gtk_revealer_set_reveal_child(GTK_REVEALER(sidebar_revealer), TRUE);
-	}
-}
 
-gboolean toggle_notebook(GdkEventKey *key_event)
-{
-	if(gtk_revealer_get_reveal_child(GTK_REVEALER(notebook_revealer)) == TRUE) { // If revealed:
-		gtk_revealer_set_reveal_child(GTK_REVEALER(notebook_revealer), FALSE);
-	} else { // If not revealed:
-		gtk_revealer_set_reveal_child(GTK_REVEALER(notebook_revealer), TRUE);
-	}
-}
-*/
 gboolean toggle_search_entry(GdkEventKey *key_event)
 {
 	GtkWidget *search_entry = visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), SEARCH_ENTRY);
@@ -1260,18 +1248,6 @@ void *watch_for_changes(void *data)
 	}
 }
 
-void root_selection_changed(GtkComboBoxText *root_selection, gpointer data)
-{
-	const char *text = gtk_combo_box_text_get_active_text(root_selection);
-	//if (text == NULL) return;
-	assert(text != NULL);
-	assert(GTK_IS_TREE_VIEW(file_browser) == TRUE);
-	//printf("text: %s\n", text);
-
-	sprintf(root_dir, "%s", text);
-	gtk_tree_view_set_model(GTK_TREE_VIEW(file_browser), GTK_TREE_MODEL(create_tree_store()));
-}
-
 void activate_handler(GtkApplication *app, gpointer data) {
 
 	g_print("activate_handler() called\n");
@@ -1280,6 +1256,8 @@ void activate_handler(GtkApplication *app, gpointer data) {
 	guint minor = gtk_get_minor_version();
 	guint micro = gtk_get_micro_version();
 	printf("GTK version: %u.%u.%u\n", major, minor, micro);
+
+	//test_get_parent_path();
 
 	//gtk_menu_popup_at_rect(); // -> undefined reference to `gtk_menu_popup_at_rect'
 	//gtk_menu_popdown (); // -> too few arguments to function ‘gtk_menu_popdown’
@@ -1348,69 +1326,38 @@ void activate_handler(GtkApplication *app, gpointer data) {
 		printf("pthread_create() error!\n");
 	}
 
-/*
-
-	sidebar-container (GtkBox (vertical))
-	|_root-selection (GtkComboBoxText)
-	|_notebook (GtkNotebook)
-		|_scrollbars (GtkScrolledWindow)
-			|_file-browser (GtkTreeView)
-		|_scrollbars (GtkScrolledWindow)
-			|_search-in-files-container (GtkBox (vertical))
-	         |_search-entry (GtkSearchEntry)
-	         |_search-button (GtkButton)
-	         |_search-results (GtkListBox)
-
-	file-browser widget and search-in-files widget need separate scrollbars!
-
-*/
-
 	/*uid_t real_uid = getuid();
 	uid_t effective_uid = geteuid();
 	printf("real uid: %d, effective uid: %d\n", real_uid, effective_uid);*/
 
-	root_selection = gtk_combo_box_text_new();
-	if (getuid() == 0) { // We have root-privileges
-		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(root_selection), NULL, "/");
-		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(root_selection), NULL, "/home/eero");
-		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(root_selection), NULL, "/home/eero");
-		root_selection_index = 2;
-	} else {
-		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(root_selection), NULL, "/home/eero");
-		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(root_selection), NULL, "/home/eero");
-		root_selection_index = 1;
-	}
-	//gtk_style_context_add_class (gtk_widget_get_style_context(root_selection), "root-selection");
-	gtk_combo_box_set_active(GTK_COMBO_BOX(root_selection), 0);
-	root_selection_changed_id = g_signal_connect(G_OBJECT(root_selection), "changed", G_CALLBACK(root_selection_changed), NULL); // registering this handler after calling gtk_combo_box_set_active() because this handler assumes that file-browser is already created.
-
+/*
+Cant call set_root_dir() here because it expects file-browser and root-navigation to be already created.
+If we used some kind of event/signal-thing, which allows abstractions to register callbacks to be executed in response to events like "root-directory-change" we wouldnt have to worry about that. Because then the code that individual-abstractions need to run would be provided by them in the form of callbacks and wouldnt be hardcoded into set_root_dir function.
+*/
+	strcpy(root_dir, "/home/eero"); 
 
 	GtkWidget *sidebar_notebook = gtk_notebook_new();
 	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(sidebar_notebook), GTK_POS_BOTTOM);
 
-	//GtkWidget *page_container1 = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	file_browser = create_file_browser_widget();
 	GtkWidget *file_browser_scrollbars = gtk_scrolled_window_new(NULL, NULL);
 	gtk_container_add(GTK_CONTAINER(file_browser_scrollbars), file_browser);
-	//gtk_container_add(GTK_CONTAINER(page_container1), file_browser); // Add file-browser widget directly to the notebook?
-	//gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), page_container1, gtk_label_new("Browse Files"));
-	//gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), file_browser_scrollbars, gtk_label_new("Browse Files"));
 	GtkWidget *title_image = gtk_image_new_from_file("icons/colors/file-browser.png");
 	gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), file_browser_scrollbars, title_image);
 	gtk_widget_set_tooltip_text(title_image, "File Browser");
 
-	//GtkWidget *page_container2 = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	GtkWidget *search_in_files = create_search_in_files_widget();
 	GtkWidget *search_in_files_scrollbars = gtk_scrolled_window_new(NULL, NULL);
 	gtk_container_add(GTK_CONTAINER(search_in_files_scrollbars), search_in_files);
-	//gtk_container_add(GTK_CONTAINER(page_container2), search_in_files);
-	//gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), search_in_files_scrollbars, gtk_label_new("Search in Files"));
 	GtkWidget *title_image2 = gtk_image_new_from_file("icons/colors/search-in-files.png");
 	gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), search_in_files_scrollbars, title_image2);
 	gtk_widget_set_tooltip_text(title_image2, "Search in Files");
 
+
+	GtkWidget *root_nav = create_root_nav_widget();
+
 	sidebar_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-	gtk_container_add(GTK_CONTAINER(sidebar_container), root_selection);
+	gtk_container_add(GTK_CONTAINER(sidebar_container), root_nav);
 	gtk_container_add(GTK_CONTAINER(sidebar_container), sidebar_notebook);
 	gtk_style_context_add_class (
 		gtk_widget_get_style_context(sidebar_container),
@@ -1424,6 +1371,7 @@ void activate_handler(GtkApplication *app, gpointer data) {
 
 
 	notebook = gtk_notebook_new();
+	gtk_notebook_set_scrollable(GTK_NOTEBOOK(notebook), TRUE);
 	// Generally we would like to keep the focus on the text-view widget.
 	// I tested this and the only conclusion I arrived at is that its best not to touch the focus at all.
 	g_signal_connect(notebook, "switch-page", G_CALLBACK(on_notebook_switch_page), NULL);
@@ -1432,25 +1380,6 @@ void activate_handler(GtkApplication *app, gpointer data) {
 	
 	gtk_widget_set_hexpand(notebook, TRUE);
 
-	//create_test_tabs();
-
-	/*sidebar_revealer = gtk_revealer_new();
-	gtk_revealer_set_reveal_child(GTK_REVEALER(sidebar_revealer), TRUE);
-	gtk_revealer_set_transition_type(GTK_REVEALER(sidebar_revealer), GTK_REVEALER_TRANSITION_TYPE_SLIDE_RIGHT);
-	//gtk_revealer_set_transition_type(GTK_REVEALER(sidebar_revealer), GTK_REVEALER_TRANSITION_TYPE_NONE); // ... 4 some reason scrolled window doesnt get vertical expand
-	gtk_style_context_add_class (gtk_widget_get_style_context(sidebar_revealer), "sidebar-revealer");
-	gtk_widget_set_hexpand(sidebar_revealer, FALSE);
-
-	notebook_revealer = gtk_revealer_new();
-	gtk_revealer_set_reveal_child(GTK_REVEALER(notebook_revealer), TRUE);
-	gtk_revealer_set_transition_type(GTK_REVEALER(notebook_revealer), GTK_REVEALER_TRANSITION_TYPE_SLIDE_LEFT);
-	gtk_style_context_add_class (gtk_widget_get_style_context(notebook_revealer), "notebook-revealer");
-	gtk_widget_set_hexpand(notebook_revealer, FALSE);*/
-
-	//gtk_container_add(GTK_CONTAINER(sidebar_revealer), sidebar_container);
-	//gtk_container_add(GTK_CONTAINER(notebook_revealer), notebook);
-	//gtk_container_add(GTK_CONTAINER(notebook_revealer), gtk_label_new("Hello world!"));
-
 
 	window = gtk_application_window_new(app);
 	//gtk_window_set_title(GTK_WINDOW(window), "Hello world!");
@@ -1458,27 +1387,12 @@ void activate_handler(GtkApplication *app, gpointer data) {
 
 	g_signal_connect(window, "key-press-event", G_CALLBACK(on_window_key_press_event), NULL);
 
-	GtkWidget *content = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	gtk_widget_set_hexpand(content, TRUE);
-	//gtk_widget_set_vexpand(content, TRUE);
-
-	GtkWidget *paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL); // Lots of problems with the UI
+	GtkWidget *paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
 	gtk_paned_add1(GTK_PANED(paned), sidebar_container);
 	gtk_paned_add2(GTK_PANED(paned), notebook);
-	//gtk_container_add(GTK_CONTAINER(content), paned);
 	gtk_container_add(GTK_CONTAINER(window), paned);
 
-	//gtk_container_add(GTK_CONTAINER(window), content);
-	//gtk_container_add(GTK_CONTAINER(content), sidebar_revealer);
-	//gtk_container_add(GTK_CONTAINER(content), sidebar_container);
-	//gtk_box_pack_end(GTK_BOX(content), sidebar_revealer, FALSE, FALSE, 0);
-	//gtk_container_add(GTK_CONTAINER(content), notebook_revealer);
-	//gtk_box_pack_start(GTK_BOX(content), notebook_revealer, TRUE, TRUE, 0);
-	//gtk_box_pack_end(GTK_BOX(content), notebook_revealer, FALSE, FALSE, 0);
-	//gtk_container_add(GTK_CONTAINER(content), notebook);
-
 	gtk_widget_show_all(window);
-	gtk_widget_hide(sidebar_container); // lets hide sidebar by default
 
 	create_tab(NULL); // re-factor: create_tab() could just create the tab widget, it doesnt have to depend on the notebook at all (?)
 

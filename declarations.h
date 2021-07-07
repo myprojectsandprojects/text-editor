@@ -25,6 +25,7 @@ void write_file(const char *filename, const char *contents); // @ can fail
 char *get_base_name(const char *file_name);
 void refresh_application_title(GtkWidget *tab);
 GtkWidget *create_tab(const char *file_name);
+void set_root_dir(const char *path);
 
 /* search.c: */
 void init_search(GtkWidget *tab);
@@ -40,8 +41,14 @@ void remove_highlighting(GtkTextBuffer *text_buffer);
 /* strings.c: */
 char *get_slice_by(char **p_s, char ch);
 char **slice_by(const char *s, char c);
+char *get_parent_path(const char *path);
+
+void test_get_parent_path();
 
 /* autocomplete.c */
 void init_autocomplete();
+
+/* root-navigation.c */
+GtkWidget *create_root_nav_widget();
 
 

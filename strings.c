@@ -103,4 +103,59 @@ char * get_until(const char *s, char c)
 	return slice;
 }
 
+/* 
+Its not excactly clear to me right now what should be returned for all kinds of exotic possibilities.
+*/
+char *get_parent_path(const char *path)
+{
+	char *parent_path;
+
+	if (path == NULL) return NULL;
+
+	int i = strlen(path) - 1;
+	if (i < 0) return NULL; // if empty string
+
+	if (path[i] == '/') i -= 1; // we'll ignore a trailing '/'
+
+	for (; i >= 0; --i) {
+		if (path[i] == '/') break;
+	}
+
+	// either '/' at the beginning or no '/':
+	if (i == 0 || i < 0) {
+		parent_path = malloc(1 + 1);
+		parent_path[0] = '/';
+		parent_path[1] = 0;
+	} else {
+		//int n_chars = i + 1; // count chars including the 1 i points at
+		int n_chars = i; // count chars excluding the 1 i points at
+		parent_path = malloc(n_chars + 1);
+		strncpy(parent_path, path, n_chars);
+		parent_path[n_chars] = 0; // assume strncpy didnt 0-terminate
+	}
+
+	return parent_path;
+}
+
+void test_get_parent_path()
+{
+	const char *path;
+
+	path = NULL; printf("%s -> %s\n", path, get_parent_path(path));
+	path = ""; printf("%s -> %s\n", path, get_parent_path(path));
+	path = "/"; printf("%s -> %s\n", path, get_parent_path(path));
+	path = "/one"; printf("%s -> %s\n", path, get_parent_path(path));
+	path = "/one/two"; printf("%s -> %s\n", path, get_parent_path(path));
+	path = "/one/two/three"; printf("%s -> %s\n", path, get_parent_path(path));
+
+	path = "one"; printf("%s -> %s\n", path, get_parent_path(path));
+	path = "one/two"; printf("%s -> %s\n", path, get_parent_path(path));
+	path = "one/two/three"; printf("%s -> %s\n", path, get_parent_path(path));
+	path = "one/"; printf("%s -> %s\n", path, get_parent_path(path));
+	path = "one/two/"; printf("%s -> %s\n", path, get_parent_path(path));
+	path = "one/two/three/"; printf("%s -> %s\n", path, get_parent_path(path));
+	path = "//"; printf("%s -> %s\n", path, get_parent_path(path));
+	path = "///"; printf("%s -> %s\n", path, get_parent_path(path));
+}
+
 

@@ -30,3 +30,5 @@ struct TabInfo {
 	gboolean unsaved_changes;
 	//char *base_name; // Maybe well put basename here for convenience.
 };
+
+

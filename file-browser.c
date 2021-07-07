@@ -5,9 +5,8 @@
 #include <sys/stat.h>
 #include <assert.h>
 
-extern GtkWidget *root_selection;
-extern gulong root_selection_changed_id;
-extern int root_selection_index;
+#include "declarations.h"
+
 extern char root_dir[100];
 
 enum {
@@ -15,6 +14,49 @@ enum {
 	COLUMN_BASENAME,
 	N_COLUMNS
 };
+
+void on_item1_activate(GtkMenuItem *item, gpointer data)
+{
+	g_print("menu item1 activate!\n");
+
+	GtkTreeModel *model;
+	GtkTreeIter iter;
+	GtkTreeView *tree_view = (GtkTreeView *) data;
+	GtkTreeSelection *selection = gtk_tree_view_get_selection(tree_view);
+	gboolean result = gtk_tree_selection_get_selected(selection, &model, &iter);
+
+	if(result == TRUE) { // there is a selection
+		char *name;
+		gtk_tree_model_get(model, &iter, COLUMN_BASENAME, &name, -1);
+		g_print("menu item 1 with \"%s\"\n", name);
+	}
+}
+
+gboolean on_tree_view_button_press_event(GtkWidget *tree_view, GdkEvent *event, gpointer data)
+{
+	if (event->type == GDK_BUTTON_PRESS) {
+		GdkEventButton *button_event = (GdkEventButton *) event;
+		//g_print("event type: GDK_BUTTON_PRESS\n");
+		//g_print("button: %d\n", button_event->button); // left: 1, middle: 2, right: 3
+
+		if(button_event->button == 3) { // right button
+			g_print("right-button clicked!\n");
+			GtkWidget *menu = gtk_menu_new();
+			GtkWidget *item1 = gtk_menu_item_new_with_label("Hello world!");
+			gtk_menu_attach(GTK_MENU(menu), item1, 0, 1, 0, 1);
+			g_signal_connect(item1, "activate", G_CALLBACK(on_item1_activate), tree_view);
+			GtkWidget *item2 = gtk_menu_item_new_with_label("Hello universe!");
+			gtk_menu_attach(GTK_MENU(menu), item2, 0, 1, 1, 2);
+			GtkWidget *item3 = gtk_menu_item_new_with_label("Hello multiverse!");
+			gtk_menu_attach(GTK_MENU(menu), item3, 0, 1, 2, 3);
+			gtk_widget_show_all(menu);
+			gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, button_event->button, button_event->time);
+		}
+	} else {
+		g_print("event type: unknown\n");
+	}
+	return FALSE;
+}
 
 GtkTreeIter append_node_to_store(GtkTreeStore *store, GtkTreeIter *parent, const char *node_icon, const char *node_text)
 {
@@ -32,7 +74,7 @@ GtkTreeIter append_node_to_store(GtkTreeStore *store, GtkTreeIter *parent, const
 
 void create_nodes_for_directory(GtkTreeStore *store, GtkTreeIter *parent, const char *dir_path, int max_depth)
 {
-	printf("create_nodes_for_directory()\n");
+	//printf("create_nodes_for_directory()\n");
 	--max_depth;
 
 	DIR *dir = opendir(dir_path);
@@ -123,6 +165,7 @@ void create_nodes_for_directory(GtkTreeStore *store, GtkTreeIter *parent, const 
 GtkTreeStore *create_tree_store()
 {
 	printf("create_tree_store()\n");
+	printf("create_tree_store(): root_dir: %s\n", root_dir);
 	GtkTreeStore *store = gtk_tree_store_new(N_COLUMNS, GDK_TYPE_PIXBUF, G_TYPE_STRING);
 	create_nodes_for_directory(store, NULL, root_dir, 2);
 	return store;
@@ -131,7 +174,6 @@ GtkTreeStore *create_tree_store()
 GtkWidget *create_tree_view()
 {
 	//getcwd(root_dir, sizeof(root_dir));
-	sprintf(root_dir, "%s", "/home/eero");
 
 	GtkTreeStore *store = create_tree_store();
 	GtkWidget *tree_view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
@@ -222,7 +264,7 @@ void on_tree_view_row_activated(GtkTreeView *tree_view, GtkTreePath *path, GtkTr
 	GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
 
 	char node_rel_path[100]; node_rel_path[0] = 0;
-	char *node_full_path = malloc(100); node_full_path[0] = 0;
+	char *node_full_path = malloc(100); node_full_path[0] = 0; //@ free?
 
 	while (gtk_tree_path_get_depth(path) > 0) // 1 -- root node, 0 -- nowhere
 	{
@@ -246,21 +288,9 @@ void on_tree_view_row_activated(GtkTreeView *tree_view, GtkTreePath *path, GtkTr
 
 	if (S_ISDIR(fs_node_info.st_mode)) {
 		//printf("\"%s\" is a directory\n", node_full_path);
-
-		// For some unknown reason we have problems when removing an item that is currently active. So we do this as a workaround.
-		g_signal_handler_block(G_OBJECT(root_selection), root_selection_changed_id);
-		gtk_combo_box_set_active(GTK_COMBO_BOX(root_selection), 0);
-		g_signal_handler_unblock(G_OBJECT(root_selection), root_selection_changed_id);
-
-		//printf("removing an item at index %d\n", root_selection_index);
-		gtk_combo_box_text_remove(GTK_COMBO_BOX_TEXT(root_selection), root_selection_index);
-		//gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(root_selection), node_full_path);
-		gtk_combo_box_text_insert_text(GTK_COMBO_BOX_TEXT(root_selection), root_selection_index, node_full_path);
-
-		gtk_combo_box_set_active(GTK_COMBO_BOX(root_selection), root_selection_index);
-
+		set_root_dir(node_full_path);
 	} else if(S_ISREG(fs_node_info.st_mode)) {
-		printf("\"%s\" is a regular file\n", node_full_path);
+		//printf("\"%s\" is a regular file\n", node_full_path);
 		//@ cant open a file which is not a text file. well get gtk errors for now
 		create_tab(node_full_path);
 	} else {
@@ -270,16 +300,15 @@ void on_tree_view_row_activated(GtkTreeView *tree_view, GtkTreePath *path, GtkTr
 
 GtkWidget *create_file_browser_widget()
 {
-	printf("create_file_browser_widget() called!\n");
+	printf("create_file_browser_widget()\n");
 
 	GtkWidget *tree_view = create_tree_view();
 	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(tree_view), FALSE);
 	//gtk_tree_view_set_level_indentation(GTK_TREE_VIEW(tree_view), 9);
 	g_signal_connect(tree_view, "row-activated", G_CALLBACK(on_tree_view_row_activated), NULL);
 	g_signal_connect(tree_view, "row-expanded", G_CALLBACK(on_tree_view_row_expanded), NULL);
-	//g_signal_connect(tree_view, "button-press-event", G_CALLBACK(on_tree_view_button_press_event), NULL);
+	g_signal_connect(tree_view, "button-press-event", G_CALLBACK(on_tree_view_button_press_event), NULL);
 
-	//GtkWidget *label = gtk_label_new("file-browser hello world! hello world! hello world! hello world! hello world!");
 	return tree_view;
 }
 
