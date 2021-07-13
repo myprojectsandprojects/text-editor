@@ -499,8 +499,6 @@ GtkWidget *create_tab(const char *file_name)
 	gtk_container_add(GTK_CONTAINER(line_nr_label_container), line_nr_label);
 	gtk_container_add(GTK_CONTAINER(line_nr_label_container), line_nr_value);
 
-
-
 	GtkWidget *highlighting_label = gtk_label_new(NULL);
 	//GtkWidget *image = gtk_image_new_from_icon_name("pan-down-symbolic", GTK_ICON_SIZE_LARGE_TOOLBAR);
 	GtkWidget *image = gtk_arrow_new(GTK_ARROW_UP, GTK_SHADOW_NONE); // Its deprecated, but we are using a very old version of gtk currently.
@@ -510,37 +508,20 @@ GtkWidget *create_tab(const char *file_name)
 	gtk_container_add(GTK_CONTAINER(b), image);
 	gtk_container_add(GTK_CONTAINER(highlighting_menu_button), b);
 
-
-	/* Cant style it throught css. */
-	/*GtkWidget *statusbar = gtk_statusbar_new();
-	gtk_style_context_add_class (gtk_widget_get_style_context(statusbar), "status-bar");
-
-	int id = gtk_statusbar_get_context_id(GTK_STATUSBAR(statusbar), "test");
-	gtk_statusbar_push(GTK_STATUSBAR(statusbar), id, "Hello world!");*/
-	
-	
-	/* Cant set border throught css. */
-	/*GtkWidget *status_bar = gtk_frame_new(NULL);
-	gtk_frame_set_shadow_type(GTK_FRAME(status_bar), GTK_SHADOW_NONE);
-	gtk_style_context_add_class (gtk_widget_get_style_context(status_bar), "status-bar");
-	GtkWidget *status_label = gtk_label_new("Hello world!");
-	gtk_container_add(GTK_CONTAINER(status_bar), status_label);*/
-
-	const char *status_message = "Hello world!";
+	/*const char *status_message = "Hello world!";
 	GtkWidget *status_message_label = gtk_label_new(status_message);
-	//gtk_label_set_text(GTK_LABEL(status_message_label), "Hello world! Hello universe! Hello multiverse!");
-	gtk_label_set_text(GTK_LABEL(status_message_label), status_message);
+	gtk_label_set_text(GTK_LABEL(status_message_label), status_message);*/
 
 	GtkWidget *status_bar = gtk_grid_new();
 	gtk_grid_set_column_spacing(GTK_GRID(status_bar), 30);
 	gtk_grid_attach(GTK_GRID(status_bar), line_nr_label_container, 0, 0, 1, 1);
 	gtk_grid_attach(GTK_GRID(status_bar), highlighting_menu_button, 1, 0, 1, 1);
-	gtk_grid_attach(GTK_GRID(status_bar), status_message_label, 2, 0, 1, 1);
+	//gtk_grid_attach(GTK_GRID(status_bar), status_message_label, 2, 0, 1, 1);
 
 
 	gtk_style_context_add_class (gtk_widget_get_style_context(line_nr_value), "line-number-value-label");
 	gtk_style_context_add_class (gtk_widget_get_style_context(highlighting_menu_button), "menu-button");
-	gtk_style_context_add_class (gtk_widget_get_style_context(status_message_label), "status-message-label");
+	//gtk_style_context_add_class (gtk_widget_get_style_context(status_message_label), "status-message-label");
 	gtk_style_context_add_class (gtk_widget_get_style_context(status_bar), "status-bar");
 
 
@@ -589,7 +570,7 @@ GtkWidget *create_tab(const char *file_name)
 	tab_add_widget_4_retrieval(tab, SEARCH_ENTRY, search_entry);
 	tab_add_widget_4_retrieval(tab, TEXT_VIEW, text_view);
 	tab_add_widget_4_retrieval(tab, TEXT_BUFFER, text_buffer); //@ haa text-buffer is not a widget! void *?
-	//tab_add_widget_4_retrieval(tab, BOTTOM_MARGIN, bottom_margin);
+	//tab_add_widget_4_retrieval(tab, STATUS_MESSAGE_LABEL, status_message_label);
 
 
 	int page = gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, NULL);
@@ -1317,7 +1298,8 @@ void activate_handler(GtkApplication *app, gpointer data) {
 	key_combinations[CTRL][44] = less_fancy_toggle_notebook; // ctrl + j
 
 
-	char *css_file = "themes/css";
+	//char *css_file = "themes/css";
+	char *css_file = "/home/eero/everything/git/text-editor/themes/css";
 	apply_css_from_file(css_file);
 
 	pthread_t id;
@@ -1377,6 +1359,9 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	g_signal_connect(notebook, "switch-page", G_CALLBACK(on_notebook_switch_page), NULL);
 	//g_signal_connect(notebook, "focus-in-event", G_CALLBACK(on_notebook_focus_in_event), NULL);
 	//g_signal_connect(notebook, "page-added", G_CALLBACK(on_notebook_page_added), NULL);
+	gtk_style_context_add_class (
+		gtk_widget_get_style_context(notebook),
+		"main-notebook");
 	
 	gtk_widget_set_hexpand(notebook, TRUE);
 

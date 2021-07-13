@@ -222,15 +222,23 @@ GtkWidget *create_search_in_files_widget()
 	hidden_files_check_button = gtk_check_button_new_with_label("ignore hidden");
 	GtkWidget *search_button = gtk_button_new_with_label("Search");
 
+	gtk_style_context_add_class (gtk_widget_get_style_context(search_phrase_entry), "text-entry");
+	gtk_style_context_add_class (gtk_widget_get_style_context(filename_filter_entry), "text-entry");
+	gtk_style_context_add_class (gtk_widget_get_style_context(hidden_files_check_button), "check-button");
+	gtk_style_context_add_class (gtk_widget_get_style_context(search_button), "search-button");
+
 	//gtk_entry_set_text(GTK_ENTRY(filename_filter_entry), "*");
 	
 	g_signal_connect(search_button, "clicked", G_CALLBACK(on_search_button_clicked), /*search_entry*/NULL);
 
 	search_results = gtk_list_box_new();
+	gtk_widget_set_vexpand(search_results, TRUE);
 	//g_signal_connect(list, "row-selected", G_CALLBACK(on_list_row_selected), NULL);
 	g_signal_connect(search_results, "row-activated", G_CALLBACK(on_list_row_selected), NULL);
 
-	GtkWidget *container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	gtk_style_context_add_class (gtk_widget_get_style_context(search_results), "search-results");
+
+	GtkWidget *container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 3);
 
 	gtk_container_add(GTK_CONTAINER(container), widget_with_width(search_phrase_entry, 250));
 	gtk_container_add(GTK_CONTAINER(container), widget_with_width(filename_filter_entry, 250));

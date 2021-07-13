@@ -213,14 +213,24 @@ void create_tags(GtkTextBuffer *text_buffer)
 	}
 
 	printf("create_tags(): creating tags.\n");
-	gtk_text_buffer_create_tag(text_buffer, "comment", "style", PANGO_STYLE_ITALIC, "foreground", "green", NULL);
-	gtk_text_buffer_create_tag(text_buffer, "operator", "foreground", "red", /*"weight", "bold",*/ NULL);
+
+	/*gtk_text_buffer_create_tag(text_buffer, "comment", "style", PANGO_STYLE_ITALIC, "foreground", "green", NULL);
+	gtk_text_buffer_create_tag(text_buffer, "operator", "foreground", "red", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "number", "foreground", "blue", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "identifier", "foreground", "black", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "keyword", "weight", "bold", "foreground", "black", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "preprocessor-directive", "foreground", "purple", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "unknown", "foreground", "orange", NULL);
-	gtk_text_buffer_create_tag(text_buffer, "string", "foreground", "gray", NULL);
+	gtk_text_buffer_create_tag(text_buffer, "string", "foreground", "gray", NULL);*/
+
+	gtk_text_buffer_create_tag(text_buffer, "identifier", "foreground", "rgb(165, 165, 175)", NULL);
+	gtk_text_buffer_create_tag(text_buffer, "keyword", "foreground", "rgb(200, 200, 210)", NULL);
+	gtk_text_buffer_create_tag(text_buffer, "operator", "foreground", "rgb(180, 165, 130)", NULL);
+	gtk_text_buffer_create_tag(text_buffer, "number", "foreground", "rgb(165, 165, 255)", NULL);
+	gtk_text_buffer_create_tag(text_buffer, "comment", "foreground", "rgb(95, 95, 105)", NULL);
+	gtk_text_buffer_create_tag(text_buffer, "preprocessor-directive", "foreground", "rgb(165, 200, 175)", NULL);
+	gtk_text_buffer_create_tag(text_buffer, "unknown", "foreground", "orange", NULL);
+	gtk_text_buffer_create_tag(text_buffer, "string", "foreground", "rgb(190, 190, 190)", NULL);
 }
 
 /* 
