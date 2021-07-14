@@ -55,10 +55,15 @@
 
 GtkWindow, GtkPaned {background: rgb(85, 85, 95);}
 
-GtkTextView, .command-entry, .search-entry
+GtkTextView, .command-entry, .search-entry, .text-entry
 {
 	color: rgb(190, 190, 190);
-	font: Free Mono Bold 13;
+	/*font: Free Mono Bold 12;*/
+	/*font: Source Code Pro Regular 12;*/
+	/*font: Fira Code Semi-Bold 13;*/
+	font: Cascadia Mono Regular 12;
+	font: BP Mono Bold 13;
+	/*font: Anonymous Pro Semi-Bold 13;*/
 } 
 
 GtkTextView
@@ -74,16 +79,41 @@ GtkTextView
 	border-radius: 0;
 }
 
-.command-entry:focus, .search-entry:focus
+.text-entry
 {
-	background: rgb(85, 85, 95);
-}
+	border: none;
+	border-radius: 0;
 
+	background: rgb(65, 65, 75);
+	color: rgb(190, 190, 190);
+
+	/*padding: 3px;*/
+}
+/*
+GtkTextView:selected,
+.search-entry:selected,
+.command-entry:selected,
+.text-entry:selected
+{
+	color: white;
+	background: red;
+}
+*/
 #search-revealer > GtkEntry:selected, #command-revealer > GtkEntry:selected, GtkTextView:selected
 {
 	color: white;
 	background: red;
 }
+/*
+:focus pseudoclass conflicts with :selected pseudoclass (?)
+Should we target these widgets in a different way?
+*/
+
+.command-entry:focus, .search-entry:focus, .text-entry:focus
+{
+	background: rgb(85, 85, 95);
+}
+
 
 /*
 .main-notebook
@@ -155,6 +185,7 @@ GtkNotebook tab:active
 	font: Free Mono Bold 11;
 }
 
+/* Should really target a specific tree-view using a class... */
 GtkTreeView
 {
 	/*background: rgb(85, 85, 95);*/
@@ -168,20 +199,6 @@ GtkTreeView row:selected
 }
 
 .search-result {/*color: red;*/ font-weight: bold;}
-
-.text-entry
-{
-	border: none;
-	border-radius: 0;
-
-	background: rgb(65, 65, 75);
-	color: rgb(190, 190, 190);
-	font: Free Mono Bold 13;
-
-	/*padding: 3px;*/
-}
-
-.text-entry:focus {background: rgb(85, 85, 95);}
 
 .check-button {
 	border: solid 3px red;

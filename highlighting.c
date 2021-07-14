@@ -30,9 +30,17 @@ gunichar get_next_character(GtkTextIter *iter)
 
 void highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end)
 {
-	printf("adding highlighting to range: %d -> %d\n", gtk_text_iter_get_offset(start), gtk_text_iter_get_offset(end));
+	char *text = gtk_text_buffer_get_text(text_buffer, start, end, FALSE);
+	printf("highlighting: \"%s\"\n", text);
+	free(text);
+
+	//printf("adding highlighting to range: %d -> %d\n", gtk_text_iter_get_offset(start), gtk_text_iter_get_offset(end));
 
 	gtk_text_buffer_remove_all_tags(text_buffer, start, end); // @ shouldnt do that here at all?
+
+	char possible_type_identifier[100];
+	possible_type_identifier[0] = 0;
+	GtkTextIter i1, i2;
 
 	GtkTextIter iter;
 	for (iter = *start;
@@ -138,11 +146,21 @@ void highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end)
 		if (c1 == '+' || c1 == '-' || c1 == '*' || c1 == '/' || c1 == '='
 				|| c1 == '(' || c1 == ')' || c1 == '[' || c1 == ']' || c1 == '{' || c1 == '}'
 				|| c1 == '<' || c1 == '>' || c1 == '!'  || c1 == '|' || c1 == '~' || c1 == '&'
-				|| c1 == ';' || c1 == ',' || c1 == '?' || c1 == ':') {
+				|| c1 == ';' || c1 == ',' || c1 == '?' || c1 == ':' || c1 == '.') {
 			GtkTextIter begin = iter;
 			gtk_text_iter_forward_char(&iter);
 			gtk_text_buffer_apply_tag_by_name(text_buffer, "operator", &begin, &iter);
 			gtk_text_iter_backward_char(&iter);
+
+			// it could also be an arithmetic operator
+			// we could look at the specific way its used:
+			// if ident *ident then we could tend to suspect a pointer and highlight that way
+			// all other cases like ident * ident or ident*ident or ident* ident etc. 
+			// we would highlight as a multiplication operator 
+			if (c1 == '*' && (g_unichar_isalpha(c2) || c2 == '_' || c2 == '*'))
+				continue; // if immediately followed by an identifier well assume pointer 
+
+			possible_type_identifier[0] = 0;
 			continue;
 		}
 
@@ -165,9 +183,11 @@ void highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end)
 			}
 
 			// Maybe our identifier is a keyword?
-			char *identifier = gtk_text_buffer_get_text(text_buffer, &begin, &iter, FALSE);
 			gboolean is_keyword = FALSE;
-			char *keywords[] = {"if", "else", "return", "for", "while", "break", "continue", NULL};
+			char *keywords[] = {
+				"if", "else", "return", "for", "while", "break", "continue", "struct", "const", "extern", "static", NULL};
+
+			char *identifier = gtk_text_buffer_get_text(text_buffer, &begin, &iter, FALSE);
 			int k;
 			for(k = 0; keywords[k] != NULL; ++k) {
 				if(strcmp(identifier, keywords[k]) == 0) {
@@ -175,15 +195,27 @@ void highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end)
 					break;
 				}
 			}
-			free(identifier);
 
-			if (is_keyword) {
+// identifier could also identify a type... lets see if we can recognize that...
+// lets just assume for now, that if we have an identifier followed by an identifier,
+// then the first identifier identifies a type.
+
+			if (is_keyword == TRUE) {
 				gtk_text_buffer_apply_tag_by_name(text_buffer, "keyword", &begin, &iter);
 			} else {
-				gtk_text_buffer_apply_tag_by_name(text_buffer, "identifier", &begin, &iter);
+				if (possible_type_identifier[0] != 0) {
+					gtk_text_buffer_apply_tag_by_name(text_buffer, "type", &i1, &i2);
+					possible_type_identifier[0] = 0;
+					gtk_text_buffer_apply_tag_by_name(text_buffer, "identifier", &begin, &iter);
+				} else {
+					gtk_text_buffer_apply_tag_by_name(text_buffer, "identifier", &begin, &iter);
+					strncpy(possible_type_identifier, identifier, 100);
+					i1 = begin; i2 = iter;
+				}
 			}
 
 			gtk_text_iter_backward_char(&iter);
+			free(identifier);
 			continue;
 		}
 
@@ -225,10 +257,11 @@ void create_tags(GtkTextBuffer *text_buffer)
 
 	gtk_text_buffer_create_tag(text_buffer, "identifier", "foreground", "rgb(165, 165, 175)", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "keyword", "foreground", "rgb(200, 200, 210)", NULL);
+	gtk_text_buffer_create_tag(text_buffer, "type", "foreground", "rgb(165, 200, 175)", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "operator", "foreground", "rgb(180, 165, 130)", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "number", "foreground", "rgb(165, 165, 255)", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "comment", "foreground", "rgb(95, 95, 105)", NULL);
-	gtk_text_buffer_create_tag(text_buffer, "preprocessor-directive", "foreground", "rgb(165, 200, 175)", NULL);
+	gtk_text_buffer_create_tag(text_buffer, "preprocessor-directive", "foreground", "rgb(195, 165, 195)", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "unknown", "foreground", "orange", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "string", "foreground", "rgb(190, 190, 190)", NULL);
 }
@@ -243,6 +276,13 @@ void create_tags(GtkTextBuffer *text_buffer)
 void on_text_buffer_changed_for_highlighting(GtkTextBuffer *buffer, gpointer data)
 {
 	printf("on_text_buffer_changed_for_highlighting() called!\n");
+
+	/*GtkTextIter abs_start, abs_end;
+	gtk_text_buffer_get_bounds(buffer, &abs_start, &abs_end);
+	highlight(buffer, &abs_start, &abs_end);
+	return;*/
+
+	GtkTextIter iter, start, end;
 
 	if (strchr(global_text, '\"') || strchr(global_text, '\\')) { // backslash could escape a doublequote, hence
 		GtkTextIter text_start, text_end;
@@ -264,23 +304,28 @@ g_print("after\n");
 		return;
 	}
 
-	GtkTextIter iter, start, end;
-
-	TOKEN_RANGE:
+TOKEN_RANGE:
 	gtk_text_buffer_get_iter_at_offset(buffer, &iter, global_location_offset);
 
 	//g_print("offset: %d\n", offset);
 
+	int count = 0;
 	start = iter;
 	gtk_text_iter_backward_char(&start);
 	while (gtk_text_iter_backward_char(&start)) {
-		if (gtk_text_iter_begins_tag(&start, NULL)) break;
+		if (gtk_text_iter_begins_tag(&start, NULL)) {
+			if (count > 0) break;
+			count += 1;
+		}
 	}
 
+	count = 0;
 	end = iter;
 	while (gtk_text_iter_forward_char(&end)) {
-		//g_print("character: %c\n", gtk_text_iter_get_char(&end));
-		if (gtk_text_iter_ends_tag(&end, NULL)) break;
+		if (gtk_text_iter_ends_tag(&end, NULL)) {
+			if (count > 1) break; // weve seen tag end more than once!
+			count += 1;
+		}
 	}
 
 	/*GtkTextIter abs_start, abs_end;
