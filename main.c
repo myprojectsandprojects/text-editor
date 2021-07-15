@@ -615,7 +615,7 @@ GtkWidget *create_tab(const char *file_name)
 
 	init_search(tab);
 	init_undo(tab);
-	init_autocomplete(tab);
+	//init_autocomplete(tab);
 
 	g_signal_connect(G_OBJECT(text_view), "copy-clipboard", G_CALLBACK(text_view_copy_clipboard), NULL);
 	g_signal_connect(G_OBJECT(text_view), "cut-clipboard", G_CALLBACK(text_view_cut_clipboard), NULL);

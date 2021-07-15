@@ -58,7 +58,12 @@ GtkWindow, GtkPaned {background: rgb(85, 85, 95);}
 GtkTextView, .command-entry, .search-entry, .text-entry
 {
 	color: rgb(190, 190, 190);
-	font: Free Mono Bold 12;
+	/*font: Free Mono Bold 12;*/
+	/*font: Source Code Pro Regular 12;*/
+	/*font: Fira Code Semi-Bold 13;*/
+	font: Cascadia Mono Regular 12;
+	font: BP Mono Bold 13;
+	/*font: Anonymous Pro Semi-Bold 13;*/
 } 
 
 GtkTextView
@@ -173,17 +178,20 @@ GtkNotebook tab:active
 
 
 /* .:SIDEBAR:. */
-
+/*
 .sidebar-container *
 {
 	color: rgb(190, 190, 190);
 	font: Free Mono Bold 11;
 }
-
+*/
+/* Should really target a specific tree-view using a class... */
 GtkTreeView
 {
 	/*background: rgb(85, 85, 95);*/
 	background: rgb(45, 45, 55);
+	color: rgb(140, 140, 140);
+	font: Free Mono Bold 11;
 }
 
 GtkTreeView row:selected
@@ -198,8 +206,28 @@ GtkTreeView row:selected
 	border: solid 3px red;
 	border-radius: 0;
 
+	/*background: rgb(65, 65, 75);*/
+	
+	color: rgb(190, 190, 190);
+	font: Free Mono Bold 11;
+}
+
+.nav-button {
+	border: none;
+	border-radius: 3px;
+
 	background: rgb(65, 65, 75);
-	color: red;
+	color: rgb(190, 190, 190);
+	font: Free Mono Bold 16;
+
+	padding: 1px 1px 1px 1px;
+}
+
+.nav-button:hover {background: red;}
+
+.root-dir-label {
+	color: rgb(190, 190, 190);
+	font: Free Mono Bold 12;
 }
 
 .search-button {
@@ -207,7 +235,8 @@ GtkTreeView row:selected
 	border-radius: 0;
 
 	background: rgb(65, 65, 75);
-	color: red;
+	color: rgb(190, 190, 190);
+	font: Free Mono Bold 11;
 
 	padding: 10px;
 }
@@ -216,6 +245,12 @@ GtkTreeView row:selected
 
 GtkListBox {border: solid 2px red; background: rgb(65, 65, 95);}
 /*.search-results *{background: rgb(45, 45, 55);}*/
+
+.suggestions-popup
+{
+	color: rgb(190, 190, 190);
+	font: Free Mono Bold 11;
+}
 
 
 

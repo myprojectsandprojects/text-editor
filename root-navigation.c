@@ -32,8 +32,8 @@ GtkWidget *create_root_nav_widget()
 	gtk_button_set_image(GTK_BUTTON(back_button), back_image);*/
 	g_signal_connect(G_OBJECT(back_button), "clicked", G_CALLBACK(on_back_button_clicked), NULL);
 
-	gtk_widget_set_size_request(home_button, 50, -1);
-	gtk_widget_set_size_request(back_button, 50, -1);
+	gtk_widget_set_size_request(home_button, 36, 36);
+	gtk_widget_set_size_request(back_button, 36, 36);
 
 	gtk_widget_set_tooltip_text(home_button, "Home Directory");
 	gtk_widget_set_tooltip_text(back_button, "Parent Directory");

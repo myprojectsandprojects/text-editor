@@ -190,6 +190,8 @@ GtkTreeView
 {
 	/*background: rgb(85, 85, 95);*/
 	background: rgb(45, 45, 55);
+	color: rgb(140, 140, 140);
+	font: Free Mono Bold 11;
 }
 
 GtkTreeView row:selected
@@ -205,7 +207,9 @@ GtkTreeView row:selected
 	border-radius: 0;
 
 	/*background: rgb(65, 65, 75);*/
-	color: red;
+	
+	color: rgb(190, 190, 190);
+	font: Free Mono Bold 11;
 }
 
 .nav-button {
@@ -216,7 +220,7 @@ GtkTreeView row:selected
 	color: rgb(190, 190, 190);
 	font: Free Mono Bold 16;
 
-	padding: 10px;
+	padding: 1px 1px 1px 1px;
 }
 
 .nav-button:hover {background: red;}
