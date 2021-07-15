@@ -51,4 +51,11 @@ void init_autocomplete();
 /* root-navigation.c */
 GtkWidget *create_root_nav_widget();
 
+//#define PRINT_LOG_MESSAGES
+#ifdef PRINT_LOG_MESSAGES
+	#define LOG_MSG(...) printf(__VA_ARGS__)
+#else
+	#define LOG_MSG(...) 0
+#endif
+
 

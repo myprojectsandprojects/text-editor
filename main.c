@@ -615,7 +615,7 @@ GtkWidget *create_tab(const char *file_name)
 
 	init_search(tab);
 	init_undo(tab);
-	//init_autocomplete(tab);
+	init_autocomplete(tab);
 
 	g_signal_connect(G_OBJECT(text_view), "copy-clipboard", G_CALLBACK(text_view_copy_clipboard), NULL);
 	g_signal_connect(G_OBJECT(text_view), "cut-clipboard", G_CALLBACK(text_view_cut_clipboard), NULL);
@@ -1385,20 +1385,6 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	gtk_window_set_decorated(GTK_WINDOW(popup_window), FALSE);
 	gtk_window_set_position(GTK_WINDOW(popup_window), GTK_WIN_POS_CENTER);
 	gtk_window_set_transient_for(GTK_WINDOW(popup_window), GTK_WINDOW(window));
-	gtk_widget_show_all(popup_window);*/
-
-	/*GtkWidget *popup_window = gtk_window_new(GTK_WINDOW_POPUP);
-	//gtk_window_set_decorated(GTK_WINDOW(popup_window), FALSE);
-	//gtk_window_set_position(GTK_WINDOW(popup_window), GTK_WIN_POS_CENTER);
-	//gtk_window_set_position(GTK_WINDOW(popup_window), GTK_WIN_POS_MOUSE);
-	//gtk_window_set_transient_for(GTK_WINDOW(popup_window), GTK_WINDOW(window));
-	gtk_window_set_attached_to(GTK_WINDOW(popup_window), window);
-
-	GdkWindow *w = gtk_widget_get_window(window);
-	gint x, y;
-	gdk_window_get_origin(w, &x, &y);
-	//printf("x: %d, y: %d\n", x, y);
-	gtk_window_move(GTK_WINDOW(popup_window), x, y);
 	gtk_widget_show_all(popup_window);*/
 }
 

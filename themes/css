@@ -223,6 +223,12 @@ GtkTreeView row:selected
 GtkListBox {border: solid 2px red; background: rgb(65, 65, 95);}
 /*.search-results *{background: rgb(45, 45, 55);}*/
 
+.suggestions-popup
+{
+	color: rgb(190, 190, 190);
+	font: Free Mono Bold 11;
+}
+
 
 
 
