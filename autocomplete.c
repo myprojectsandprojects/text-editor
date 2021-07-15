@@ -18,6 +18,11 @@ char *words[100];
 
 extern GtkWidget *window;
 
+void on_popup_window_key_press_event()
+{
+	LOG_MSG("on_popup_window_key_press_event()\n");
+}
+
 void create_popup(GtkTextView *text_view, GtkTextIter *location)
 {
 	GdkRectangle rect;
@@ -31,6 +36,7 @@ void create_popup(GtkTextView *text_view, GtkTextIter *location)
 	gdk_window_get_origin(w, &o_x, &o_y);
 
 	GtkWidget *popup_window = gtk_window_new(GTK_WINDOW_POPUP);
+	g_signal_connect(popup_window, "key-press-event", G_CALLBACK(on_popup_window_key_press_event), NULL);
 	gtk_style_context_add_class (gtk_widget_get_style_context(popup_window), "suggestions-popup");
 	GtkWidget *test_label1 = gtk_label_new("Hello world!");
 	GtkWidget *test_label2 = gtk_label_new("Hello universe!");

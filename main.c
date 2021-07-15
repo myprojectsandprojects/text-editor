@@ -615,7 +615,7 @@ GtkWidget *create_tab(const char *file_name)
 
 	init_search(tab);
 	init_undo(tab);
-	//init_autocomplete(tab);
+	init_autocomplete(tab);
 
 	g_signal_connect(G_OBJECT(text_view), "copy-clipboard", G_CALLBACK(text_view_copy_clipboard), NULL);
 	g_signal_connect(G_OBJECT(text_view), "cut-clipboard", G_CALLBACK(text_view_cut_clipboard), NULL);
@@ -1231,7 +1231,7 @@ void *watch_for_changes(void *data)
 
 void activate_handler(GtkApplication *app, gpointer data) {
 
-	g_print("activate_handler() called\n");
+	LOG_MSG("activate_handler() called\n");
 
 	guint major = gtk_get_major_version();
 	guint minor = gtk_get_minor_version();
@@ -1329,12 +1329,12 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	gtk_widget_set_tooltip_text(title_image, "File Browser");
 
 	GtkWidget *search_in_files = create_search_in_files_widget();
-	GtkWidget *search_in_files_scrollbars = gtk_scrolled_window_new(NULL, NULL);
-	gtk_container_add(GTK_CONTAINER(search_in_files_scrollbars), search_in_files);
+	/*GtkWidget *search_in_files_scrollbars = gtk_scrolled_window_new(NULL, NULL);
+	gtk_container_add(GTK_CONTAINER(search_in_files_scrollbars), search_in_files);*/
 	GtkWidget *title_image2 = gtk_image_new_from_file("icons/colors/search-in-files.png");
-	gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), search_in_files_scrollbars, title_image2);
+	//gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), search_in_files_scrollbars, title_image2);
+	gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), search_in_files, title_image2);
 	gtk_widget_set_tooltip_text(title_image2, "Search in Files");
-
 
 	GtkWidget *root_nav = create_root_nav_widget();
 

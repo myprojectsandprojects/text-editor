@@ -55,15 +55,17 @@
 
 GtkWindow, GtkPaned {background: rgb(85, 85, 95);}
 
-GtkTextView, .command-entry, .search-entry, .text-entry
+GtkTextView, .command-entry, .search-entry, .text-entry, .suggestions-popup
 {
 	color: rgb(190, 190, 190);
 	/*font: Free Mono Bold 12;*/
 	/*font: Source Code Pro Regular 12;*/
-	/*font: Fira Code Semi-Bold 13;*/
-	font: Cascadia Mono Regular 12;
-	font: BP Mono Bold 13;
+	font: Fira Code Medium 12;
+	/*font: BP Mono Bold 13;*/
 	/*font: Anonymous Pro Semi-Bold 13;*/
+	/*font: Cascadia Mono Regular 12;*/
+	/*font: PT Mono Regular 12;*/
+	/*font: Monospace Bold 13;*/
 } 
 
 GtkTextView
@@ -136,7 +138,8 @@ GtkNotebook
 
 	/* tab text color and font: */
 	color: rgb(190, 190, 190);
-	font: Free Mono Bold 11;
+	/*font: Free Mono Bold 11;*/
+	font: Roboto 10; /*@*/
 
 	/*background: rgb(25, 25, 35);*/
 	background: rgb(45, 45, 55);
@@ -160,7 +163,8 @@ GtkNotebook tab:active
 .status-bar, .menu-button
 {
 	color: rgb(190, 190, 190);
-	font: Free Mono Bold 11;
+	/*font: Free Mono Bold 11;*/
+	font: Roboto 10;
 }
 
 .status-bar {
@@ -190,8 +194,10 @@ GtkTreeView
 {
 	/*background: rgb(85, 85, 95);*/
 	background: rgb(45, 45, 55);
-	color: rgb(140, 140, 140);
-	font: Free Mono Bold 11;
+	/*font: Free Mono Bold 11;
+	color: rgb(140, 140, 140);*/
+	font: Roboto 10;
+	color: rgb(190, 190, 190);
 }
 
 GtkTreeView row:selected
@@ -209,7 +215,8 @@ GtkTreeView row:selected
 	/*background: rgb(65, 65, 75);*/
 	
 	color: rgb(190, 190, 190);
-	font: Free Mono Bold 11;
+	/*font: Free Mono Bold 11;*/
+	font: Roboto 10;
 }
 
 .nav-button {
@@ -218,7 +225,8 @@ GtkTreeView row:selected
 
 	background: rgb(65, 65, 75);
 	color: rgb(190, 190, 190);
-	font: Free Mono Bold 16;
+	/*font: Free Mono Bold 16;*/
+	font: Roboto Bold 10;
 
 	padding: 1px 1px 1px 1px;
 }
@@ -227,7 +235,8 @@ GtkTreeView row:selected
 
 .root-dir-label {
 	color: rgb(190, 190, 190);
-	font: Free Mono Bold 12;
+	/*font: Free Mono Bold 12;*/
+	font: Roboto Bold 10;
 }
 
 .search-button {
@@ -236,7 +245,8 @@ GtkTreeView row:selected
 
 	background: rgb(65, 65, 75);
 	color: rgb(190, 190, 190);
-	font: Free Mono Bold 11;
+	/*font: Free Mono Bold 11;*/
+	font: Roboto 10;
 
 	padding: 10px;
 }
@@ -248,8 +258,8 @@ GtkListBox {border: solid 2px red; background: rgb(65, 65, 95);}
 
 .suggestions-popup
 {
-	color: rgb(190, 190, 190);
-	font: Free Mono Bold 11;
+	/*color: rgb(190, 190, 190);*/
+	/*font: Free Mono Bold 11;*/
 }
 
 

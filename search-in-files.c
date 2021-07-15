@@ -263,7 +263,10 @@ GtkWidget *create_search_in_files_widget()
 
 	GtkWidget *container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 3);
 	gtk_container_add(GTK_CONTAINER(container), container_h);
-	gtk_container_add(GTK_CONTAINER(container), search_results);
+
+	GtkWidget *scrollbars = gtk_scrolled_window_new(NULL, NULL);
+	gtk_container_add(GTK_CONTAINER(scrollbars), search_results);
+	gtk_container_add(GTK_CONTAINER(container), scrollbars);
 
 	return container;
 }
