@@ -209,13 +209,14 @@ GtkWidget *widget_with_width(GtkWidget *widget, int width)
 {
 	GtkWidget *container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	gtk_container_add(GTK_CONTAINER(container), widget);
+	//gtk_widget_set_halign(container, GTK_ALIGN_CENTER);
 	gtk_widget_set_size_request(widget, width, -1);
 	return container;
 }
 
 GtkWidget *create_search_in_files_widget()
 {
-	printf("create_search_in_files_widget() called!\n");
+	LOG_MSG("create_search_in_files_widget() called!\n");
 
 	search_phrase_entry = gtk_search_entry_new();
 	filename_filter_entry = gtk_entry_new();
@@ -238,14 +239,30 @@ GtkWidget *create_search_in_files_widget()
 
 	gtk_style_context_add_class (gtk_widget_get_style_context(search_results), "search-results");
 
-	GtkWidget *container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 3);
-
-	gtk_container_add(GTK_CONTAINER(container), widget_with_width(search_phrase_entry, 250));
-	gtk_container_add(GTK_CONTAINER(container), widget_with_width(filename_filter_entry, 250));
-	GtkWidget *horizontal_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+	GtkWidget *container_v = gtk_box_new(GTK_ORIENTATION_VERTICAL, 3);
+	GtkWidget *space1 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	gtk_widget_set_size_request(space1, -1, 2);
+	gtk_container_add(GTK_CONTAINER(container_v), space1);
+	gtk_container_add(GTK_CONTAINER(container_v), widget_with_width(search_phrase_entry, 400));
+	gtk_container_add(GTK_CONTAINER(container_v), widget_with_width(filename_filter_entry, 400));
+	gtk_container_add(GTK_CONTAINER(container_v), hidden_files_check_button);
+	
+	GtkWidget *space2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	gtk_widget_set_size_request(space2, -1, 10);
+	gtk_container_add(GTK_CONTAINER(container_v), space2);
+	gtk_container_add(GTK_CONTAINER(container_v), widget_with_width(search_button, 125));
+	//gtk_container_add(GTK_CONTAINER(container_v), widget_with_width(filename_filter_entry, 300));
+	/*GtkWidget *horizontal_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
 	gtk_container_add(GTK_CONTAINER(horizontal_container), widget_with_width(search_button, 125));
 	gtk_container_add(GTK_CONTAINER(horizontal_container), hidden_files_check_button);
-	gtk_container_add(GTK_CONTAINER(container), horizontal_container);
+	gtk_container_add(GTK_CONTAINER(container_v), horizontal_container);*/
+
+	GtkWidget *container_h = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 3);
+	gtk_container_add(GTK_CONTAINER(container_h), container_v);
+	gtk_widget_set_halign(container_h, GTK_ALIGN_CENTER);
+
+	GtkWidget *container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 3);
+	gtk_container_add(GTK_CONTAINER(container), container_h);
 	gtk_container_add(GTK_CONTAINER(container), search_results);
 
 	return container;

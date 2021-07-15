@@ -178,13 +178,13 @@ GtkNotebook tab:active
 
 
 /* .:SIDEBAR:. */
-
+/*
 .sidebar-container *
 {
 	color: rgb(190, 190, 190);
 	font: Free Mono Bold 11;
 }
-
+*/
 /* Should really target a specific tree-view using a class... */
 GtkTreeView
 {
@@ -204,8 +204,26 @@ GtkTreeView row:selected
 	border: solid 3px red;
 	border-radius: 0;
 
-	background: rgb(65, 65, 75);
+	/*background: rgb(65, 65, 75);*/
 	color: red;
+}
+
+.nav-button {
+	border: none;
+	border-radius: 3px;
+
+	background: rgb(65, 65, 75);
+	color: rgb(190, 190, 190);
+	font: Free Mono Bold 16;
+
+	padding: 10px;
+}
+
+.nav-button:hover {background: red;}
+
+.root-dir-label {
+	color: rgb(190, 190, 190);
+	font: Free Mono Bold 12;
 }
 
 .search-button {
@@ -213,7 +231,8 @@ GtkTreeView row:selected
 	border-radius: 0;
 
 	background: rgb(65, 65, 75);
-	color: red;
+	color: rgb(190, 190, 190);
+	font: Free Mono Bold 11;
 
 	padding: 10px;
 }

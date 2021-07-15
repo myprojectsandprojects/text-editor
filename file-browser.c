@@ -300,7 +300,7 @@ void on_tree_view_row_activated(GtkTreeView *tree_view, GtkTreePath *path, GtkTr
 
 GtkWidget *create_file_browser_widget()
 {
-	printf("create_file_browser_widget()\n");
+	LOG_MSG("create_file_browser_widget()\n");
 
 	GtkWidget *tree_view = create_tree_view();
 	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(tree_view), FALSE);
