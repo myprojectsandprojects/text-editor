@@ -615,7 +615,7 @@ GtkWidget *create_tab(const char *file_name)
 
 	init_search(tab);
 	init_undo(tab);
-	init_autocomplete(tab);
+	//init_autocomplete(tab);
 
 	g_signal_connect(G_OBJECT(text_view), "copy-clipboard", G_CALLBACK(text_view_copy_clipboard), NULL);
 	g_signal_connect(G_OBJECT(text_view), "cut-clipboard", G_CALLBACK(text_view_cut_clipboard), NULL);
@@ -1171,8 +1171,11 @@ gboolean do_open(GdkEventKey *key_event)
 	return TRUE;
 }
 
-void apply_css_from_file(const char *file_name)
+/* signature is such because we need register it as a callback */
+gboolean apply_css_from_file(void *data)
 {
+	const char *file_name = (const char *) data;
+
 	printf("applying css from \"%s\"..\n", file_name);
 	// Apply css from file:
 	static GtkCssProvider *provider = NULL;
@@ -1191,6 +1194,8 @@ void apply_css_from_file(const char *file_name)
 	//gtk_style_context_add_provider_for_screen(screen, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_FALLBACK);
 	//printf("after gtk_style_context_add_provider_for_screen\n");
 	//gtk_widget_show_all(window);
+
+	return FALSE; // Dont call again
 }
 
 void *watch_for_changes(void *data)
@@ -1222,7 +1227,11 @@ void *watch_for_changes(void *data)
 
 			if (event->mask & IN_MODIFY) {
 				printf("file modified!\n");
-				apply_css_from_file(file_name);
+/*
+Calling apply_css_from_file() directly crashes the app (not always) when modifying the css-file using another editor process.
+*/
+				//apply_css_from_file(file_name); 
+				g_timeout_add_seconds(1, apply_css_from_file, data);
 			}
 			ptr += sizeof(struct inotify_event) + event->len;
 		}
@@ -1300,7 +1309,7 @@ void activate_handler(GtkApplication *app, gpointer data) {
 
 	//char *css_file = "themes/css";
 	char *css_file = "/home/eero/everything/git/text-editor/themes/css";
-	apply_css_from_file(css_file);
+	apply_css_from_file((void *) css_file);
 
 	pthread_t id;
 	int r = pthread_create(&id, NULL, watch_for_changes, css_file);
