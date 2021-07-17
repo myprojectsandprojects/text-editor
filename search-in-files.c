@@ -10,6 +10,13 @@ GtkWidget 	*search_phrase_entry;
 GtkWidget 	*filename_filter_entry;
 GtkWidget 	*hidden_files_check_button;
 GtkWidget 	*search_results;
+
+GtkWidget 	*search_button;
+gulong 		search_handler_id;
+gulong 		stop_handler_id;
+
+gboolean stop_search = FALSE; //@ thread safety?
+
 extern char 	root_dir[100];
 
 /* callback for g_timeout_add_seconds */
@@ -37,7 +44,7 @@ gboolean tab_scroll_to(gpointer data)
 	//return TRUE; // call again!
 }
 
-void on_search_button_clicked(GtkButton *search_button, gpointer data)
+void on_search_button_clicked_old(GtkButton *search_button, gpointer data)
 {
 	printf("on_search_button_clicked() called..\n");
 
@@ -64,17 +71,6 @@ void on_search_button_clicked(GtkButton *search_button, gpointer data)
 	char filename_patterns[100]; filename_patterns[0] = 0;
 
 	char **words = slice_by(filename_filter_text, ' ');
-/*
-	if (filters[0] != NULL) {
-		sprintf(filename_filter, "-name \"%s\"", filters[0]);
-		free(filters[0]);
-		int j = 1;
-		for (; filters[j] != NULL; ++j) {
-			sprintf(filename_filter, "%s -or -name \"%s\"", filename_filter, filters[j]);
-			free(filters[j]);
-		}
-	}
-*/
 	long int i = 0;
 	for (; words[i] != NULL; ++i) {
 		printf("word: %s\n", words[i]);
@@ -106,10 +102,6 @@ void on_search_button_clicked(GtkButton *search_button, gpointer data)
 		printf("ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 		return;
 	}
-
-	/*printf("sleeping for 3 secs\n");
-	sleep(3);
-	printf("done sleeping\n");*/
 
 	long int size = 10000000;
 	char *contents = malloc(size+1); //@ free
@@ -214,6 +206,279 @@ GtkWidget *widget_with_width(GtkWidget *widget, int width)
 	return container;
 }
 
+gboolean display_search_result(gpointer data) {
+	printf("display_search_result()\n");
+	GtkWidget *search_result = (GtkWidget *) data;
+	gtk_list_box_insert(GTK_LIST_BOX(search_results), search_result, -1);
+	gtk_widget_show_all(search_result);
+	return FALSE; // dont call again
+}
+
+gboolean parse_and_display_search_result(gpointer data)
+{
+	char *line = (char *) data;
+
+	printf("parse_and_display_search_result()\n");
+
+	printf("parse_and_display_search_result(): line: %s\n", line);
+
+	char *file_path = get_slice_by(&line, ':');
+	char *line_number = get_slice_by(&line, ':');
+	/*printf("file path: %s\n", file_path);
+	printf("line number: %s\n", line_number);
+	printf("remainder: %s\n\n", line);*/
+	
+	GtkWidget *search_result = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	
+	char *file_path_copy = malloc(strlen(file_path) + 1);
+	strcpy(file_path_copy, file_path);
+	g_object_set_data(G_OBJECT(search_result), "file-path", file_path_copy); //@ free?
+
+	unsigned long line_num = atoi(line_number); // void * -> 64 bits, unsigned long -> 64 bits
+	g_object_set_data(G_OBJECT(search_result), "line-num", (void *) line_num);
+	
+	printf("BEFORE CREATING LABELS\n");
+	int root_length = strlen(root_dir);
+	GtkWidget *file_path_label = gtk_label_new(&file_path[root_length + 1]);
+	char line_text[100];
+	char *p = line;
+	assert(p != NULL);
+	while (*p == ' ' || *p == '\t') ++p;
+	//sprintf(line_text, "%s:%s", line_number, p);
+	snprintf(line_text, 100, "%s:%s", line_number, p); // C++11
+	//GtkWidget *line_number_label = gtk_label_new(line_number);
+	GtkWidget *line_text_label = gtk_label_new(line_text);
+	printf("AFTER CREATING LABELS\n");
+
+	free(data);
+
+	gtk_widget_set_halign(file_path_label, GTK_ALIGN_START);
+	//gtk_widget_set_halign(line_number_label, GTK_ALIGN_START);
+	gtk_widget_set_halign(line_text_label, GTK_ALIGN_START);
+	
+	gtk_container_add(GTK_CONTAINER(search_result), file_path_label);
+	//gtk_container_add(GTK_CONTAINER(search_result), line_number_label);
+	gtk_container_add(GTK_CONTAINER(search_result), line_text_label);
+	
+	gtk_style_context_add_class (gtk_widget_get_style_context(file_path_label), "search-result");
+
+	g_timeout_add_seconds(1, display_search_result, (gpointer) search_result);
+	return FALSE;
+}
+
+gboolean display_search_results(gpointer data)
+{
+	printf("display_search_results()\n");
+
+	char *contents = (char *) data;
+
+	char *line;
+	while ((line = get_slice_by(&contents, '\n')) != NULL) {
+		printf("line: %s\n", line);
+		char *file_path = get_slice_by(&line, ':');
+		char *line_number = get_slice_by(&line, ':');
+		printf("file path: %s\n", file_path);
+		printf("line number: %s\n", line_number);
+		printf("remainder: %s\n\n", line);
+
+		GtkWidget *search_result = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+
+		char *file_path_copy = malloc(strlen(file_path) + 1);
+		strcpy(file_path_copy, file_path);
+		g_object_set_data(G_OBJECT(search_result), "file-path", file_path_copy); //@ free?
+		unsigned long line_num = atoi(line_number); // void * -> 64 bits, unsigned long -> 64 bits
+		g_object_set_data(G_OBJECT(search_result), "line-num", (void *) line_num);
+
+		int root_length = strlen(root_dir);
+		GtkWidget *file_path_label = gtk_label_new(&file_path[root_length + 1]);
+		char line_text[100];
+		char *p = line;
+		assert(p != NULL);
+		while (*p == ' ' || *p == '\t') ++p;
+		//sprintf(line_text, "%s:%s", line_number, p);
+		snprintf(line_text, 100, "%s:%s", line_number, p); // C++11
+		//GtkWidget *line_number_label = gtk_label_new(line_number);
+		GtkWidget *line_text_label = gtk_label_new(line_text);
+
+		gtk_widget_set_halign(file_path_label, GTK_ALIGN_START);
+		//gtk_widget_set_halign(line_number_label, GTK_ALIGN_START);
+		gtk_widget_set_halign(line_text_label, GTK_ALIGN_START);
+
+		gtk_container_add(GTK_CONTAINER(search_result), file_path_label);
+		//gtk_container_add(GTK_CONTAINER(search_result), line_number_label);
+		gtk_container_add(GTK_CONTAINER(search_result), line_text_label);
+
+		gtk_style_context_add_class (gtk_widget_get_style_context(file_path_label), "search-result");
+
+		gtk_list_box_insert(GTK_LIST_BOX(search_results), search_result, -1);
+	}
+
+	gtk_widget_show_all(search_results);
+
+	return FALSE;
+}
+
+void *run_command(void* command)
+{
+		FILE *fd = popen((char *) command, "r");
+		if (fd == NULL) {
+			printf("run_command(): error opening pipe!\n");
+			return (void *) 0;
+		}
+	
+		/*long int size = 10000000;
+		char *output = malloc(size+1); //@ free
+
+		long int i = 0;
+		for (i = 0; ((output[i] = fgetc(fd)) != EOF); ++i) {
+			if (stop_search == TRUE) {
+				free(output);
+				goto wrap_up;
+			}
+		}
+		output[i] = 0;
+
+		printf("run_command(): command output: %s\n", output);
+
+		//g_timeout_add_seconds(1, display_search_results, (gpointer) output);
+		display_search_results((gpointer) output);*/
+
+		char *r;
+		while (1) {
+			if (stop_search) {
+				stop_search = FALSE;
+				break;
+			}
+
+			char *line = malloc(600);
+			r = fgets(line, 600, fd);
+			if (r == NULL) break;
+			//printf("LENGTH: %d\n", strlen(line));
+
+			// sanity-check the line
+			int i, count = 0;
+			for (i = 0; line[i] != 0; ++i) {
+				if (line[i] == ':') count += 1;
+				if (count >= 2) break;
+			}
+			if (count < 2) {
+				printf("run_command(): discarding line: %s\n", line);
+				continue; // discard the line
+			}
+
+			parse_and_display_search_result((gpointer) line);
+			//g_timeout_add_seconds(1, display_search_result, (gpointer) line);
+		}
+
+wrap_up:
+		printf("run_command(): done searching, wrapping up\n");
+
+		g_signal_handler_unblock(search_button, search_handler_id);
+		g_signal_handler_block(search_button, stop_handler_id);
+		gtk_button_set_label(GTK_BUTTON(search_button), "Search");
+
+		int ret = pclose(fd);
+		printf("pclose() returned %d\n", ret);
+
+		return (void *) 0;
+}
+
+void search_handler(GtkButton *button, gpointer data)
+{
+	printf("search_handler()\n");
+
+	// These strings "must not be freed, modified or stored":
+	const char *search_phrase		= gtk_entry_get_text(GTK_ENTRY(search_phrase_entry));
+	const char *patterns_given 	= gtk_entry_get_text(GTK_ENTRY(filename_filter_entry));
+
+	gboolean ignore_hidden = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(hidden_files_check_button));
+
+
+	printf("search_handler(): search phrase: %s\n", search_phrase);
+	printf("search_handler(): file name patterns: %s\n", patterns_given);
+	printf("search_handler(): ignore hidden files: %d\n", ignore_hidden);
+
+	printf("search_handler(): about to delete previous search results..\n");
+	// deleting previous results can be extremely slow
+	GList *previous_results, *p;
+	previous_results = gtk_container_get_children(GTK_CONTAINER(search_results));
+	for (p = previous_results; p != NULL; p = p->next) {
+		//printf("previous search result...\n");
+		gtk_widget_destroy(p->data);
+	}
+	g_list_free(previous_results); //@ are we freeing everything?
+	printf("search_handler(): done deleting previous search results..\n");
+
+	if (search_phrase[0] == 0) {
+		printf("search_handler(): no search phrase -> do nothing\n");
+		return;
+	}
+
+	char patterns[100];
+	patterns[0] = 0;
+
+	char **words = slice_by(patterns_given, ' ');
+
+	int i = 0;
+	for (; words[i] != NULL; ++i) {
+		if (strcmp(words[i], "||") == 0) {
+			sprintf(patterns, "%s -or", patterns);
+		} else if (strcmp(words[i], "&&") == 0) {
+			sprintf(patterns, "%s -and", patterns);
+		} else {
+			if (words[i][0] == '!') {
+				sprintf(patterns, "%s -not -name \"%s\"", patterns, &words[i][1]);
+			} else {
+				sprintf(patterns, "%s -name \"%s\"", patterns, words[i]);
+			}
+		}
+		free(words[i]);
+	}
+	free(words);
+
+//	char command[1000];
+	char *command = malloc(1000);
+	command[0] = 0;
+
+	sprintf(command,
+		"find %s -type f%s%s | xargs -d '\n' grep -IniH \"%s\"",
+		root_dir, (ignore_hidden) ? " -not -wholename \"*/.*\"": "", patterns, search_phrase);
+	printf("search_handler(): command to execute: %s\n", command);
+
+	pthread_t id;
+	pthread_create(&id, NULL, run_command, command);
+
+	g_signal_handler_unblock(search_button, stop_handler_id);
+	g_signal_handler_block(search_button, search_handler_id);
+	gtk_button_set_label(GTK_BUTTON(search_button), "Stop");
+}
+
+void stop_handler(GtkButton *button, gpointer data)
+{
+	printf("stop_handler()\n");
+	g_signal_handler_unblock(search_button, search_handler_id);
+	g_signal_handler_block(search_button, stop_handler_id);
+	gtk_button_set_label(GTK_BUTTON(search_button), "Search");
+	stop_search = TRUE;
+}
+
+/*
+void on_search_button_clicked_test(GtkButton *button, gpointer data) {
+	printf("Search button clicked!\n");
+	
+	void *sleep_4_16_secs(void* data) {
+	printf("going to sleep for 16 secs..\n");
+	sleep(16);
+		printf("done sleeping\n");
+		gtk_button_set_label(GTK_BUTTON(search_button), "Search");
+	}
+	
+	pthread_t id;
+	pthread_create(&id, NULL, sleep_4_16_secs, NULL);
+	
+	gtk_button_set_label(GTK_BUTTON(search_button), "Stop");
+}
+*/
 GtkWidget *create_search_in_files_widget()
 {
 	LOG_MSG("create_search_in_files_widget() called!\n");
@@ -221,7 +486,7 @@ GtkWidget *create_search_in_files_widget()
 	search_phrase_entry = gtk_search_entry_new();
 	filename_filter_entry = gtk_entry_new();
 	hidden_files_check_button = gtk_check_button_new_with_label("ignore hidden");
-	GtkWidget *search_button = gtk_button_new_with_label("Search");
+	search_button = gtk_button_new_with_label("Search");
 
 	gtk_style_context_add_class (gtk_widget_get_style_context(search_phrase_entry), "text-entry");
 	gtk_style_context_add_class (gtk_widget_get_style_context(filename_filter_entry), "text-entry");
@@ -230,7 +495,11 @@ GtkWidget *create_search_in_files_widget()
 
 	//gtk_entry_set_text(GTK_ENTRY(filename_filter_entry), "*");
 	
-	g_signal_connect(search_button, "clicked", G_CALLBACK(on_search_button_clicked), /*search_entry*/NULL);
+	//g_signal_connect(search_button, "clicked", G_CALLBACK(on_search_button_clicked), NULL);
+	//g_signal_connect(search_button, "clicked", G_CALLBACK(on_search_button_clicked_test), NULL);
+	search_handler_id = g_signal_connect(search_button, "clicked", G_CALLBACK(search_handler), NULL);
+	stop_handler_id = g_signal_connect(search_button, "clicked", G_CALLBACK(stop_handler), NULL);
+	g_signal_handler_block(search_button, stop_handler_id);
 
 	search_results = gtk_list_box_new();
 	gtk_widget_set_vexpand(search_results, TRUE);

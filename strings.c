@@ -16,12 +16,14 @@ char *get_slice_by(char **p_s, char ch)
 		s[i] = 0;
 		++i;
 	}
-
+/*
 	if (s[i] == 0) {
-		*p_s = NULL;
+//		*p_s = NULL; // Do we really need to do this?
 	} else {
 		*p_s = &(s[i]);
 	}
+*/
+	*p_s = &(s[i]);
 
 	return s;
 }

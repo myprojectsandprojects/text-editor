@@ -4,6 +4,7 @@
 //@ bug: highlighting: backslash inside a string
 //@ bug: highlighting: line comment & preprocessor directive
 //@ bug: changing css of search results from another editor may crash the application... (try to time the procedure-call: g_timeout_add_seconds())
+//@ bug: if we cant open a file, we shouldnt end up with a gtk error...
 
 
 // bash commands: locate [pattern], sudo updatedb (fast)
@@ -12,6 +13,7 @@
 
 // in progress: obviously search-in-files should open & scroll
 // plausable feature: search-in-files: ui should be responsive while searching, sort results, group results under filename, search depth, filter by filename
+// search depth! when i want to find something i have pieces of information. i may for example know, that its a hidden file.. narrowing down the possibilities seems to be very good performance-wise. large resultsets render the application unresposive, can something be done? large number of results isnt very helpful anyways -- display only some of them? some results are total bogus -- needs investigation. search used to crash, is this gone?
 // plausable feature: easy way to find & open files by name... in search-in-files we could filter by file name while leaving the search phrase empty (it makes sense to think about an empty string this way) and the results would be just clickable file names? use command entry somehow?
 
 // plausable feature: sort files & dirs in the file-browser? group by type?
@@ -23,6 +25,7 @@
 // plausable feature: indent when opening a line
 // plausable feature: delete end of line
 // plausable feature: select a whole line when double clicking on a wrapped line
+// plausable feature: consider keeping the cursor offset when deleting a line?
 
 // plausable feature: tabs, file changes on disk...
 // plausable feature: opening & highlighting large files is really slow and ui becomes unresponsive (but it eventually manages to do it)
