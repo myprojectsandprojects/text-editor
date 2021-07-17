@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "declarations.h"
+
 //@ multiple tabs share these global variables... could this be a problem?
 int global_location_offset; // location of last insertion or deletion
 int global_length; // length of text inserted or 0 if deletion
@@ -31,7 +33,7 @@ gunichar get_next_character(GtkTextIter *iter)
 void highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end)
 {
 	char *text = gtk_text_buffer_get_text(text_buffer, start, end, FALSE);
-	printf("highlighting: \"%s\"\n", text);
+	LOG_MSG("highlighting: \"%s\"\n", text);
 	free(text);
 
 	//printf("adding highlighting to range: %d -> %d\n", gtk_text_iter_get_offset(start), gtk_text_iter_get_offset(end));
@@ -234,17 +236,17 @@ void highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end)
 
 void create_tags(GtkTextBuffer *text_buffer)
 {
-	printf("create_tags called\n");
+	LOG_MSG("create_tags()\n");
 
 	// check if we already have the tags to avoid gtk warnings..
 	GtkTextTagTable *table = gtk_text_buffer_get_tag_table(text_buffer);
 	int size = gtk_text_tag_table_get_size(table);
 	if (size != 0) {
-		printf("create_tags(): tags already created. no need to create them.\n");
+		LOG_MSG("create_tags(): tags already created. no need to create them.\n");
 		return;
 	}
 
-	printf("create_tags(): creating tags.\n");
+	LOG_MSG("create_tags(): creating tags.\n");
 
 	/*gtk_text_buffer_create_tag(text_buffer, "comment", "style", PANGO_STYLE_ITALIC, "foreground", "green", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "operator", "foreground", "red", NULL);
@@ -275,7 +277,7 @@ void create_tags(GtkTextBuffer *text_buffer)
 
 void on_text_buffer_changed_for_highlighting(GtkTextBuffer *buffer, gpointer data)
 {
-	printf("on_text_buffer_changed_for_highlighting() called!\n");
+	LOG_MSG("on_text_buffer_changed_for_highlighting()\n");
 
 	/*GtkTextIter abs_start, abs_end;
 	gtk_text_buffer_get_bounds(buffer, &abs_start, &abs_end);
@@ -343,7 +345,7 @@ TOKEN_RANGE:
 
 void on_text_buffer_insert_text_for_highlighting(GtkTextBuffer *buffer, GtkTextIter *location, char *text, int length, gpointer data)
 {
-	printf("on_text_buffer_insert_text_for_highlighting() called!\n");
+	LOG_MSG("on_text_buffer_insert_text_for_highlighting() called!\n");
 	/*GtkTextIter start, end;
 	gtk_text_buffer_get_bounds(buffer, &start, &end);
 	const char *contents = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);*/
@@ -356,7 +358,7 @@ void on_text_buffer_insert_text_for_highlighting(GtkTextBuffer *buffer, GtkTextI
 
 void on_text_buffer_delete_range_for_highlighting(GtkTextBuffer *buffer, GtkTextIter *start, GtkTextIter *end)
 {
-	printf("on_text_buffer_delete_range_for_highlighting() called!\n");
+	LOG_MSG("on_text_buffer_delete_range_for_highlighting()\n");
 	global_location_offset = gtk_text_iter_get_offset(start);
 	global_text = gtk_text_buffer_get_text(buffer, start, end, FALSE);
 	global_length = 0;
@@ -364,7 +366,7 @@ void on_text_buffer_delete_range_for_highlighting(GtkTextBuffer *buffer, GtkText
 
 void init_highlighting(GtkTextBuffer *text_buffer)
 {
-	printf("init_highlighting() called...\n");
+	LOG_MSG("init_highlighting()\n");
 	create_tags(text_buffer);
 	GtkTextIter start_buffer, end_buffer;
 	gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
@@ -381,6 +383,7 @@ void init_highlighting(GtkTextBuffer *text_buffer)
 
 void remove_highlighting(GtkTextBuffer *text_buffer)
 {
+	LOG_MSG("remove_highlighting()\n");
 	GtkTextIter range_start, range_end;
 	gtk_text_buffer_get_bounds(text_buffer, &range_start, &range_end);
 	gtk_text_buffer_remove_all_tags(text_buffer, &range_start, &range_end);

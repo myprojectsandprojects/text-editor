@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "tab.h"
+#include "declarations.h"
 
 #define DELETE_ACTION 0
 #define INSERT_ACTION 1
@@ -229,7 +230,7 @@ void on_text_buffer_insert_text(
 
 void init_undo(GtkWidget *tab)
 {
-	printf("init_undo() called\n");
+	LOG_MSG("init_undo() called\n");
 
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
 

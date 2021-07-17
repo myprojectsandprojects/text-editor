@@ -205,15 +205,15 @@ GtkWidget *widget_with_width(GtkWidget *widget, int width)
 	gtk_widget_set_size_request(widget, width, -1);
 	return container;
 }
-
+/*
 gboolean display_search_result(gpointer data) {
 	printf("display_search_result()\n");
 	GtkWidget *search_result = (GtkWidget *) data;
 	gtk_list_box_insert(GTK_LIST_BOX(search_results), search_result, -1);
 	gtk_widget_show_all(search_result);
 	return FALSE; // dont call again
-}
-
+}*/
+/*
 gboolean parse_and_display_search_result(gpointer data)
 {
 	char *line = (char *) data;
@@ -224,9 +224,9 @@ gboolean parse_and_display_search_result(gpointer data)
 
 	char *file_path = get_slice_by(&line, ':');
 	char *line_number = get_slice_by(&line, ':');
-	/*printf("file path: %s\n", file_path);
-	printf("line number: %s\n", line_number);
-	printf("remainder: %s\n\n", line);*/
+	//printf("file path: %s\n", file_path);
+	//printf("line number: %s\n", line_number);
+	//printf("remainder: %s\n\n", line);
 	
 	GtkWidget *search_result = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	
@@ -264,8 +264,8 @@ gboolean parse_and_display_search_result(gpointer data)
 
 	g_timeout_add_seconds(1, display_search_result, (gpointer) search_result);
 	return FALSE;
-}
-
+}*/
+/*
 gboolean display_search_results(gpointer data)
 {
 	printf("display_search_results()\n");
@@ -316,32 +316,149 @@ gboolean display_search_results(gpointer data)
 	gtk_widget_show_all(search_results);
 
 	return FALSE;
+}*/
+
+gboolean display_search_results(gpointer data)
+{
+	printf("display_search_results()\n");
+
+	// we also have a global variable called search results..
+	GtkWidget **list = (GtkWidget **) data;
+
+	int i;
+	for (i = 0; list[i] != NULL; ++i) {
+		gtk_list_box_insert(GTK_LIST_BOX(search_results), list[i], -1);
+	}
+
+	gtk_widget_show_all(search_results);
+
+	free(list);
+
+	return FALSE; // dont call again
 }
 
+GtkWidget **create_search_result_widgets(char *contents)
+{
+	printf("create_search_result_widgets()\n");
+
+	// we also have a global variable called search results..
+	GtkWidget **search_results;
+	search_results = malloc(1000000 + 1); // millionth is the last element //@ dynamic array?
+
+	char *line;
+	int i = 0;
+	while ((line = get_slice_by(&contents, '\n')) != NULL) {
+		assert(i <= 1000000 - 1);
+		printf("create_search_result_widgets(): line: %s\n", line);
+		char *file_path = get_slice_by(&line, ':');
+		char *line_number = get_slice_by(&line, ':');
+		//printf("file path: %s\n", file_path);
+		//printf("line number: %s\n", line_number);
+		//printf("remainder: %s\n\n", line);
+
+		GtkWidget *search_result = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+
+		char *file_path_copy = malloc(strlen(file_path) + 1);
+		strcpy(file_path_copy, file_path);
+		g_object_set_data(G_OBJECT(search_result), "file-path", file_path_copy); //@ free?
+		unsigned long line_num = atoi(line_number); // void * -> 64 bits, unsigned long -> 64 bits
+		g_object_set_data(G_OBJECT(search_result), "line-num", (void *) line_num);
+
+		int root_length = strlen(root_dir);
+		GtkWidget *file_path_label = gtk_label_new(&file_path[root_length + 1]);
+		char line_text[100];
+		char *p = line;
+		assert(p != NULL);
+		while (*p == ' ' || *p == '\t') ++p;
+		//sprintf(line_text, "%s:%s", line_number, p);
+		snprintf(line_text, 100, "%s:%s", line_number, p); // C++11
+		//GtkWidget *line_number_label = gtk_label_new(line_number);
+		GtkWidget *line_text_label = gtk_label_new(line_text);
+
+		gtk_widget_set_halign(file_path_label, GTK_ALIGN_START);
+		//gtk_widget_set_halign(line_number_label, GTK_ALIGN_START);
+		gtk_widget_set_halign(line_text_label, GTK_ALIGN_START);
+
+		gtk_container_add(GTK_CONTAINER(search_result), file_path_label);
+		//gtk_container_add(GTK_CONTAINER(search_result), line_number_label);
+		gtk_container_add(GTK_CONTAINER(search_result), line_text_label);
+
+		gtk_style_context_add_class (gtk_widget_get_style_context(file_path_label), "search-result");
+
+		search_results[i] = search_result;
+		i += 1;
+	}
+
+	search_results[i] = NULL;
+
+	return search_results;
+}
+
+void *run_command_2(void* command)
+{
+	int ret;
+
+	printf("run_command_2()\n");
+
+	FILE *fd = popen((char *) command, "r");
+	if (fd == NULL) {
+		printf("run_command(): error opening pipe!\n");
+
+		goto wrap_up;
+	}
+
+	long int size = 10000000;
+	char *output = malloc(size+1); //@ dynamic buffer
+
+	long int i;
+	for (i = 0; ((output[i] = fgetc(fd)) != EOF); ++i) {
+		if (stop_search == TRUE) {
+			free(output);
+			goto close_pipe_and_wrap_up;
+		}
+	}
+	output[i] = 0;
+
+	//printf("run_command(): command output: %s\n", output);
+
+	//g_timeout_add_seconds(1, display_search_results, (gpointer) output);
+	//display_search_results((gpointer) output);
+
+	// we also have a global variable called search results..
+	GtkWidget **search_results = create_search_result_widgets(output);
+
+	// display_search_results() is the part that might take away the UI
+	// searching itself operates happily on the background
+	//@ while being a monstrous memory hog somehow (?)
+	// memory usage doesnt seem to have an effect on performance though
+	g_timeout_add_seconds(1, display_search_results, search_results);
+
+	printf("run_command(): done searching, wrapping up\n");
+
+close_pipe_and_wrap_up:	
+	ret = pclose(fd);
+	printf("pclose() returned %d\n", ret);
+
+wrap_up:
+	g_signal_handler_unblock(search_button, search_handler_id);
+	g_signal_handler_block(search_button, stop_handler_id);
+	gtk_button_set_label(GTK_BUTTON(search_button), "Search");
+	
+	return (void *) 0;
+}
+/*
 void *run_command(void* command)
 {
 		FILE *fd = popen((char *) command, "r");
 		if (fd == NULL) {
 			printf("run_command(): error opening pipe!\n");
+
+			g_signal_handler_unblock(search_button, search_handler_id);
+			g_signal_handler_block(search_button, stop_handler_id);
+			gtk_button_set_label(GTK_BUTTON(search_button), "Search");
+
 			return (void *) 0;
 		}
-	
-		/*long int size = 10000000;
-		char *output = malloc(size+1); //@ free
-
-		long int i = 0;
-		for (i = 0; ((output[i] = fgetc(fd)) != EOF); ++i) {
-			if (stop_search == TRUE) {
-				free(output);
-				goto wrap_up;
-			}
-		}
-		output[i] = 0;
-
-		printf("run_command(): command output: %s\n", output);
-
-		//g_timeout_add_seconds(1, display_search_results, (gpointer) output);
-		display_search_results((gpointer) output);*/
 
 		char *r;
 		while (1) {
@@ -381,7 +498,7 @@ wrap_up:
 		printf("pclose() returned %d\n", ret);
 
 		return (void *) 0;
-}
+}*/
 
 void search_handler(GtkButton *button, gpointer data)
 {
@@ -446,7 +563,7 @@ void search_handler(GtkButton *button, gpointer data)
 	printf("search_handler(): command to execute: %s\n", command);
 
 	pthread_t id;
-	pthread_create(&id, NULL, run_command, command);
+	pthread_create(&id, NULL, run_command_2, command);
 
 	g_signal_handler_unblock(search_button, stop_handler_id);
 	g_signal_handler_block(search_button, search_handler_id);

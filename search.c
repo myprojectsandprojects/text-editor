@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "tab.h"
+#include "declarations.h"
 
 void on_search_entry_changed(GtkEditable *search_entry, gpointer data)
 {
@@ -19,7 +20,7 @@ void on_search_entry_changed(GtkEditable *search_entry, gpointer data)
 
 void init_search(GtkWidget *tab)
 {
-	printf("init_search() called\n");
+	LOG_MSG("init_search() called\n");
 
 	GtkRevealer *search_revealer = GTK_REVEALER(tab_retrieve_widget(tab, SEARCH_REVEALER));
 	GtkEntry *search_entry = GTK_ENTRY(tab_retrieve_widget(tab, SEARCH_ENTRY));

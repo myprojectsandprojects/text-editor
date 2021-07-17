@@ -164,8 +164,8 @@ void create_nodes_for_directory(GtkTreeStore *store, GtkTreeIter *parent, const 
 
 GtkTreeStore *create_tree_store()
 {
-	printf("create_tree_store()\n");
-	printf("create_tree_store(): root_dir: %s\n", root_dir);
+	LOG_MSG("create_tree_store()\n");
+	LOG_MSG("create_tree_store(): root_dir: %s\n", root_dir);
 	GtkTreeStore *store = gtk_tree_store_new(N_COLUMNS, GDK_TYPE_PIXBUF, G_TYPE_STRING);
 	create_nodes_for_directory(store, NULL, root_dir, 2);
 	return store;

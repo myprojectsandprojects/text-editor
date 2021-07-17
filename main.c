@@ -5,6 +5,7 @@
 //@ bug: highlighting: line comment & preprocessor directive
 //@ bug: changing css of search results from another editor may crash the application... (try to time the procedure-call: g_timeout_add_seconds())
 //@ bug: if we cant open a file, we shouldnt end up with a gtk error...
+//@ bug: unindenting a block of code is buggy
 
 
 // bash commands: locate [pattern], sudo updatedb (fast)
@@ -202,7 +203,7 @@ void set_root_dir(const char *path)
 
 void tab_set_unsaved_changes_to(GtkWidget *tab, gboolean unsaved_changes)
 {
-	g_print("tab_set_unsaved_changes_to() called!\n");
+	LOG_MSG("%s:%d: tab_set_unsaved_changes_to()\n", __FILE__, __LINE__);
 
 	gpointer data = g_object_get_data(G_OBJECT(tab), "tab-info");
 	assert(data != NULL);
@@ -226,7 +227,7 @@ void tab_set_unsaved_changes_to(GtkWidget *tab, gboolean unsaved_changes)
 
 void text_buffer_changed(GtkTextBuffer *text_buffer, gpointer user_data)
 {
-	printf("buffer changed!\n");
+	LOG_MSG("text_buffer_changed()\n");
 
 	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
 	assert(page != -1);
@@ -433,14 +434,15 @@ void on_scrolled_window_size_allocate(GtkWidget *scrolled_window, GdkRectangle *
 
 void on_highlighting_selected(GtkMenuItem *item, gpointer data)
 {
-	printf("menuitem selected!\n");
+	LOG_MSG("on_highlighting_selected()\n");
+
 	const char *selected_item = gtk_menu_item_get_label(item);
 	//printf("label: %s\n", selected_item);
 	GtkLabel *button_label = GTK_LABEL(data);
 
 	const char *button_label_text = gtk_label_get_text(button_label);
 	if (strcmp(button_label_text, selected_item) == 0) {
-		printf("highlighting option already selected. no need to do anything\n");
+		LOG_MSG("on_highlighting_selected(): highlighting option already selected. no need to do anything\n");
 		return;
 	}
 
@@ -449,10 +451,10 @@ void on_highlighting_selected(GtkMenuItem *item, gpointer data)
 	/* instead of visible_tab_retrieve_widget() maybe we should have something that gives us a tab to which the widget we already have belongs to. because we have a button label and we want the tab it belongs to. or really we want the buffer */
 	GtkTextBuffer *text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
 	if (strcmp(selected_item, "None") == 0) {
-		printf("removing highlighting...\n");
+		LOG_MSG("on_highlighting_selected(): removing highlighting...\n");
 		remove_highlighting(text_buffer);
 	} else {
-		printf("initializing highlighting...\n");
+		LOG_MSG("on_highlighting_selected(): initializing highlighting...\n");
 		init_highlighting(text_buffer);
 	}
 }
@@ -465,7 +467,7 @@ GtkWidget *create_tab(const char *file_name)
 	gchar *contents, *base_name;
 	//GFile *file;
 
-	g_print("create_tab()\n");
+	LOG_MSG("create_tab()\n");
 
 	tab = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	//gtk_widget_set_hexpand(tab, TRUE);
@@ -728,7 +730,7 @@ gboolean on_window_key_press_event(GtkWidget *window, GdkEvent *event, gpointer 
 	#define NO_MODIFIERS 0x2000000 // Value of key_event->state if no (known) modifiers are set.
 
 	GdkEventKey *key_event = (GdkEventKey *) event;
-	g_print("on_window_key_press_event(): hardware keycode: %d\n", key_event->hardware_keycode);
+	LOG_MSG("on_window_key_press_event(): hardware keycode: %d\n", key_event->hardware_keycode);
 
 	unsigned short int modifiers = 0;
 	if(key_event->state & GDK_CONTROL_MASK) {
@@ -872,7 +874,7 @@ void refresh_application_title(GtkWidget *tab)
 
 void on_notebook_switch_page(GtkNotebook *notebook, GtkWidget *tab, guint page_num, gpointer data)
 {
-	printf("on_notebook_switch_page() called!\n");
+	LOG_MSG("on_notebook_switch_page()\n");
 
 	refresh_application_title(tab);
 }
@@ -1177,9 +1179,11 @@ gboolean do_open(GdkEventKey *key_event)
 /* signature is such because we need register it as a callback */
 gboolean apply_css_from_file(void *data)
 {
+	LOG_MSG("[%s:%d] apply_css_from_file()\n", __FILE__, __LINE__);
 	const char *file_name = (const char *) data;
 
-	printf("applying css from \"%s\"..\n", file_name);
+	//printf("applying css from \"%s\"..\n", file_name);
+	LOG_MSG("[%s:%d] apply_css_from_file(): applying css from \"%s\"..\n", __FILE__, __LINE__, file_name);
 	// Apply css from file:
 	static GtkCssProvider *provider = NULL;
 	GdkScreen *screen = gdk_screen_get_default();
