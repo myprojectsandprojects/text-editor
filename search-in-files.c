@@ -15,7 +15,7 @@ GtkWidget 	*search_button;
 gulong 		search_handler_id;
 gulong 		stop_handler_id;
 
-gboolean stop_search = FALSE; //@ thread safety?
+gboolean stop_search = FALSE;
 
 extern char 	root_dir[100];
 
@@ -332,6 +332,10 @@ gboolean display_search_results(gpointer data)
 
 	gtk_widget_show_all(search_results);
 
+	g_signal_handler_unblock(search_button, search_handler_id);
+	g_signal_handler_block(search_button, stop_handler_id);
+	gtk_button_set_label(GTK_BUTTON(search_button), "Search");
+
 	free(list);
 
 	return FALSE; // dont call again
@@ -413,6 +417,7 @@ void *run_command_2(void* command)
 	long int i;
 	for (i = 0; ((output[i] = fgetc(fd)) != EOF); ++i) {
 		if (stop_search == TRUE) {
+			stop_search = FALSE;
 			free(output);
 			goto close_pipe_and_wrap_up;
 		}
@@ -435,14 +440,15 @@ void *run_command_2(void* command)
 
 	printf("run_command(): done searching, wrapping up\n");
 
-close_pipe_and_wrap_up:	
+close_pipe_and_wrap_up:
+	printf("run_command(): close_pipe_and_wrap_up\n");	
 	ret = pclose(fd);
 	printf("pclose() returned %d\n", ret);
 
 wrap_up:
-	g_signal_handler_unblock(search_button, search_handler_id);
+	/*g_signal_handler_unblock(search_button, search_handler_id);
 	g_signal_handler_block(search_button, stop_handler_id);
-	gtk_button_set_label(GTK_BUTTON(search_button), "Search");
+	gtk_button_set_label(GTK_BUTTON(search_button), "Search");*/
 	
 	return (void *) 0;
 }
