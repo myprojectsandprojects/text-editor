@@ -203,7 +203,7 @@ void set_root_dir(const char *path)
 
 void tab_set_unsaved_changes_to(GtkWidget *tab, gboolean unsaved_changes)
 {
-	LOG_MSG("%s:%d: tab_set_unsaved_changes_to()\n", __FILE__, __LINE__);
+	LOG_MSG("tab_set_unsaved_changes_to()\n");
 
 	gpointer data = g_object_get_data(G_OBJECT(tab), "tab-info");
 	assert(data != NULL);
@@ -258,7 +258,7 @@ void text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpo
 	gtk_label_set_text(label, buffer);
 
 	/* Line highlighting -- it messes up code highlighting. */
-	/*GtkTextIter start, end, start_buffer, end_buffer;
+	GtkTextIter start, end, start_buffer, end_buffer;
 	gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
 	gtk_text_buffer_remove_tag_by_name(text_buffer, "line-highlight", &start_buffer, &end_buffer);
 	gtk_text_iter_set_line_offset(&i, 0);
@@ -268,7 +268,7 @@ void text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpo
 	//gtk_text_iter_backward_char(&i);
 	end = i;
 	//printf("applying the tag: %d, %d\n", gtk_text_iter_get_offset(&start), gtk_text_iter_get_offset(&end));
-	gtk_text_buffer_apply_tag_by_name(text_buffer, "line-highlight", &start, &end);*/
+	gtk_text_buffer_apply_tag_by_name(text_buffer, "line-highlight", &start, &end);
 }
 
 //@ empty string
@@ -628,7 +628,7 @@ GtkWidget *create_tab(const char *file_name)
 
 	g_signal_connect(G_OBJECT(text_view), "populate-popup", G_CALLBACK(on_text_view_populate_popup), NULL);
 
-	/*gtk_text_buffer_create_tag(text_buffer, "line-highlight", "paragraph-background", "lightgray", NULL);*/
+	gtk_text_buffer_create_tag(text_buffer, "line-highlight", "paragraph-background", "rgb(55, 55, 65)", NULL);
 	text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, line_nr_value);
 	g_signal_connect(G_OBJECT(text_buffer), "notify::cursor-position", G_CALLBACK(text_buffer_cursor_position_changed), line_nr_value);
 
@@ -1179,11 +1179,11 @@ gboolean do_open(GdkEventKey *key_event)
 /* signature is such because we need register it as a callback */
 gboolean apply_css_from_file(void *data)
 {
-	LOG_MSG("[%s:%d] apply_css_from_file()\n", __FILE__, __LINE__);
+	LOG_MSG("apply_css_from_file()\n");
 	const char *file_name = (const char *) data;
 
 	//printf("applying css from \"%s\"..\n", file_name);
-	LOG_MSG("[%s:%d] apply_css_from_file(): applying css from \"%s\"..\n", __FILE__, __LINE__, file_name);
+	LOG_MSG("apply_css_from_file(): applying css from \"%s\"..\n", file_name);
 	// Apply css from file:
 	static GtkCssProvider *provider = NULL;
 	GdkScreen *screen = gdk_screen_get_default();

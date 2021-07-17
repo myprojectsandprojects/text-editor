@@ -100,7 +100,7 @@ void text_buffer_insert_text_4_autocomplete(
 
 void init_autocomplete(GtkWidget *tab)
 {
-	LOG_MSG("%s:%d: init_autocomplete()\n", __FILE__, __LINE__);
+	LOG_MSG("init_autocomplete()\n");
 
 	GObject *text_buffer = (GObject *) tab_retrieve_widget(tab, TEXT_BUFFER);
 	void *text_view = tab_retrieve_widget(tab, TEXT_VIEW);

@@ -15,6 +15,9 @@ GtkWidget 	*search_button;
 gulong 		search_handler_id;
 gulong 		stop_handler_id;
 
+// this variable is kinda shared between 2 threads
+// maybe we should look into thread synchronization?
+// pthread_mutex_lock() ?
 gboolean stop_search = FALSE;
 
 extern char 	root_dir[100];
@@ -42,132 +45,6 @@ gboolean tab_scroll_to(gpointer data)
 
 	return FALSE; // dont call again!
 	//return TRUE; // call again!
-}
-
-void on_search_button_clicked_old(GtkButton *search_button, gpointer data)
-{
-	printf("on_search_button_clicked() called..\n");
-
-	const char *search_phrase = gtk_entry_get_text(GTK_ENTRY(search_phrase_entry));
-	const char *filename_filter_text = gtk_entry_get_text(GTK_ENTRY(filename_filter_entry));
-	gboolean ignore_hidden = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(hidden_files_check_button));
-	//printf("%d\n", checked); return;
-
-	/*
-		find -name "*.c" -and -name "*search*"
-		find -name "*.c" -or -name "*search*"
-		find -name "*.c" -or -not -name "*search*"
-		find -name "*.c" -and -not -name "*search*"
-	*/
-
-	/*
-	grep:
-		-I -> ignore binary files (?)
-		-n -> display line numbers
-		-i -> do insensitive search
-		-H -> display filename even if only 1 argument given
-	*/
-	char command[1000]; command[0] = 0;
-	char filename_patterns[100]; filename_patterns[0] = 0;
-
-	char **words = slice_by(filename_filter_text, ' ');
-	long int i = 0;
-	for (; words[i] != NULL; ++i) {
-		printf("word: %s\n", words[i]);
-
-		if (strcmp(words[i], "||") == 0) {
-			sprintf(filename_patterns, "%s -or", filename_patterns);
-		} else if (strcmp(words[i], "&&") == 0) {
-			sprintf(filename_patterns, "%s -and", filename_patterns);
-		} else {
-			if (words[i][0] == '!') {
-				sprintf(filename_patterns, "%s -not -name \"%s\"", filename_patterns, &words[i][1]);
-			} else {
-				sprintf(filename_patterns, "%s -name \"%s\"", filename_patterns, words[i]);
-			}
-		}
-
-		free(words[i]);
-	}
-	free(words);
-	
-	//sprintf(command, "find %s ! -regex '.*/\\..*' -type f -name \"%s\" | xargs grep -IniH \"%s\"", root_dir, filename_filter, search_phrase);
-	sprintf(command,
-		"find %s -type f%s%s | xargs grep -IniH \"%s\"",
-		root_dir, (ignore_hidden) ? " -not -wholename \"*/.*\"": "", filename_patterns, search_phrase);
-
-	printf("command: %s\n", command);
-	FILE *fd = popen(command, "r");
-	if (fd == NULL) {
-		printf("ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-		return;
-	}
-
-	long int size = 10000000;
-	char *contents = malloc(size+1); //@ free
-	if (contents == NULL) {
-		printf("malloc() failed!!!!!!!!!!!!!!!!!\n");
-		return;
-	}
-
-	i = 0;
-	while((contents[i] = fgetc(fd)) != -1) {/*printf("%c ", contents[i]);*/ i++;}
-	contents[i] = 0;
-
-	//printf("Search results:\n");
-	printf("%s\n", contents);
-
-	GList *previous_results, *p;
-	previous_results = gtk_container_get_children(GTK_CONTAINER(search_results));
-	for (p = previous_results; p != NULL; p = p->next) {
-		//printf("previous search result...\n");
-		gtk_widget_destroy(p->data);
-	}
-	g_list_free(previous_results); //@ are we freeing everything?
-
-	char *line;
-	while ((line = get_slice_by(&contents, '\n')) != NULL) {
-		//printf("line: %s\n", line);
-		char *file_path = get_slice_by(&line, ':');
-		char *line_number = get_slice_by(&line, ':');
-		/*printf("file path: %s\n", file_path);
-		printf("line number: %s\n", line_number);
-		printf("remainder: %s\n\n", line);*/
-
-		GtkWidget *search_result = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-
-		char *file_path_copy = malloc(strlen(file_path) + 1);
-		strcpy(file_path_copy, file_path);
-		g_object_set_data(G_OBJECT(search_result), "file-path", file_path_copy); //@ free?
-		unsigned long line_num = atoi(line_number); // void * -> 64 bits, unsigned long -> 64 bits
-		g_object_set_data(G_OBJECT(search_result), "line-num", (void *) line_num);
-
-		int root_length = strlen(root_dir);
-		GtkWidget *file_path_label = gtk_label_new(&file_path[root_length + 1]);
-		char line_text[100];
-		char *p = line;
-		assert(p != NULL);
-		while (*p == ' ' || *p == '\t') ++p;
-		sprintf(line_text, "%s:%s", line_number, p);
-		//GtkWidget *line_number_label = gtk_label_new(line_number);
-		GtkWidget *line_text_label = gtk_label_new(line_text);
-
-		gtk_widget_set_halign(file_path_label, GTK_ALIGN_START);
-		//gtk_widget_set_halign(line_number_label, GTK_ALIGN_START);
-		gtk_widget_set_halign(line_text_label, GTK_ALIGN_START);
-
-		gtk_container_add(GTK_CONTAINER(search_result), file_path_label);
-		//gtk_container_add(GTK_CONTAINER(search_result), line_number_label);
-		gtk_container_add(GTK_CONTAINER(search_result), line_text_label);
-
-		gtk_style_context_add_class (gtk_widget_get_style_context(file_path_label), "search-result");
-
-		gtk_list_box_insert(GTK_LIST_BOX(search_results), search_result, -1);
-	}
-
-	gtk_widget_show_all(search_results);
-
-	pclose(fd);
 }
 
 void on_list_row_selected(GtkListBox *list, GtkListBoxRow *row, gpointer data)
@@ -537,6 +414,13 @@ void search_handler(GtkButton *button, gpointer data)
 		return;
 	}
 
+	/*
+	find -name "*.c" -and -name "*search*"
+	find -name "*.c" -or -name "*search*"
+	find -name "*.c" -or -not -name "*search*"
+	find -name "*.c" -and -not -name "*search*"
+	*/
+
 	char patterns[100];
 	patterns[0] = 0;
 
@@ -558,6 +442,14 @@ void search_handler(GtkButton *button, gpointer data)
 		free(words[i]);
 	}
 	free(words);
+
+	/*
+	grep:
+		-I -> ignore binary files (?)
+		-n -> display line numbers
+		-i -> do insensitive search
+		-H -> display filename even if only 1 argument given
+	*/
 
 //	char command[1000];
 	char *command = malloc(1000);

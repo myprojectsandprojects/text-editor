@@ -53,7 +53,8 @@ GtkWidget *create_root_nav_widget();
 
 #define PRINT_LOG_MESSAGES
 #ifdef PRINT_LOG_MESSAGES
-	#define LOG_MSG(...) printf(__VA_ARGS__)
+	//#define LOG_MSG(...) printf(__VA_ARGS__)
+	#define LOG_MSG(format, ...) printf("[%s:%d] " format, __FILE__, __LINE__, ##__VA_ARGS__)
 #else
 	#define LOG_MSG(...) 0
 #endif
