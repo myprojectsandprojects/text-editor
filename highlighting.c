@@ -262,7 +262,7 @@ void create_tags(GtkTextBuffer *text_buffer)
 	gtk_text_buffer_create_tag(text_buffer, "type", "foreground", "rgb(165, 200, 175)", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "operator", "foreground", "rgb(180, 165, 130)", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "number", "foreground", "rgb(165, 165, 255)", NULL);
-	gtk_text_buffer_create_tag(text_buffer, "comment", "foreground", "rgb(95, 95, 105)", NULL);
+	gtk_text_buffer_create_tag(text_buffer, "comment", "foreground", "rgb(115, 115, 125)", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "preprocessor-directive", "foreground", "rgb(195, 165, 195)", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "unknown", "foreground", "orange", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "string", "foreground", "rgb(190, 190, 190)", NULL);

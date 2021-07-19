@@ -620,6 +620,8 @@ GtkWidget *create_tab(const char *file_name)
 
 	init_search(tab);
 	init_undo(tab);
+	init_autocomplete(GTK_APPLICATION_WINDOW(window),
+						GTK_TEXT_VIEW(text_view), GTK_TEXT_BUFFER(text_buffer));
 	//init_autocomplete(tab);
 
 	g_signal_connect(G_OBJECT(text_view), "copy-clipboard", G_CALLBACK(text_view_copy_clipboard), NULL);
@@ -725,12 +727,12 @@ char *get_base_name(const char *file_name)
 gboolean (*key_combinations[SIZE_MODIFIERS][SIZE_KEYCODES])(GdkEventKey *key_event); // global arrays should be initialized to defaults (NULL) (?)
 
 
-gboolean on_window_key_press_event(GtkWidget *window, GdkEvent *event, gpointer user_data)
+gboolean on_app_window_key_press(GtkWidget *window, GdkEvent *event, gpointer user_data)
 {
 	#define NO_MODIFIERS 0x2000000 // Value of key_event->state if no (known) modifiers are set.
 
 	GdkEventKey *key_event = (GdkEventKey *) event;
-	LOG_MSG("on_window_key_press_event(): hardware keycode: %d\n", key_event->hardware_keycode);
+	LOG_MSG("on_app_window_key_press(): hardware keycode: %d\n", key_event->hardware_keycode);
 
 	unsigned short int modifiers = 0;
 	if(key_event->state & GDK_CONTROL_MASK) {
@@ -1188,10 +1190,10 @@ gboolean apply_css_from_file(void *data)
 	static GtkCssProvider *provider = NULL;
 	GdkScreen *screen = gdk_screen_get_default();
 	if (provider != NULL) {
-		printf("apply_css_from_file(): removing an old provider...\n");
+		LOG_MSG("apply_css_from_file(): removing an old provider...\n");
 		gtk_style_context_remove_provider_for_screen(screen, GTK_STYLE_PROVIDER(provider));
 	}
-	printf("apply_css_from_file(): creating a new provider...\n");
+	LOG_MSG("apply_css_from_file(): creating a new provider...\n");
 	provider = gtk_css_provider_new();
 	GFile *css_file = g_file_new_for_path(file_name);
 	gtk_css_provider_load_from_file(provider, css_file, NULL);
@@ -1207,8 +1209,10 @@ gboolean apply_css_from_file(void *data)
 
 void *watch_for_changes(void *data)
 {
+	LOG_MSG("watch_for_changes()\n");
+
 	const char *file_name = (const char *) data;
-	printf("Should watch for changes in: %s\n", file_name);
+	LOG_MSG("watch_for_changes(): watching for changes in: %s\n", file_name);
 
 	int inotify_descriptor = inotify_init();
 	if (inotify_descriptor == -1) {
@@ -1235,7 +1239,7 @@ void *watch_for_changes(void *data)
 			if (event->mask & IN_MODIFY) {
 				printf("file modified!\n");
 /*
-Calling apply_css_from_file() directly crashes the app (not always) when modifying the css-file using another editor process.
+Calling apply_css_from_file() directly crashes the app when modifying the css-file using another editor process. It doesnt happen always though, so it might be necessary to modify the css-file multiple times.
 */
 				//apply_css_from_file(file_name); 
 				g_timeout_add_seconds(1, apply_css_from_file, data);
@@ -1248,11 +1252,6 @@ Calling apply_css_from_file() directly crashes the app (not always) when modifyi
 void activate_handler(GtkApplication *app, gpointer data) {
 
 	LOG_MSG("activate_handler() called\n");
-
-	guint major = gtk_get_major_version();
-	guint minor = gtk_get_minor_version();
-	guint micro = gtk_get_micro_version();
-	printf("GTK version: %u.%u.%u\n", major, minor, micro);
 
 	//test_get_parent_path();
 
@@ -1386,7 +1385,16 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	//gtk_window_set_title(GTK_WINDOW(window), "Hello world!");
 	gtk_window_set_default_size(GTK_WINDOW(window), 1000, 600);
 
-	g_signal_connect(window, "key-press-event", G_CALLBACK(on_window_key_press_event), NULL);
+/*
+autocomplete's key-press handler needs to run before application's key-press handler.
+it kinda sucks to connect it here, but the alternative I could come up with involves disconnecting all already connected handlers, then connecting autocomplete's handler and finally re-connecting previously disconnected handlers in init_autocomplete(), so that autocomplete's handler would be called before anything else.
+in documentation I couldn't find any way to specify order in which handlers are invoked other than registering them in this order.
+we could also pass in a list of functions to app's key-press handler and then call them there I quess..
+*/
+	g_signal_connect(window, "key-press-event",
+						G_CALLBACK(autocomplete_on_window_key_press), NULL);
+	g_signal_connect(window, "key-press-event",
+						G_CALLBACK(on_app_window_key_press), NULL);
 
 	GtkWidget *paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
 	gtk_paned_add1(GTK_PANED(paned), sidebar_container);
@@ -1409,7 +1417,10 @@ int main() {
 	int status;
 	GtkApplication *app;
 
-	//parse_settings();
+	guint major = gtk_get_major_version();
+	guint minor = gtk_get_minor_version();
+	guint micro = gtk_get_micro_version();
+	printf("GTK version: %u.%u.%u\n", major, minor, micro);
 
 	app = gtk_application_new(NULL, G_APPLICATION_FLAGS_NONE);
 	g_signal_connect(app, "activate", G_CALLBACK(activate_handler), NULL);
