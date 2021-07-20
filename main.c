@@ -1386,6 +1386,12 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	//gtk_window_set_title(GTK_WINDOW(window), "Hello world!");
 	gtk_window_set_default_size(GTK_WINDOW(window), 1000, 600);
 
+	gtk_style_context_add_class (
+		gtk_widget_get_style_context(window),
+		"app-window"); // No effect
+
+	gtk_widget_set_name(window, "app-window");
+
 /*
 autocomplete's key-press handler needs to run before application's key-press handler.
 it kinda sucks to connect it here, but the alternative I could come up with involves disconnecting all already connected handlers, then connecting autocomplete's handler and finally re-connecting previously disconnected handlers in init_autocomplete(), so that autocomplete's handler would be called before anything else.
