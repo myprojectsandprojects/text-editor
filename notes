@@ -1,4 +1,4 @@
-Porting to Ubuntu 16.04:
+Running and compiling on Ubuntu 16.04:
 
 	Compile time issues:
 		sudo apt-get install libgtk-3-dev
