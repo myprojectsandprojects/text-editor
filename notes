@@ -1,0 +1,8 @@
+Porting to Ubuntu 16.04:
+
+	Compile time issues:
+		sudo apt-get install libgtk-3-dev
+	
+	Runtime issues:
+		theme-file path is hardcoded, so it couldnt find it
+		no fonts in this system

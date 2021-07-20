@@ -1314,7 +1314,8 @@ void activate_handler(GtkApplication *app, gpointer data) {
 
 
 	//char *css_file = "themes/css";
-	char *css_file = "/home/eero/everything/git/text-editor/themes/css";
+	//char *css_file = "/home/eero/everything/git/text-editor/themes/css";
+	char *css_file = "/home/eero/all/text-editor/text-editor/themes/css";
 	apply_css_from_file((void *) css_file);
 
 	pthread_t id;

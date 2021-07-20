@@ -58,7 +58,7 @@ gboolean autocomplete_on_window_key_press(GtkWidget *window,
 /* root-navigation.c */
 GtkWidget *create_root_nav_widget(void);
 
-//#define PRINT_LOG_MESSAGES
+#define PRINT_LOG_MESSAGES
 #ifdef PRINT_LOG_MESSAGES
 	//#define LOG_MSG(...) printf(__VA_ARGS__)
 	#define LOG_MSG(format, ...) printf("[%s:%d] " format, __FILE__, __LINE__, ##__VA_ARGS__)
