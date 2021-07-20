@@ -68,6 +68,12 @@ char root_dir[100]; // file-browser and find-in-files modules need access to it
 
 extern GtkWidget *root_dir_label;
 
+const char *filebrowser_icon_path = "/home/eero/all/text-editor/icons/colors/file-browser.png";
+const char *searchinfiles_icon_path = "/home/eero/all/text-editor/icons/colors/search-in-files.png";
+const char *unsaved_changes_icon_path = "/home/eero/all/text-editor/icons/exclamation-mark-small.png";
+const char *file_icon_path = "/home/eero/all/text-editor/icons/colors/file.png";
+const char *folder_icon_path = "/home/eero/all/text-editor/icons/colors/folder.png";
+
 void set_root_dir(const char *path)
 {
 	assert(path != NULL);
@@ -216,8 +222,8 @@ void tab_set_unsaved_changes_to(GtkWidget *tab, gboolean unsaved_changes)
 	gtk_container_add(GTK_CONTAINER(title_widget), title_label);
 
 	if (unsaved_changes == TRUE) {
-		GtkWidget *title_image = gtk_image_new_from_file("icons/exclamation-mark-small.png");
-		gtk_container_add(GTK_CONTAINER(title_widget), title_image);
+		GtkWidget *unsaved_changes_icon = gtk_image_new_from_file(unsaved_changes_icon_path);
+		gtk_container_add(GTK_CONTAINER(title_widget), unsaved_changes_icon);
 	}
 
 	gtk_widget_show_all(title_widget);
@@ -620,9 +626,10 @@ GtkWidget *create_tab(const char *file_name)
 
 	init_search(tab);
 	init_undo(tab);
+/*
 	init_autocomplete(GTK_APPLICATION_WINDOW(window),
 						GTK_TEXT_VIEW(text_view), GTK_TEXT_BUFFER(text_buffer));
-	//init_autocomplete(tab);
+*/
 
 	g_signal_connect(G_OBJECT(text_view), "copy-clipboard", G_CALLBACK(text_view_copy_clipboard), NULL);
 	g_signal_connect(G_OBJECT(text_view), "cut-clipboard", G_CALLBACK(text_view_cut_clipboard), NULL);
@@ -1315,7 +1322,7 @@ void activate_handler(GtkApplication *app, gpointer data) {
 
 	//char *css_file = "themes/css";
 	//char *css_file = "/home/eero/everything/git/text-editor/themes/css";
-	char *css_file = "/home/eero/all/text-editor/text-editor/themes/css";
+	char *css_file = "/home/eero/all/text-editor/themes/css";
 	apply_css_from_file((void *) css_file);
 
 	pthread_t id;
@@ -1340,33 +1347,26 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	file_browser = create_file_browser_widget();
 	GtkWidget *file_browser_scrollbars = gtk_scrolled_window_new(NULL, NULL);
 	gtk_container_add(GTK_CONTAINER(file_browser_scrollbars), file_browser);
-	GtkWidget *title_image = gtk_image_new_from_file("icons/colors/file-browser.png");
-	gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), file_browser_scrollbars, title_image);
-	gtk_widget_set_tooltip_text(title_image, "File Browser");
+	GtkWidget *filebrowser_icon = gtk_image_new_from_file(filebrowser_icon_path);
+	gtk_widget_set_tooltip_text(filebrowser_icon, "File Browser");
+	gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), file_browser_scrollbars, filebrowser_icon);
 
 	GtkWidget *search_in_files = create_search_in_files_widget();
-	/*GtkWidget *search_in_files_scrollbars = gtk_scrolled_window_new(NULL, NULL);
-	gtk_container_add(GTK_CONTAINER(search_in_files_scrollbars), search_in_files);*/
-	GtkWidget *title_image2 = gtk_image_new_from_file("icons/colors/search-in-files.png");
-	//gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), search_in_files_scrollbars, title_image2);
-	gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), search_in_files, title_image2);
-	gtk_widget_set_tooltip_text(title_image2, "Search in Files");
+	GtkWidget *searchinfiles_icon = gtk_image_new_from_file(searchinfiles_icon_path);
+	gtk_widget_set_tooltip_text(searchinfiles_icon, "Search in Files");
+	gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), search_in_files, searchinfiles_icon);
 
 	GtkWidget *root_nav = create_root_nav_widget();
 
 	sidebar_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_container_add(GTK_CONTAINER(sidebar_container), root_nav);
 	gtk_container_add(GTK_CONTAINER(sidebar_container), sidebar_notebook);
-	gtk_style_context_add_class (
+	gtk_style_context_add_class(
 		gtk_widget_get_style_context(sidebar_container),
 		"sidebar-container");
 
-	//gtk_widget_set_vexpand(sidebar_container, TRUE);
-	//gtk_widget_set_hexpand(sidebar_container, TRUE);
 	gtk_widget_set_vexpand(sidebar_notebook, TRUE);
 	gtk_widget_set_hexpand(sidebar_notebook, TRUE);
-	//gtk_widget_set_hexpand(sidebar_revealer, TRUE);
-
 
 	notebook = gtk_notebook_new();
 	gtk_notebook_set_scrollable(GTK_NOTEBOOK(notebook), TRUE);
@@ -1392,8 +1392,10 @@ it kinda sucks to connect it here, but the alternative I could come up with invo
 in documentation I couldn't find any way to specify order in which handlers are invoked other than registering them in this order.
 we could also pass in a list of functions to app's key-press handler and then call them there I quess..
 */
+/*
 	g_signal_connect(window, "key-press-event",
 						G_CALLBACK(autocomplete_on_window_key_press), NULL);
+*/
 	g_signal_connect(window, "key-press-event",
 						G_CALLBACK(on_app_window_key_press), NULL);
 

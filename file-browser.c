@@ -9,6 +9,9 @@
 
 extern char root_dir[100];
 
+extern const char *file_icon_path;
+extern const char *folder_icon_path;
+
 enum {
 	COLUMN_ICON,
 	COLUMN_BASENAME,
@@ -126,11 +129,11 @@ void create_nodes_for_directory(GtkTreeStore *store, GtkTreeIter *parent, const 
 			fprintf(stderr, "Failed to lstat \"%s\"\n", basenames[j]); // @error handling
 		
 		if (S_ISDIR(entry_info.st_mode)) {
-			GtkTreeIter this_node = append_node_to_store(store, parent, "icons/colors/folder.png", basenames[j]);
+			GtkTreeIter this_node = append_node_to_store(store, parent, folder_icon_path, basenames[j]);
 			if (max_depth > 0)
 				create_nodes_for_directory(store, &this_node, entry_path, max_depth);
 		} else {
-			append_node_to_store(store, parent, "icons/colors/file.png", basenames[j]);
+			append_node_to_store(store, parent, file_icon_path, basenames[j]);
 		}
 	}
 
