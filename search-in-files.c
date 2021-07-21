@@ -506,7 +506,7 @@ GtkWidget *create_search_in_files_widget()
 	add_class(search_phrase_entry, "text-entry");
 	add_class(filename_filter_entry, "text-entry");
 	add_class(hidden_files_check_button, "check-button");
-	add_class(search_button, "search-button");
+	add_class(search_button, "xbutton");
 
 	//gtk_entry_set_text(GTK_ENTRY(filename_filter_entry), "*");
 	

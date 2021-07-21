@@ -498,21 +498,19 @@ GtkWidget *create_tab(const char *file_name)
 	pango_tab_array_set_tab(tab_array, 0, PANGO_TAB_LEFT, position);
 	gtk_text_view_set_tabs(text_view, tab_array);
 
-	gtk_style_context_add_class(
-		gtk_widget_get_style_context(text_view),
-		"text-view");
+	add_class(GTK_WIDGET(text_view), "text-view");
 
 	GtkWidget *search_revealer = gtk_revealer_new();
 	gtk_widget_set_name(search_revealer, "search-revealer");
 	GtkWidget *search_entry = gtk_search_entry_new();
-	gtk_style_context_add_class(gtk_widget_get_style_context(search_entry), "search-entry");
+	add_class(search_entry, "search-entry");
 	//gtk_revealer_set_reveal_child(GTK_REVEALER(search_revealer), TRUE);
 
 	GtkWidget *command_revealer = gtk_revealer_new();
-	//gtk_revealer_set_transition_type(GTK_REVEALER(sidebar_revealer), GTK_REVEALER_TRANSITION_TYPE_SLIDE_DOWN);
 	gtk_widget_set_name(command_revealer, "command-revealer");
+	//gtk_revealer_set_transition_type(GTK_REVEALER(sidebar_revealer), GTK_REVEALER_TRANSITION_TYPE_SLIDE_DOWN);
 	GtkWidget *command_entry = gtk_entry_new();
-	gtk_style_context_add_class(gtk_widget_get_style_context(command_entry), "command-entry");
+	add_class(command_entry, "command-entry");
 
 
 	GtkWidget *line_nr_label = gtk_label_new("Line");
@@ -521,30 +519,25 @@ GtkWidget *create_tab(const char *file_name)
 	gtk_container_add(GTK_CONTAINER(line_nr_label_container), line_nr_label);
 	gtk_container_add(GTK_CONTAINER(line_nr_label_container), line_nr_value);
 
-	GtkWidget *highlighting_label = gtk_label_new(NULL);
-	//GtkWidget *image = gtk_image_new_from_icon_name("pan-down-symbolic", GTK_ICON_SIZE_LARGE_TOOLBAR);
-	GtkWidget *image = gtk_arrow_new(GTK_ARROW_UP, GTK_SHADOW_NONE); // Its deprecated, but we are using a very old version of gtk currently.
-	GtkWidget *highlighting_menu_button = gtk_menu_button_new();
-	GtkWidget *b = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	gtk_container_add(GTK_CONTAINER(b), highlighting_label);
-	gtk_container_add(GTK_CONTAINER(b), image);
-	gtk_container_add(GTK_CONTAINER(highlighting_menu_button), b);
-
-	/*const char *status_message = "Hello world!";
-	GtkWidget *status_message_label = gtk_label_new(status_message);
-	gtk_label_set_text(GTK_LABEL(status_message_label), status_message);*/
+	GtkWidget *hl_label = gtk_label_new(NULL);
+	GtkWidget *hl_menu_button = gtk_menu_button_new();
+	gtk_container_add(GTK_CONTAINER(hl_menu_button), hl_label);
 
 	GtkWidget *status_bar = gtk_grid_new();
-	gtk_grid_set_column_spacing(GTK_GRID(status_bar), 30);
-	gtk_grid_attach(GTK_GRID(status_bar), line_nr_label_container, 0, 0, 1, 1);
-	gtk_grid_attach(GTK_GRID(status_bar), highlighting_menu_button, 1, 0, 1, 1);
-	//gtk_grid_attach(GTK_GRID(status_bar), status_message_label, 2, 0, 1, 1);
+	gtk_grid_set_column_spacing(GTK_GRID(status_bar), 0);
+	GtkWidget *margin = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	gtk_widget_set_size_request(margin, 10, -1);
+	GtkWidget *space = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	gtk_widget_set_hexpand(space, TRUE);
+	gtk_grid_attach(GTK_GRID(status_bar), margin, 0, 0, 1, 1);
+	gtk_grid_attach(GTK_GRID(status_bar), line_nr_label_container, 1, 0, 1, 1);
+	gtk_grid_attach(GTK_GRID(status_bar), space, 2, 0, 1, 1);
+	gtk_grid_attach(GTK_GRID(status_bar), hl_menu_button, 3, 0, 1, 1);
 
 
-	gtk_style_context_add_class (gtk_widget_get_style_context(line_nr_value), "line-number-value-label");
-	gtk_style_context_add_class (gtk_widget_get_style_context(highlighting_menu_button), "menu-button");
-	//gtk_style_context_add_class (gtk_widget_get_style_context(status_message_label), "status-message-label");
-	gtk_style_context_add_class (gtk_widget_get_style_context(status_bar), "status-bar");
+	add_class(status_bar, "status-bar");
+	add_class(line_nr_value, "line-number-value-label");
+	add_class(hl_menu_button, "xbutton");
 
 
 	/*GtkWidget *text_view_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -611,9 +604,9 @@ GtkWidget *create_tab(const char *file_name)
 	GtkWidget *menu = gtk_menu_new();
 
 	//const char *default_highlighting = "None";
-	const char *default_highlighting = "C-ish Highlighting";
+	const char *default_highlighting = "C";
 	const char *highlightings[] = {
-		"C-ish Highlighting",
+		"C",
 		"None",
 		NULL
 	};
@@ -623,17 +616,17 @@ GtkWidget *create_tab(const char *file_name)
 		//printf("%s\n", languages[i]);
 		GtkWidget *item = gtk_menu_item_new_with_label(highlightings[i]);
 		gtk_menu_attach(GTK_MENU(menu), item, 0, 1, i, i + 1);
-		g_signal_connect(item, "activate", G_CALLBACK(on_highlighting_selected), highlighting_label);
+		g_signal_connect(item, "activate", G_CALLBACK(on_highlighting_selected), hl_label);
 
 		if (strcmp(highlightings[i], default_highlighting) == 0) {
-			on_highlighting_selected(GTK_MENU_ITEM(item), highlighting_label); // set the highlighting
+			on_highlighting_selected(GTK_MENU_ITEM(item), hl_label); // set the highlighting
 		}
 	}
 
 	gtk_widget_show_all(menu);
 
-	gtk_menu_button_set_popup(GTK_MENU_BUTTON(highlighting_menu_button), menu);
-	gtk_menu_button_set_direction(GTK_MENU_BUTTON(highlighting_menu_button), GTK_ARROW_UP);
+	gtk_menu_button_set_popup(GTK_MENU_BUTTON(hl_menu_button), menu);
+	//gtk_menu_button_set_direction(GTK_MENU_BUTTON(hl_menu_button), GTK_ARROW_UP);
 
 	init_search(tab);
 	init_undo(tab);
