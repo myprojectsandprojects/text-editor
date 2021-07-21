@@ -74,6 +74,13 @@ const char *unsaved_changes_icon_path = "/home/eero/all/text-editor/icons/exclam
 const char *file_icon_path = "/home/eero/all/text-editor/icons/colors/file.png";
 const char *folder_icon_path = "/home/eero/all/text-editor/icons/colors/folder.png";
 
+
+void add_class(GtkWidget *widget, const char *class_name)
+{
+	GtkStyleContext *style_context = gtk_widget_get_style_context(widget);
+	gtk_style_context_add_class(style_context, class_name);
+}
+
 void set_root_dir(const char *path)
 {
 	assert(path != NULL);
@@ -490,6 +497,10 @@ GtkWidget *create_tab(const char *file_name)
 	PangoTabArray *tab_array = pango_tab_array_new(1, TRUE); //@ free?
 	pango_tab_array_set_tab(tab_array, 0, PANGO_TAB_LEFT, position);
 	gtk_text_view_set_tabs(text_view, tab_array);
+
+	gtk_style_context_add_class(
+		gtk_widget_get_style_context(text_view),
+		"text-view");
 
 	GtkWidget *search_revealer = gtk_revealer_new();
 	gtk_widget_set_name(search_revealer, "search-revealer");
@@ -1343,6 +1354,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 	GtkWidget *sidebar_notebook = gtk_notebook_new();
 	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(sidebar_notebook), GTK_POS_BOTTOM);
+	add_class(sidebar_notebook, "sidebar-notebook");
 
 	file_browser = create_file_browser_widget();
 	GtkWidget *file_browser_scrollbars = gtk_scrolled_window_new(NULL, NULL);
@@ -1350,6 +1362,8 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	GtkWidget *filebrowser_icon = gtk_image_new_from_file(filebrowser_icon_path);
 	gtk_widget_set_tooltip_text(filebrowser_icon, "File Browser");
 	gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), file_browser_scrollbars, filebrowser_icon);
+
+	add_class(file_browser, "filebrowser");
 
 	GtkWidget *search_in_files = create_search_in_files_widget();
 	GtkWidget *searchinfiles_icon = gtk_image_new_from_file(searchinfiles_icon_path);
@@ -1361,9 +1375,6 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	sidebar_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_container_add(GTK_CONTAINER(sidebar_container), root_nav);
 	gtk_container_add(GTK_CONTAINER(sidebar_container), sidebar_notebook);
-	gtk_style_context_add_class(
-		gtk_widget_get_style_context(sidebar_container),
-		"sidebar-container");
 
 	gtk_widget_set_vexpand(sidebar_notebook, TRUE);
 	gtk_widget_set_hexpand(sidebar_notebook, TRUE);
@@ -1375,9 +1386,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	g_signal_connect(notebook, "switch-page", G_CALLBACK(on_notebook_switch_page), NULL);
 	//g_signal_connect(notebook, "focus-in-event", G_CALLBACK(on_notebook_focus_in_event), NULL);
 	//g_signal_connect(notebook, "page-added", G_CALLBACK(on_notebook_page_added), NULL);
-	gtk_style_context_add_class (
-		gtk_widget_get_style_context(notebook),
-		"main-notebook");
+	add_class(notebook, "main-notebook");
 	
 	gtk_widget_set_hexpand(notebook, TRUE);
 

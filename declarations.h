@@ -28,6 +28,7 @@ char *get_base_name(const char *file_name);
 void refresh_application_title(GtkWidget *tab);
 GtkWidget *create_tab(const char *file_name);
 void set_root_dir(const char *path);
+void add_class(GtkWidget *widget, const char *class_name);
 
 /* search.c: */
 void init_search(GtkWidget *tab);

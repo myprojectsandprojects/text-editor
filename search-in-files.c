@@ -503,10 +503,10 @@ GtkWidget *create_search_in_files_widget()
 	hidden_files_check_button = gtk_check_button_new_with_label("ignore hidden");
 	search_button = gtk_button_new_with_label("Search");
 
-	gtk_style_context_add_class (gtk_widget_get_style_context(search_phrase_entry), "text-entry");
-	gtk_style_context_add_class (gtk_widget_get_style_context(filename_filter_entry), "text-entry");
-	gtk_style_context_add_class (gtk_widget_get_style_context(hidden_files_check_button), "check-button");
-	gtk_style_context_add_class (gtk_widget_get_style_context(search_button), "search-button");
+	add_class(search_phrase_entry, "text-entry");
+	add_class(filename_filter_entry, "text-entry");
+	add_class(hidden_files_check_button, "check-button");
+	add_class(search_button, "search-button");
 
 	//gtk_entry_set_text(GTK_ENTRY(filename_filter_entry), "*");
 	
@@ -521,32 +521,38 @@ GtkWidget *create_search_in_files_widget()
 	//g_signal_connect(list, "row-selected", G_CALLBACK(on_list_row_selected), NULL);
 	g_signal_connect(search_results, "row-activated", G_CALLBACK(on_list_row_selected), NULL);
 
-	gtk_style_context_add_class (gtk_widget_get_style_context(search_results), "search-results");
+	add_class(search_results, "search-results");
+
+
+	/*@ I have no idea what is going on here: */
 
 	GtkWidget *container_v = gtk_box_new(GTK_ORIENTATION_VERTICAL, 3);
 	GtkWidget *space1 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	gtk_widget_set_size_request(space1, -1, 2);
+	gtk_widget_set_size_request(space1, -1, 5);
 	gtk_container_add(GTK_CONTAINER(container_v), space1);
 	gtk_container_add(GTK_CONTAINER(container_v), widget_with_width(search_phrase_entry, 400));
 	gtk_container_add(GTK_CONTAINER(container_v), widget_with_width(filename_filter_entry, 400));
 	gtk_container_add(GTK_CONTAINER(container_v), hidden_files_check_button);
-	
 	GtkWidget *space2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	gtk_widget_set_size_request(space2, -1, 10);
 	gtk_container_add(GTK_CONTAINER(container_v), space2);
 	gtk_container_add(GTK_CONTAINER(container_v), widget_with_width(search_button, 125));
-	//gtk_container_add(GTK_CONTAINER(container_v), widget_with_width(filename_filter_entry, 300));
-	/*GtkWidget *horizontal_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
-	gtk_container_add(GTK_CONTAINER(horizontal_container), widget_with_width(search_button, 125));
-	gtk_container_add(GTK_CONTAINER(horizontal_container), hidden_files_check_button);
-	gtk_container_add(GTK_CONTAINER(container_v), horizontal_container);*/
+	GtkWidget *space3 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	gtk_widget_set_size_request(space3, -1, 5);
+	gtk_container_add(GTK_CONTAINER(container_v), space3);
 
 	GtkWidget *container_h = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 3);
 	gtk_container_add(GTK_CONTAINER(container_h), container_v);
 	gtk_widget_set_halign(container_h, GTK_ALIGN_CENTER);
 
+	GtkWidget *background = gtk_frame_new(NULL);
+	gtk_container_add(GTK_CONTAINER(background), container_h);
+	add_class(background, "search-background");
+
 	GtkWidget *container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 3);
-	gtk_container_add(GTK_CONTAINER(container), container_h);
+	gtk_widget_set_hexpand(container, TRUE);
+	//gtk_container_add(GTK_CONTAINER(container), container_h);
+	gtk_container_add(GTK_CONTAINER(container), background);
 
 	GtkWidget *scrollbars = gtk_scrolled_window_new(NULL, NULL);
 	gtk_container_add(GTK_CONTAINER(scrollbars), search_results);

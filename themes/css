@@ -53,26 +53,29 @@
 	/*font: Office Code Pro Medium 12;*/
 	/*font: Office Code Pro Bold 12;*/
 
-#app-window {background: red;}
-.app-window {background: red;}
-GtkWindow {background: rgb(85, 85, 95);}
+
+.app-window
+{
+	background: blue;
+	background: rgb(85, 85, 95);
+	color: rgb(190, 190, 190);
+	font: Roboto 10;
+}
 
 /* No effect in GTK 3.18.9 */
 /*GtkPaned {background: background: rgb(85, 85, 95);}*/
 
-GtkTextView, .command-entry, .search-entry, .text-entry, .suggestions-popup
+/* why are command-entry and search entry separate classes anyways? */
+.text-view, .command-entry, .search-entry, .text-entry, .suggestions-popup
 {
 	color: rgb(190, 190, 190);
-	/*font: Fira Code Medium 12;*/
 	font: Fira Mono Medium 12;
-	/*font: Fira Mono Bold 12;*/
 } 
 
-GtkTextView
+.text-view
 {
 	background: rgb(45, 45, 55);
 }
-
 .command-entry, .search-entry
 {
 	background: rgb(65, 65, 75);
@@ -116,53 +119,46 @@ Should we target these widgets in a different way?
 	background: rgb(85, 85, 95);
 }
 
-
-/*
 .main-notebook
-{
-	border: none;
-}
-
-.main-notebook tab{
-	color: red;
-	padding: 10px 16px;
-	background: red;
-}
-*/
-
-/* I dont know how to target a specific notebook using a class. */
-GtkNotebook
 {
 	border: none;
 	border-radius: 0px;
 
-	/* tab text color and font: */
-	color: rgb(190, 190, 190);
-	/*font: Free Mono Bold 11;*/
-	font: Roboto 10; /*@*/
+	/*background: rgb(45, 45, 55);*/
 }
 
-GtkNotebook tab
+.main-notebook tab
 {
 	padding: 10px 16px;
 
 	background: rgb(25, 25, 35);
 }
 
-GtkNotebook tab:active
+.main-notebook tab:active
 {
 	background: rgb(45, 45, 55);
 }
 
-
-/* .:STATUSBAR:. */
-
-.status-bar, .menu-button
+.sidebar-notebook
 {
 	color: rgb(190, 190, 190);
-	/*font: Free Mono Bold 11;*/
-	font: Roboto 10;
+	border: none;
+	border-radius: 0px;
+	/*background: rgb(45, 45, 55);*/
 }
+
+.sidebar-notebook tab
+{
+	padding: 10px 16px;
+	background: rgb(25, 25, 35);
+}
+
+.sidebar-notebook tab:active
+{
+	background: rgb(45, 45, 55);
+}
+
+/* .:STATUSBAR:. */
 
 .status-bar {
 	background: rgb(25, 25, 35);
@@ -175,45 +171,30 @@ GtkNotebook tab:active
 	border: none;
 	border-radius: 0;
 	padding: 10px 10px 10px 10px;
+	color: rgb(190, 190, 190);
+	font: Roboto 10;
 }
 
 
 /* .:SIDEBAR:. */
-/*
-.sidebar-container *
+
+.filebrowser
 {
-	color: rgb(190, 190, 190);
-	font: Free Mono Bold 11;
-}
-*/
-/* Should really target a specific tree-view using a class... */
-GtkTreeView
-{
-	/*background: rgb(85, 85, 95);*/
 	background: rgb(45, 45, 55);
-	/*font: Free Mono Bold 11;
-	color: rgb(140, 140, 140);*/
-	font: Roboto 10;
 	color: rgb(190, 190, 190);
 }
 
-GtkTreeView row:selected
+.filebrowser row:selected
 {
 	background: rgb(65, 65, 75);
 	border: none;
 }
-
-.search-result {/*color: red;*/ font-weight: bold;}
 
 .check-button {
 	border: solid 3px red;
 	border-radius: 0;
 
 	/*background: rgb(65, 65, 75);*/
-	
-	color: rgb(190, 190, 190);
-	/*font: Free Mono Bold 11;*/
-	font: Roboto 10;
 }
 
 .nav-button {
@@ -221,8 +202,8 @@ GtkTreeView row:selected
 	border-radius: 3px;
 
 	background: rgb(65, 65, 75);
+
 	color: rgb(190, 190, 190);
-	/*font: Free Mono Bold 16;*/
 	font: Roboto Bold 10;
 
 	padding: 1px 1px 1px 1px;
@@ -232,31 +213,35 @@ GtkTreeView row:selected
 
 .root-dir-label {
 	color: rgb(190, 190, 190);
-	/*font: Free Mono Bold 12;*/
 	font: Roboto Bold 10;
 }
 
 .search-button {
 	border: none;
 	border-radius: 0;
-
 	background: rgb(65, 65, 75);
-	color: rgb(190, 190, 190);
-	/*font: Free Mono Bold 11;*/
-	font: Roboto 10;
-
 	padding: 10px;
+	color: rgb(190, 190, 190);
+	font: Roboto 10;
 }
 
 .search-button:hover {background: red;}
 
-GtkListBox {border: solid 2px red; background: rgb(65, 65, 95);}
-/*.search-results *{background: rgb(45, 45, 55);}*/
+.search-results {background: rgb(65, 65, 95);}
+
+.search-result {font-weight: bold;}
 
 .suggestions-popup
 {
 	/*color: rgb(190, 190, 190);*/
 	/*font: Free Mono Bold 11;*/
+}
+
+.search-background
+{
+	background: rgb(45, 45, 55);
+	border: none;
+	border-radius: 0;
 }
 
 
