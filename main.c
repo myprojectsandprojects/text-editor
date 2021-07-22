@@ -472,6 +472,11 @@ void on_highlighting_selected(GtkMenuItem *item, gpointer data)
 	}
 }
 
+void on_text_view_size_allocate(GtkWidget *textview, GdkRectangle *alloc, gpointer data) {
+	printf("on_text_view_size_allocate()\n");
+	gtk_text_view_set_bottom_margin(GTK_TEXT_VIEW(textview), alloc->height);
+}
+
 GtkWidget *create_tab(const char *file_name)
 {
 	static int count = 1;
@@ -499,6 +504,7 @@ GtkWidget *create_tab(const char *file_name)
 	gtk_text_view_set_tabs(text_view, tab_array);
 
 	add_class(GTK_WIDGET(text_view), "text-view");
+	g_signal_connect(G_OBJECT(text_view), "size-allocate", G_CALLBACK(on_text_view_size_allocate), NULL);
 
 	GtkWidget *search_revealer = gtk_revealer_new();
 	gtk_widget_set_name(search_revealer, "search-revealer");
