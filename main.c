@@ -58,8 +58,8 @@ GtkWidget *sidebar_container;
 GtkWidget *file_browser; // GtkTreeView
 
 //GtkWidget *root_selection;
-gulong root_selection_changed_id;
-int root_selection_index; // file-browser needs access to it // index of the last item in root-selection. we need to know that because each time user selects a new root by double-clicking on a directory well set the last item to that directory.
+//gulong root_selection_changed_id;
+//int root_selection_index; // file-browser needs access to it // index of the last item in root-selection. we need to know that because each time user selects a new root by double-clicking on a directory well set the last item to that directory.
 
 /*
 This is like a root directory of our project (or workspace or)
@@ -473,7 +473,7 @@ void on_highlighting_selected(GtkMenuItem *item, gpointer data)
 }
 
 void on_text_view_size_allocate(GtkWidget *textview, GdkRectangle *alloc, gpointer data) {
-	printf("on_text_view_size_allocate()\n");
+	LOG_MSG("on_text_view_size_allocate()\n");
 	gtk_text_view_set_bottom_margin(GTK_TEXT_VIEW(textview), alloc->height);
 }
 
@@ -507,16 +507,16 @@ GtkWidget *create_tab(const char *file_name)
 	g_signal_connect(G_OBJECT(text_view), "size-allocate", G_CALLBACK(on_text_view_size_allocate), NULL);
 
 	GtkWidget *search_revealer = gtk_revealer_new();
-	gtk_widget_set_name(search_revealer, "search-revealer");
-	GtkWidget *search_entry = gtk_search_entry_new();
-	add_class(search_entry, "search-entry");
 	//gtk_revealer_set_reveal_child(GTK_REVEALER(search_revealer), TRUE);
+	GtkWidget *search_entry = gtk_search_entry_new();
+	gtk_widget_set_name(search_entry, "search-entry");
+	add_class(search_entry, "text-entry");
 
 	GtkWidget *command_revealer = gtk_revealer_new();
-	gtk_widget_set_name(command_revealer, "command-revealer");
 	//gtk_revealer_set_transition_type(GTK_REVEALER(sidebar_revealer), GTK_REVEALER_TRANSITION_TYPE_SLIDE_DOWN);
 	GtkWidget *command_entry = gtk_entry_new();
-	add_class(command_entry, "command-entry");
+	gtk_widget_set_name(command_entry, "command-entry");
+	add_class(command_entry, "text-entry");
 
 
 	GtkWidget *line_nr_label = gtk_label_new("Line");
@@ -1355,14 +1355,12 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(sidebar_notebook), GTK_POS_BOTTOM);
 	add_class(sidebar_notebook, "sidebar-notebook");
 
-	file_browser = create_file_browser_widget();
+	file_browser = create_filebrowser_widget();
 	GtkWidget *file_browser_scrollbars = gtk_scrolled_window_new(NULL, NULL);
 	gtk_container_add(GTK_CONTAINER(file_browser_scrollbars), file_browser);
 	GtkWidget *filebrowser_icon = gtk_image_new_from_file(filebrowser_icon_path);
 	gtk_widget_set_tooltip_text(filebrowser_icon, "File Browser");
 	gtk_notebook_append_page(GTK_NOTEBOOK(sidebar_notebook), file_browser_scrollbars, filebrowser_icon);
-
-	add_class(file_browser, "filebrowser");
 
 	GtkWidget *search_in_files = create_search_in_files_widget();
 	GtkWidget *searchinfiles_icon = gtk_image_new_from_file(searchinfiles_icon_path);

@@ -3,6 +3,8 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include <sys/stat.h>
+#include <sys/inotify.h>
+#include <errno.h>
 #include <assert.h>
 
 #include "declarations.h"
@@ -15,72 +17,156 @@ extern const char *folder_icon_path;
 enum {
 	COLUMN_ICON,
 	COLUMN_BASENAME,
+	COLUMN_FULL_PATH,
+	COLUMN_IS_DIR,
+	COLUMN_IS_VISITED,
+	COLUMN_IS_EDITABLE,
 	N_COLUMNS
 };
 
-void on_item1_activate(GtkMenuItem *item, gpointer data)
+
+/* Well thats an entirely pointless function probably.. */
+void add_menu_item(GtkMenu *menu, const char *label, GCallback callback, gpointer data)
 {
-	g_print("menu item1 activate!\n");
+	printf("add_menu_item(): \"%s\"\n", label);
+
+	assert(menu != NULL);
+
+	static GtkMenu *_menu = NULL;
+	static int top_pos, bottom_pos;
+
+	if (_menu != menu) {
+		//printf("add_menu_item(): resetting..\n");
+		_menu = menu;
+		top_pos = 0;
+		bottom_pos = 1;
+	}
+
+	GtkWidget *item = gtk_menu_item_new_with_label(label);
+	gtk_menu_attach(GTK_MENU(menu), item, 0, 1, top_pos, bottom_pos);
+	g_signal_connect(item, "activate", callback, data);
+
+	top_pos += 1;
+	bottom_pos += 1;
+}
+
+void on_rename_selected(GtkMenuItem *item, gpointer data)
+{
+	printf("on_rename_selected()\n");
 
 	GtkTreeModel *model;
 	GtkTreeIter iter;
-	GtkTreeView *tree_view = (GtkTreeView *) data;
-	GtkTreeSelection *selection = gtk_tree_view_get_selection(tree_view);
+	GtkTreeView *fb = (GtkTreeView *) data;
+	GtkTreeSelection *selection = gtk_tree_view_get_selection(fb);
 	gboolean result = gtk_tree_selection_get_selected(selection, &model, &iter);
 
-	if(result == TRUE) { // there is a selection
-		char *name;
-		gtk_tree_model_get(model, &iter, COLUMN_BASENAME, &name, -1);
-		g_print("menu item 1 with \"%s\"\n", name);
-	}
+	assert(result == TRUE); // there is a selection
+
+	GValue editability = G_VALUE_INIT;
+	g_value_init(&editability, G_TYPE_BOOLEAN);
+	g_value_set_boolean(&editability, TRUE);
+	gtk_tree_store_set_value(GTK_TREE_STORE(model), &iter, COLUMN_IS_EDITABLE, &editability);
+	GtkTreeViewColumn *col = gtk_tree_view_get_column(fb, 0);
+	GtkTreePath *path = gtk_tree_model_get_path(model, &iter);
+	gtk_tree_view_set_cursor(fb, path, col, TRUE);
+
+	char *basename;
+	gtk_tree_model_get(model, &iter, COLUMN_BASENAME, &basename, -1);
+	printf("on_rename_selected(): selected node: \"%s\"\n", basename);
 }
 
-gboolean on_tree_view_button_press_event(GtkWidget *tree_view, GdkEvent *event, gpointer data)
+void print_greeting(GtkMenuItem *item, gpointer greeting)
 {
-	if (event->type == GDK_BUTTON_PRESS) {
-		GdkEventButton *button_event = (GdkEventButton *) event;
-		//g_print("event type: GDK_BUTTON_PRESS\n");
-		//g_print("button: %d\n", button_event->button); // left: 1, middle: 2, right: 3
+	printf("print_greeting(): %s!\n", (const char *) greeting);
+}
 
-		if(button_event->button == 3) { // right button
-			g_print("right-button clicked!\n");
-			GtkWidget *menu = gtk_menu_new();
-			GtkWidget *item1 = gtk_menu_item_new_with_label("Hello world!");
-			gtk_menu_attach(GTK_MENU(menu), item1, 0, 1, 0, 1);
-			g_signal_connect(item1, "activate", G_CALLBACK(on_item1_activate), tree_view);
-			GtkWidget *item2 = gtk_menu_item_new_with_label("Hello universe!");
-			gtk_menu_attach(GTK_MENU(menu), item2, 0, 1, 1, 2);
-			GtkWidget *item3 = gtk_menu_item_new_with_label("Hello multiverse!");
-			gtk_menu_attach(GTK_MENU(menu), item3, 0, 1, 2, 3);
-			gtk_widget_show_all(menu);
-			gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, button_event->button, button_event->time);
-		}
-	} else {
-		g_print("event type: unknown\n");
+static gboolean on_filebrowser_button_pressed(GtkWidget *filebrowser,
+														GdkEvent *event,
+														gpointer data)
+{
+	//printf("on_filebrowser_button_pressed()\n");
+
+	GdkEventType event_type = gdk_event_get_event_type(event);
+	//printf("on_filebrowser_button_pressed(): type: %d\n", event_type);
+
+	//Strangely enough, even though we register this callback for "button-press-event", this assertion fails when a user double-clicks on a row:
+	//assert(event_type == GDK_BUTTON_PRESS);
+
+	if (event_type != GDK_BUTTON_PRESS) {
+		printf("on_filebrowser_button_pressed(): some unknown event, early out'ing..\n");
+		return TRUE; // no other handlers
+		//return FALSE; // propagate further 
+	}
+
+	GdkEventButton *button_event = (GdkEventButton *) event;
+	
+	/* left: 1, middle: 2, right: 3 */
+	printf("on_filebrowser_button_pressed(): GDK_BUTTON_PRESS (%d)\n", button_event->button);
+
+	if (button_event->button == 3) {
+		GtkWidget *menu = gtk_menu_new();
+
+		add_menu_item(GTK_MENU(menu), "Hello world", G_CALLBACK(print_greeting), (gpointer) "Hello world");
+		add_menu_item(GTK_MENU(menu), "Hello universe", G_CALLBACK(print_greeting), (gpointer) "Hello universe");
+		add_menu_item(GTK_MENU(menu), "Hello multiverse", G_CALLBACK(print_greeting), (gpointer) "Hello multiverse");
+		add_menu_item(GTK_MENU(menu), "Rename", G_CALLBACK(on_rename_selected), (gpointer) filebrowser);
+
+		gtk_widget_show_all(menu);
+		gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, button_event->button, button_event->time);
 	}
 	return FALSE;
 }
-
-GtkTreeIter append_node_to_store(GtkTreeStore *store, GtkTreeIter *parent, const char *node_icon, const char *node_text)
+/*
+static GtkTreeIter append_node_to_store(GtkTreeStore *store,
+												GtkTreeIter *parent,
+												const char *icon_path,
+												const char *node_basename,
+												const char *node_full_path)
 {
-	GtkTreeIter iter;
 	//GdkPixbuf *icon = gdk_pixbuf_new_from_file(node_icon, NULL);
-	gtk_tree_store_append(store, &iter, parent);
-	if (node_icon != NULL) {
-		GdkPixbuf *icon = gdk_pixbuf_new_from_file(node_icon, NULL);
-		gtk_tree_store_set(store, &iter, COLUMN_ICON, icon, COLUMN_BASENAME, node_text, -1);
+	GdkPixbuf *icon = NULL;
+	if (icon_path != NULL) {
+		icon = gdk_pixbuf_new_from_file(icon_path, NULL); //@ fail?
 	}
-	else
-		gtk_tree_store_set(store, &iter, COLUMN_BASENAME, node_text, -1);
-	return iter;
+
+	GtkTreeIter iter;
+	gtk_tree_store_append(store, &iter, parent); // create empty row
+	gtk_tree_store_set(store, &iter, // fill in values
+		COLUMN_ICON, icon,
+		COLUMN_BASENAME, node_basename,
+		COLUMN_FULL_PATH, node_full_path,
+		COLUMN_IS_EDITABLE, FALSE,
+		-1);
+
+	return iter; //@ this is kind of dubious enterprise we're involved in here..?
+}
+*/
+int compare(const void *a, const void *b)
+{
+	char *str1 = *((char **) a);
+	char *str2 = *((char **) b);
+	int d;
+	int i = 0;
+	while (str1[i] != 0 && str2[i] != 0) {
+		if ((d = str1[i] - str2[i]) != 0) return d;
+		i += 1;
+	}
+	return 0;
 }
 
-void create_nodes_for_directory(GtkTreeStore *store, GtkTreeIter *parent, const char *dir_path, int max_depth)
+static void create_nodes_for_dir(GtkTreeStore *store,
+												GtkTreeIter *parent,
+												const char *dir_path,
+												int max_depth)
 {
-	//printf("create_nodes_for_directory()\n");
+	printf("create_nodes_for_dir(): \"%s\"\n", dir_path);
+
 	--max_depth;
 
 	DIR *dir = opendir(dir_path);
+	if (dir == NULL) {
+		printf("create_nodes_for_dir(): opendir() error: errno: %d\n", errno);
+	}
 	assert(dir != NULL); // permissions
 
 	char *basenames[1000];
@@ -100,18 +186,6 @@ void create_nodes_for_directory(GtkTreeStore *store, GtkTreeIter *parent, const 
 	}
 	closedir(dir);
 
-	int compare(const void *a, const void *b) {
-		char *str1 = *((char **) a);
-		char *str2 = *((char **) b);
-		int d;
-		int i = 0;
-		while (str1[i] != 0 && str2[i] != 0) {
-			if ((d = str1[i] - str2[i]) != 0) return d;
-			i += 1;
-		}
-		return 0;
-	}
-
 	qsort(basenames, i, sizeof(char *), compare);
 
 	/*int j;
@@ -128,58 +202,74 @@ void create_nodes_for_directory(GtkTreeStore *store, GtkTreeIter *parent, const 
 		if (lstat(entry_path, &entry_info) == -1)
 			fprintf(stderr, "Failed to lstat \"%s\"\n", basenames[j]); // @error handling
 		
+
+		gboolean is_dir = S_ISDIR(entry_info.st_mode) ? TRUE : FALSE;
+
+		const char *icon_path;
+		if (is_dir) icon_path = folder_icon_path;
+		else icon_path = file_icon_path;
+		GdkPixbuf *icon = gdk_pixbuf_new_from_file(icon_path, NULL); //@ fail?
+
+		// for regular files "is visited" is false.. pff
+		gboolean is_visited = (is_dir == TRUE && max_depth > 0) ? TRUE : FALSE;
+	
+		GtkTreeIter iter;
+		gtk_tree_store_append(store, &iter, parent); // create empty row
+		gtk_tree_store_set(store, &iter,	// fill in values
+			COLUMN_ICON, icon,
+			COLUMN_BASENAME, basenames[j],
+			COLUMN_FULL_PATH, entry_path,
+			COLUMN_IS_DIR, is_dir,
+			COLUMN_IS_VISITED, is_visited,
+			COLUMN_IS_EDITABLE, FALSE,
+			-1);
+
+		if (is_dir == TRUE && max_depth > 0) create_nodes_for_dir(store, &iter, entry_path, max_depth);
+
+/*
 		if (S_ISDIR(entry_info.st_mode)) {
-			GtkTreeIter this_node = append_node_to_store(store, parent, folder_icon_path, basenames[j]);
-			if (max_depth > 0)
+			//@ entry_path is a local thing (allocated on the stack), is it a good idea to pass it as an argument?
+			GtkTreeIter this_node = append_node_to_store(store, parent, folder_icon_path, basenames[j], entry_path);
+			//GtkTreeIter this_node = append_node_to_store(store, parent, NULL, basenames[j], entry_path);
+			if (max_depth > 0) {
+				// okay, we're recursing, so should set some field on the node that says we've already done that
+				// so that when a dir is expanded, we can easily check that field..
+				// maybe more accurate would be to set the field on the parent dir, but then its getting more confusing
+				// and implementation dependant or something.. i dont know
 				create_nodes_for_directory(store, &this_node, entry_path, max_depth);
+			}
 		} else {
-			append_node_to_store(store, parent, file_icon_path, basenames[j]);
+			append_node_to_store(store, parent, file_icon_path, basenames[j], entry_path);
+			//append_node_to_store(store, parent, NULL, basenames[j], entry_path);
 		}
+*/
 	}
-
-	/*dir = opendir(dir_path);
-	assert(dir != NULL); // permissions
-
-	struct dirent *entry;
-	while ((entry = readdir(dir)) != NULL) {
-		if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
-		//g_print("basename: %s\n", dir_entry->d_name);
-
-		if (entry->d_name[0] == '.') continue; // Ignore hidden files/directories
-		
-		char entry_path[1000];
-		sprintf(entry_path, "%s/%s", dir_path, entry->d_name);
-
-		struct stat entry_info;
-		if (lstat(entry_path, &entry_info) == -1)
-			fprintf(stderr, "Failed to lstat \"%s\"\n", entry->d_name); // @error handling
-		
-		if (S_ISDIR(entry_info.st_mode)) {
-			GtkTreeIter this_node = append_node_to_store(store, parent, "icons/colors/folder.png", entry->d_name);
-			if (max_depth > 0)
-				create_nodes_for_directory(store, &this_node, entry_path, max_depth);
-		} else {
-			append_node_to_store(store, parent, "icons/colors/file.png", entry->d_name);
-		}
-	}
-	closedir(dir);*/
 }
 
 GtkTreeStore *create_tree_store()
 {
-	LOG_MSG("create_tree_store()\n");
-	LOG_MSG("create_tree_store(): root_dir: %s\n", root_dir);
-	GtkTreeStore *store = gtk_tree_store_new(N_COLUMNS, GDK_TYPE_PIXBUF, G_TYPE_STRING);
-	create_nodes_for_directory(store, NULL, root_dir, 2);
+	//LOG_MSG("create_tree_store(): root_dir: %s\n", root_dir);
+	printf("create_tree_store(): root_dir: %s\n", root_dir);
+	GtkTreeStore *store = gtk_tree_store_new(
+		N_COLUMNS,
+		GDK_TYPE_PIXBUF,
+		G_TYPE_STRING,
+		G_TYPE_STRING,
+		G_TYPE_BOOLEAN,
+		G_TYPE_BOOLEAN,
+		G_TYPE_BOOLEAN
+	);
+	create_nodes_for_dir(store, NULL, root_dir, 2);
 	return store;
 }
 
-GtkWidget *create_tree_view()
+static GtkWidget *create_filebrowser_view(void)
 {
+	printf("create_filebrowser_view()\n");
 	//getcwd(root_dir, sizeof(root_dir));
 
-	GtkTreeStore *store = create_tree_store();
-	GtkWidget *tree_view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
+	GtkTreeStore *tree_store = create_tree_store();
+	GtkWidget *tree_view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(tree_store));
 
 
 	GtkTreeViewColumn *col = gtk_tree_view_column_new();
@@ -190,29 +280,56 @@ GtkWidget *create_tree_view()
 
 	renderer = gtk_cell_renderer_text_new();
 	gtk_tree_view_column_pack_start(col, renderer, TRUE);
-	gtk_tree_view_column_set_attributes(col, renderer, "text", COLUMN_BASENAME, NULL);
+	gtk_tree_view_column_set_attributes(col, renderer, "text", COLUMN_BASENAME, "editable", COLUMN_IS_EDITABLE, NULL);
 	
 	gtk_tree_view_append_column(GTK_TREE_VIEW(tree_view), col);
 
 	return tree_view;
 }
 
-void on_tree_view_row_expanded(GtkTreeView *tree_view, GtkTreeIter *iter, GtkTreePath *path, gpointer data)
+static void on_filebrowser_row_expanded(GtkTreeView *tree_view,
+												GtkTreeIter *iter,
+												GtkTreePath *path,
+												gpointer data)
 {
-	g_print("row expanded!\n");
+	//printf("on_filebrowser_row_expanded()\n");
 
 	GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
+
+	char *dir_full_path;
+	gtk_tree_model_get(model, iter, COLUMN_FULL_PATH, &dir_full_path, -1);
+	//printf("on_filebrowser_row_expanded(): path: \"%s\"\n", dir_full_path);
 
 	gboolean result;
 	GtkTreeIter child;
 	for (result = gtk_tree_model_iter_children(model, &child, iter);
 			result == TRUE; result = gtk_tree_model_iter_next(model, &child)) {
 
-		char *child_name;
-		gtk_tree_model_get(model, &child, COLUMN_BASENAME, &child_name, -1);
-		//g_print("node: %s\n", child_name);
+		char *child_basename, *child_full_path;
+		gboolean child_is_dir, child_is_visited;
+		gtk_tree_model_get(model, &child,
+							COLUMN_BASENAME, &child_basename,
+							COLUMN_FULL_PATH, &child_full_path,
+							COLUMN_IS_DIR, &child_is_dir,
+							COLUMN_IS_VISITED, &child_is_visited,
+							-1);
 
-		GtkTreePath *local_path = gtk_tree_path_copy(path);
+		//printf("on_filebrowser_row_expanded():");
+		//printf(" child basename: \"%s\"", child_basename);
+		//printf(" child full path: \"%s\"", child_full_path);
+		//printf("\n");
+
+		if (child_is_visited == TRUE) break; // reasonable to assume we have nothing to do here?
+
+		if (child_is_dir == TRUE) {
+			gtk_tree_store_set(GTK_TREE_STORE(model), &child, COLUMN_IS_VISITED, TRUE, -1);
+			create_nodes_for_dir(GTK_TREE_STORE(model), &child, child_full_path, 1);
+		}
+
+/*
+Cant we store the full path in create_nodes_for_directory() and skip all this work?
+*/
+		/*GtkTreePath *local_path = gtk_tree_path_copy(path);
 		//GtkTreeIter *local_iter = gtk_tree_iter_copy(iter);
 
 		// Get the full path of the child
@@ -232,21 +349,27 @@ void on_tree_view_row_expanded(GtkTreeView *tree_view, GtkTreeIter *iter, GtkTre
 
 		//g_print("ancestors: %s\n", ancestors_buffer);
 		sprintf(child_full_path, "%s/%s/%s", root_dir, ancestors_buffer, child_name);
-		//printf("row expanded: child full path: %s\n", child_full_path);
+		//printf("row expanded: child full path: %s\n", child_full_path);*/
 
+/*
+	@We assume here that the actual fs-node exists..
+	If it doesnt exist, its undefined behaviour.
+
+	Ignore nodes which doesnt exist anymore! And new nodes too! Dont delete already existing nodes!
+	Resetting the root-dir would be the only way to update already existing part of the tree..
+	? 
+*/
+/*
 		struct stat entry_info;
 		int result = lstat(child_full_path, &entry_info); // lstat doesnt seem to care if we mess up and have triple-duple slashes...
-		if (result == -1) g_print("lstat failed!");
-		if (S_ISDIR(entry_info.st_mode)) {
-
-			// We might have already done this, so make sure all nodes under "child" are gone. Whatever
-			GtkTreeIter grandchild;
-			if (gtk_tree_model_iter_children(model, &grandchild, &child) == TRUE) {
-				g_print("Suppousedly deleting all nodes under %s\n", child_name);
-				while (gtk_tree_store_remove(GTK_TREE_STORE(model), &grandchild) == TRUE);
-			}
-			create_nodes_for_directory(GTK_TREE_STORE(model), &child, child_full_path, 1);
+		if (result == -1) {
+			printf("on_filebrowser_row_expanded(): lstat() error (\"%s\")!\n", child_full_path);
+			//continue;
 		}
+		if (S_ISDIR(entry_info.st_mode)) {
+			create_nodes_for_dir(GTK_TREE_STORE(model), &child, child_full_path, 1);
+		}
+*/
 	}
 }
 
@@ -258,9 +381,12 @@ void prepend_string(char *buffer, const char *str)
 	sprintf(buffer, "%s%s", str, temp);
 }
 
-void on_tree_view_row_activated(GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *column, gpointer data)
+static void on_filebrowser_row_doubleclicked(GtkTreeView *tree_view,
+													GtkTreePath *path,
+													GtkTreeViewColumn *column,
+													gpointer data)
 {
-	printf("ROW ACTIVATED!\n");
+	printf("on_filebrowser_row_doubleclicked()\n");
 
 	GtkTreeIter iter;
 	char *node_base_name;
@@ -301,18 +427,86 @@ void on_tree_view_row_activated(GtkTreeView *tree_view, GtkTreePath *path, GtkTr
 	}
 }
 
-GtkWidget *create_file_browser_widget()
+void print_event(struct inotify_event *event)
 {
-	LOG_MSG("create_file_browser_widget()\n");
+	printf("print_event():");
+	printf(" [%d]", event->wd);
+	if (event->mask & IN_ISDIR) printf(" IN_ISDIR");
+	if (event->mask & IN_ACCESS) printf(" IN_ACCESS");
+	if (event->mask & IN_ATTRIB) printf(" IN_ATTRIB");
+	if (event->mask & IN_CREATE) printf(" IN_CREATE");
+	if (event->mask & IN_DELETE) printf(" IN_DELETE");
+	if (event->mask & IN_DELETE_SELF) printf(" IN_DELETE_SELF");
+	if (event->mask & IN_CLOSE_NOWRITE) printf(" IN_CLOSE_NOWRITE");
+	if (event->mask & IN_CLOSE_WRITE) printf(" IN_CLOSE_WRITE");
+	if (event->mask & IN_IGNORED) printf(" IN_IGNORED");
+	if (event->mask & IN_MODIFY) printf(" IN_MODIFY");
+	if (event->mask & IN_MOVE_SELF) printf(" IN_MOVE_SELF");
+	if (event->mask & IN_MOVED_FROM) printf(" IN_MOVED_FROM");
+	if (event->mask & IN_MOVED_TO) printf(" IN_MOVED_TO");
+	if (event->mask & IN_OPEN) printf(" IN_OPEN");
+	if (event->mask & IN_Q_OVERFLOW) printf(" IN_Q_OVERFLOW");
+	if (event->mask & IN_UNMOUNT) printf(" IN_UNMOUNT");
 
-	GtkWidget *tree_view = create_tree_view();
-	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(tree_view), FALSE);
-	//gtk_tree_view_set_level_indentation(GTK_TREE_VIEW(tree_view), 9);
-	g_signal_connect(tree_view, "row-activated", G_CALLBACK(on_tree_view_row_activated), NULL);
-	g_signal_connect(tree_view, "row-expanded", G_CALLBACK(on_tree_view_row_expanded), NULL);
-	g_signal_connect(tree_view, "button-press-event", G_CALLBACK(on_tree_view_button_press_event), NULL);
+	if (event->len > 0) printf(" \"%s\"", event->name);
 
-	return tree_view;
+	printf(" cookie: %d", event->cookie);
+
+	printf("\n");
 }
 
+void *watch_for_fs_changes(void *arg)
+{
+	printf("watch_for_fs_changes()\n");
 
+	int in_desc = inotify_init();
+
+	int w_desc = inotify_add_watch(in_desc, "/home/eero/test", IN_ALL_EVENTS);
+	if (w_desc == -1) {
+		printf("watch_for_fs_changes(): inotify_add_watch() error!\n");
+		return NULL;
+	}
+
+	/* seems to be important to have space for multiple event instances.. */
+	#define SIZE (10 * (sizeof(struct inotify_event) + NAME_MAX + 1))
+	char *p;
+	char event_buffer[SIZE];
+	for (;;) {
+		ssize_t n_bytes = read(in_desc, event_buffer, SIZE);
+		if (n_bytes < 1) {
+			printf("read() returned less than 1..\n");
+			break;
+		}
+		//printf("watch_for_fs_changes(): read() returned: %ld\n", n_bytes);
+		
+		for (p = event_buffer; p < event_buffer + n_bytes;) {
+			struct inotify_event *event = (struct inotify_event *) p;
+			print_event(event);
+			p += sizeof(struct inotify_event) + event->len;
+		}
+	}
+
+	return NULL;
+}
+
+GtkWidget *create_filebrowser_widget(void)
+{
+	//LOG_MSG("create_file_browser_widget()\n");
+	printf("create_filebrowser_widget()\n");
+
+	GtkWidget *filebrowser_widget = create_filebrowser_view();
+	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(filebrowser_widget), FALSE);
+	//gtk_tree_view_set_level_indentation(GTK_TREE_VIEW(filebrowser_widget), 9);
+	add_class(filebrowser_widget, "filebrowser");
+
+	g_signal_connect(filebrowser_widget, "row-activated", G_CALLBACK(on_filebrowser_row_doubleclicked), NULL);
+	g_signal_connect(filebrowser_widget, "row-expanded", G_CALLBACK(on_filebrowser_row_expanded), NULL);
+	g_signal_connect(filebrowser_widget, "button-press-event", G_CALLBACK(on_filebrowser_button_pressed), NULL);
+
+	pthread_t id;
+	if ((pthread_create(&id, NULL, watch_for_fs_changes, NULL)) != 0) {
+		printf("create_filebrowser_widget(): pthread_create() error!\n");
+	}
+
+	return filebrowser_widget;
+}

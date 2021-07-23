@@ -503,6 +503,9 @@ GtkWidget *create_search_in_files_widget()
 	hidden_files_check_button = gtk_check_button_new_with_label("ignore hidden");
 	search_button = gtk_button_new_with_label("Search");
 
+	gtk_widget_set_name(search_phrase_entry, "search-phrase-entry");
+	gtk_widget_set_name(filename_filter_entry, "filename-patterns-entry");
+
 	add_class(search_phrase_entry, "text-entry");
 	add_class(filename_filter_entry, "text-entry");
 	add_class(hidden_files_check_button, "check-button");

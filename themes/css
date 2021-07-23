@@ -65,8 +65,7 @@
 /* No effect in GTK 3.18.9 */
 /*GtkPaned {background: background: rgb(85, 85, 95);}*/
 
-/* why are command-entry and search entry separate classes anyways? */
-.text-view, .command-entry, .search-entry, .text-entry, .suggestions-popup
+.text-view, .text-entry, .suggestions-popup
 {
 	color: rgb(190, 190, 190);
 	font: Fira Mono Medium 12;
@@ -75,13 +74,6 @@
 .text-view
 {
 	background: rgb(45, 45, 55);
-}
-.command-entry, .search-entry
-{
-	background: rgb(65, 65, 75);
-
-	border: none;
-	border-radius: 0;
 }
 
 .text-entry
@@ -94,30 +86,26 @@
 
 	/*padding: 3px;*/
 }
-/*
-GtkTextView:selected,
-.search-entry:selected,
-.command-entry:selected,
-.text-entry:selected
-{
-	color: white;
-	background: red;
-}
-*/
-#search-revealer > GtkEntry:selected, #command-revealer > GtkEntry:selected, GtkTextView:selected
-{
-	color: white;
-	background: red;
-}
+
 /*
 :focus pseudoclass conflicts with :selected pseudoclass (?)
-Should we target these widgets in a different way?
 */
+.text-view:selected,
+#search-entry:selected,
+#command-entry:selected,
+#search-phrase-entry:selected,
+#filename-patterns-entry:selected
+{
+	color: white;
+	background: red;
+}
 
-.command-entry:focus, .search-entry:focus, .text-entry:focus
+.text-entry:focus
 {
 	background: rgb(85, 85, 95);
 }
+
+/*#command-entry {background: orange;}*/
 
 .main-notebook
 {
@@ -184,6 +172,7 @@ Should we target these widgets in a different way?
 {
 	background: rgb(45, 45, 55);
 	color: rgb(190, 190, 190);
+	font: Roboto 11;
 }
 
 .filebrowser row:selected
