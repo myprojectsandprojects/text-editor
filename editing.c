@@ -311,15 +311,64 @@ gboolean delete_line(GdkEventKey *key_event)
 	return TRUE;
 }
 
+gboolean move_up_by_block(GdkEventKey *key_event)
+{
+	printf("move_up_by_block()\n");
 
+	GtkTextBuffer *text_buffer;
+	text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
+	if (text_buffer == NULL) {
+		printf("No tabs open! Nothing to do...\n");
+		return FALSE;
+	}
 
+	GtkTextIter iter, start, end;
 
+	GtkTextMark *cursor = gtk_text_buffer_get_mark(text_buffer, "insert");
+	gtk_text_buffer_get_iter_at_mark(text_buffer, &iter, cursor);
 
+	while (gtk_text_iter_get_char(&iter) == '\n' && !gtk_text_iter_is_start(&iter))
+		gtk_text_iter_backward_char(&iter);
 
+	if (gtk_text_iter_backward_search(&iter, "\n\n", 0, &start, &end, NULL)) {
+		iter = end;
+		gtk_text_iter_backward_char(&iter);
+	} else {
+		gtk_text_buffer_get_start_iter(text_buffer, &iter);
+	}
 
+	gtk_text_buffer_place_cursor(text_buffer, &iter);
 
+	return TRUE;
+}
 
+gboolean move_down_by_block(GdkEventKey *key_event)
+{
+	printf("move_down_by_block()\n");
 
+	GtkTextBuffer *text_buffer;
+	text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
+	if (text_buffer == NULL) {
+		printf("No tabs open! Nothing to do...\n");
+		return FALSE;
+	}
 
+	GtkTextIter iter, start, end;
 
+	GtkTextMark *cursor = gtk_text_buffer_get_mark(text_buffer, "insert");
+	gtk_text_buffer_get_iter_at_mark(text_buffer, &iter, cursor);
 
+	while (gtk_text_iter_get_char(&iter) == '\n' && !gtk_text_iter_is_end(&iter))
+		gtk_text_iter_forward_char(&iter);
+
+	if (gtk_text_iter_forward_search(&iter, "\n\n", 0, &start, &end, NULL)) {
+		iter = end;
+		gtk_text_iter_backward_char(&iter);
+	} else {
+		gtk_text_buffer_get_end_iter(text_buffer, &iter);
+	}
+
+	gtk_text_buffer_place_cursor(text_buffer, &iter);
+
+	return TRUE;
+}

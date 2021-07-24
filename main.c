@@ -1298,6 +1298,9 @@ void activate_handler(GtkApplication *app, gpointer data) {
 	key_combinations[SHIFT][23] = handle_tab; // <tab> + shift
 	key_combinations[0][36] = handle_enter; // <enter>
 
+	key_combinations[CTRL][111] = move_up_by_block; // ctrl + <up>
+	key_combinations[CTRL][116] = move_down_by_block; // ctrl + <down>
+
 	key_combinations[ALT][111] = move_lines_up; // alt + <up arrow>
 	key_combinations[ALT][116] = move_lines_down; // alt + <down arrow>
 	key_combinations[ALT][40] = duplicate_line; // alt + d

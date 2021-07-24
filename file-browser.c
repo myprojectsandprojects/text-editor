@@ -14,6 +14,7 @@ extern char root_dir[100];
 extern const char *file_icon_path;
 extern const char *folder_icon_path;
 
+/* filebrowser's model/store columns: */
 enum {
 	COLUMN_ICON,
 	COLUMN_BASENAME,
@@ -26,7 +27,7 @@ enum {
 
 
 /* Well thats an entirely pointless function probably.. */
-void add_menu_item(GtkMenu *menu, const char *label, GCallback callback, gpointer data)
+static void add_menu_item(GtkMenu *menu, const char *label, GCallback callback, gpointer data)
 {
 	printf("add_menu_item(): \"%s\"\n", label);
 
@@ -50,7 +51,7 @@ void add_menu_item(GtkMenu *menu, const char *label, GCallback callback, gpointe
 	bottom_pos += 1;
 }
 
-void on_rename_selected(GtkMenuItem *item, gpointer data)
+static void on_rename_selected(GtkMenuItem *item, gpointer data)
 {
 	printf("on_rename_selected()\n");
 
@@ -75,7 +76,7 @@ void on_rename_selected(GtkMenuItem *item, gpointer data)
 	printf("on_rename_selected(): selected node: \"%s\"\n", basename);
 }
 
-void print_greeting(GtkMenuItem *item, gpointer greeting)
+static void print_greeting(GtkMenuItem *item, gpointer greeting)
 {
 	printf("print_greeting(): %s!\n", (const char *) greeting);
 }
@@ -141,7 +142,7 @@ static GtkTreeIter append_node_to_store(GtkTreeStore *store,
 	return iter; //@ this is kind of dubious enterprise we're involved in here..?
 }
 */
-int compare(const void *a, const void *b)
+static int compare(const void *a, const void *b)
 {
 	char *str1 = *((char **) a);
 	char *str2 = *((char **) b);
@@ -373,7 +374,7 @@ Cant we store the full path in create_nodes_for_directory() and skip all this wo
 	}
 }
 
-void prepend_string(char *buffer, const char *str)
+static void prepend_string(char *buffer, const char *str)
 {
 	char temp[100];
 
@@ -427,7 +428,7 @@ static void on_filebrowser_row_doubleclicked(GtkTreeView *tree_view,
 	}
 }
 
-void print_event(struct inotify_event *event)
+static void print_event(struct inotify_event *event)
 {
 	printf("print_event():");
 	printf(" [%d]", event->wd);
@@ -455,7 +456,7 @@ void print_event(struct inotify_event *event)
 	printf("\n");
 }
 
-void *watch_for_fs_changes(void *arg)
+static void *watch_for_fs_changes(void *arg)
 {
 	printf("watch_for_fs_changes()\n");
 

@@ -18,6 +18,8 @@ gboolean delete_line(GdkEventKey *key_event);
 void actually_open_line_after(GtkTextBuffer *text_buffer);
 void actually_open_line_before(GtkTextBuffer *text_buffer);
 void actually_autocomplete_character(GtkTextBuffer *text_buffer, char character);
+gboolean move_up_by_block(GdkEventKey *key_event);
+gboolean move_down_by_block(GdkEventKey *key_event);
 
 /* fileio.c: */
 char *read_file(const char *filename);
