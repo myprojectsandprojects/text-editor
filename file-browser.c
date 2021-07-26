@@ -55,37 +55,6 @@ static void add_menu_item(GtkMenu *menu, const char *label, GCallback callback, 
 	bottom_pos += 1;
 }
 
-static void on_rename_selected(GtkMenuItem *item, gpointer data)
-{
-	printf("on_rename_selected()\n");
-
-	GtkTreeModel *model;
-	GtkTreeIter iter;
-	GtkTreeView *fb = (GtkTreeView *) data;
-	GtkTreeSelection *selection = gtk_tree_view_get_selection(fb);
-	gboolean result = gtk_tree_selection_get_selected(selection, &model, &iter);
-
-	assert(result == TRUE); // there is a selection
-
-	GValue editability = G_VALUE_INIT;
-	g_value_init(&editability, G_TYPE_BOOLEAN);
-	g_value_set_boolean(&editability, TRUE);
-	gtk_tree_store_set_value(GTK_TREE_STORE(model), &iter, COLUMN_IS_EDITABLE, &editability);
-	GtkTreeViewColumn *col = gtk_tree_view_get_column(fb, 0);
-	GtkTreePath *path = gtk_tree_model_get_path(model, &iter);
-	gtk_tree_view_set_cursor(fb, path, col, TRUE);
-
-	char *basename;
-	gtk_tree_model_get(model, &iter, COLUMN_BASENAME, &basename, -1);
-	printf("on_rename_selected(): selected node: \"%s\"\n", basename);
-}
-
-static void print_greeting(GtkMenuItem *item, gpointer greeting)
-{
-	printf("print_greeting(): %s!\n", (const char *) greeting);
-}
-
-
 /*
 static GtkTreeIter append_node_to_store(GtkTreeStore *store,
 												GtkTreeIter *parent,
@@ -111,6 +80,7 @@ static GtkTreeIter append_node_to_store(GtkTreeStore *store,
 	return iter; //@ this is kind of dubious enterprise we're involved in here..?
 }
 */
+
 static int compare(const void *a, const void *b)
 {
 	char *str1 = *((char **) a);
@@ -124,10 +94,11 @@ static int compare(const void *a, const void *b)
 	return 0;
 }
 
-static void create_nodes_for_dir(GtkTreeStore *store,
-												GtkTreeIter *parent,
-												const char *dir_path,
-												int max_depth)
+static void create_nodes_for_dir(
+	GtkTreeStore *store,
+	GtkTreeIter *parent,
+	const char *dir_path,
+	int max_depth)
 {
 	printf("create_nodes_for_dir(): \"%s\"\n", dir_path);
 
@@ -214,102 +185,6 @@ static void create_nodes_for_dir(GtkTreeStore *store,
 		}
 */
 	}
-}
-
-void on_basename_edited(
-	GtkCellRendererText *cell,
-	gchar *path_str,
-	gchar *new_basename,
-	gpointer data)
-{
-	printf("on_basename_edited()\n");
-
-	GtkTreeModel *model;
-	GtkTreeIter iter;
-	char *old_basename, *node_dirname, *old_pathname, new_pathname[256];
-
-	//model = (GtkTreeModel *) data;
-	model = gtk_tree_view_get_model(GTK_TREE_VIEW(filebrowser));
-
-	gboolean exists = gtk_tree_model_get_iter_from_string(model, &iter, path_str);
-	assert(exists == TRUE); // we assume that the row edited "just now" exists..
-	gtk_tree_model_get(model, &iter,
-		COLUMN_BASENAME, &old_basename,
-		COLUMN_FULL_PATH, &old_pathname,
-		-1);
-
-	char *copy_old_pathname = strdup(old_pathname); // seems that dirname() modifies the string given
-	node_dirname = dirname(old_pathname);
-
-	printf("on_basename_edited(): old dirname: \"%s\", old basename: \"%s\", new basename: \"%s\"\n",
-		node_dirname, old_basename, new_basename);
-
-	snprintf(new_pathname, 256, "%s/%s", node_dirname, new_basename);
-	printf("on_basename_edited(): old pathname: \"%s\", new pathname: \"%s\"\n",
-		copy_old_pathname,
-		new_pathname);
-
-	if ((rename(copy_old_pathname, new_pathname)) != 0) {
-		printf("on_basename_edited(): : failed to rename file/folder: \"%s\" to \"%s\"\n", copy_old_pathname, new_pathname);
-		//return;
-		goto wrap_up;
-	}
-
-	// set COLUMN_IS_EDITABLE to FALSE?
-	gtk_tree_store_set(GTK_TREE_STORE(model), &iter,
-		COLUMN_BASENAME, new_basename,
-		COLUMN_FULL_PATH, new_pathname,
-		COLUMN_IS_EDITABLE, FALSE,
-		-1);
-
-wrap_up:
-	free(copy_old_pathname);	
-	//free(old_basename); // ?
-	//free(new_basename); // ?
-
-	return;
-}
-
-GtkTreeStore *create_store()
-{
-	//LOG_MSG("create_tree_store(): root_dir: %s\n", root_dir);
-	printf("create_tree_store(): root_dir: %s\n", root_dir);
-	GtkTreeStore *store = gtk_tree_store_new(
-		N_COLUMNS,
-		GDK_TYPE_PIXBUF,
-		G_TYPE_STRING,
-		G_TYPE_STRING,
-		G_TYPE_BOOLEAN,
-		G_TYPE_BOOLEAN,
-		G_TYPE_BOOLEAN
-	);
-	create_nodes_for_dir(store, NULL, root_dir, 2);
-	return store;
-}
-
-static GtkWidget *create_filebrowser_view(GtkTreeModel *model)
-{
-	printf("create_filebrowser_view()\n");
-	//getcwd(root_dir, sizeof(root_dir));
-
-	//GtkTreeStore *tree_store = create_tree_store();
-	GtkWidget *view = gtk_tree_view_new_with_model(model);
-
-
-	GtkTreeViewColumn *col = gtk_tree_view_column_new();
-
-	GtkCellRenderer *renderer = gtk_cell_renderer_pixbuf_new();
-	gtk_tree_view_column_pack_start(col, renderer, FALSE);
-	gtk_tree_view_column_set_attributes(col, renderer, "pixbuf", COLUMN_ICON, NULL);
-
-	renderer = gtk_cell_renderer_text_new();
-	gtk_tree_view_column_pack_start(col, renderer, TRUE);
-	gtk_tree_view_column_set_attributes(col, renderer, "text", COLUMN_BASENAME, "editable", COLUMN_IS_EDITABLE, NULL);
-	g_signal_connect(renderer, "edited", G_CALLBACK(on_basename_edited), model);
-	
-	gtk_tree_view_append_column(GTK_TREE_VIEW(view), col);
-
-	return view;
 }
 
 static void on_filebrowser_row_expanded(GtkTreeView *tree_view,
@@ -406,10 +281,12 @@ static void prepend_string(char *buffer, const char *str)
 	sprintf(buffer, "%s%s", str, temp);
 }
 
-static void on_filebrowser_row_doubleclicked(GtkTreeView *tree_view,
-													GtkTreePath *path,
-													GtkTreeViewColumn *column,
-													gpointer data)
+static void
+on_filebrowser_row_doubleclicked
+	(GtkTreeView *tree_view,
+	GtkTreePath *path,
+	GtkTreeViewColumn *column,
+	gpointer data)
 {
 	printf("on_filebrowser_row_doubleclicked()\n");
 
@@ -480,15 +357,15 @@ static void print_event(struct inotify_event *event)
 	printf("\n");
 }
 
-static void *watch_for_fs_changes(void *arg)
+static void *monitor_fs_changes(void *arg)
 {
-	printf("watch_for_fs_changes()\n");
+	printf("monitor_fs_changes()\n");
 
 	int in_desc = inotify_init();
 
 	int w_desc = inotify_add_watch(in_desc, "/home/eero/test", IN_ALL_EVENTS);
 	if (w_desc == -1) {
-		printf("watch_for_fs_changes(): inotify_add_watch() error!\n");
+		printf("monitor_fs_changes(): inotify_add_watch() error!\n");
 		return NULL;
 	}
 
@@ -535,7 +412,7 @@ static void on_dir_menu_newfolder_selected(GtkMenuItem *item, gpointer data)
 
 	assert(is_dir == TRUE);
 
-	snprintf(new_fullpath, 255, "%s/%s", parent_fullpath, "Untitled");
+	snprintf(new_fullpath, 255, "%s/%s", parent_fullpath, "Unnamed Folder");
 
 	if (mkdir(new_fullpath, S_IRUSR | S_IWUSR | S_IXUSR) == -1) {
 		printf("on_dir_menu_newfolder_selected(): encountered an error when creating a folder: \"%s\"!\n", new_fullpath);
@@ -551,13 +428,13 @@ static void on_dir_menu_newfolder_selected(GtkMenuItem *item, gpointer data)
 	//gtk_tree_store_prepend(GTK_TREE_STORE(model), &new_node, &parent_node);
 	gtk_tree_store_set(GTK_TREE_STORE(model), &new_node,
 		COLUMN_ICON, icon,
-		COLUMN_BASENAME, "Untitled",
+		COLUMN_BASENAME, "Unnamed Folder",
 		COLUMN_FULL_PATH, new_fullpath,
 		COLUMN_IS_DIR, TRUE,
 
 		//@ that could be tricky, we're fine here with TRUE I quess
-		// but it's only because we append this node, so it never appears before other
-		// directory-nodes. if we prepend it, we have a bug..
+		// but it's only because we APPEND this node, so it never appears before other
+		// directory-nodes. if we were to PREPEND it, we have a bug..
 		//@ also, the newly added node is not sorted along with other nodes in the directory..
 		// delete all nodes in directory and call create_nodes_for_dir(depth=2) after creating the
 		// folder?
@@ -592,7 +469,7 @@ static void on_dir_menu_newfile_selected(GtkMenuItem *item, gpointer data)
 
 	assert(is_dir == TRUE);
 
-	snprintf(new_fullpath, 255, "%s/%s", parent_fullpath, "Untitled");
+	snprintf(new_fullpath, 255, "%s/%s", parent_fullpath, "Unnamed File");
 
 	fd = open(new_fullpath, O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
 	if (fd == -1) {
@@ -608,7 +485,7 @@ static void on_dir_menu_newfile_selected(GtkMenuItem *item, gpointer data)
 	gtk_tree_store_append(GTK_TREE_STORE(model), &new_node, &parent_node);
 	gtk_tree_store_set(GTK_TREE_STORE(model), &new_node,
 		COLUMN_ICON, icon,
-		COLUMN_BASENAME, "Untitled",
+		COLUMN_BASENAME, "Unnamed File",
 		COLUMN_FULL_PATH, new_fullpath,
 		COLUMN_IS_DIR, FALSE,
 		COLUMN_IS_VISITED, FALSE,
@@ -619,6 +496,60 @@ static void on_dir_menu_newfile_selected(GtkMenuItem *item, gpointer data)
 
 	gtk_tree_path_free(path);
 	free(parent_fullpath);
+}
+
+static void on_basename_edited(
+	GtkCellRendererText *cell,
+	gchar *path_str,
+	gchar *new_basename,
+	gpointer data)
+{
+	printf("on_basename_edited()\n");
+
+	GtkTreeModel *model;
+	GtkTreeIter iter;
+	char *old_basename, *node_dirname, *old_pathname, new_pathname[256];
+
+	//model = (GtkTreeModel *) data;
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(filebrowser));
+
+	gboolean exists = gtk_tree_model_get_iter_from_string(model, &iter, path_str);
+	assert(exists == TRUE); // we assume that the row edited "just now" exists..
+	gtk_tree_model_get(model, &iter,
+		COLUMN_BASENAME, &old_basename,
+		COLUMN_FULL_PATH, &old_pathname,
+		-1);
+
+	char *copy_old_pathname = strdup(old_pathname); // seems that dirname() modifies the string given
+	node_dirname = dirname(old_pathname);
+
+	printf("on_basename_edited(): old dirname: \"%s\", old basename: \"%s\", new basename: \"%s\"\n",
+		node_dirname, old_basename, new_basename);
+
+	snprintf(new_pathname, 256, "%s/%s", node_dirname, new_basename);
+	printf("on_basename_edited(): old pathname: \"%s\", new pathname: \"%s\"\n",
+		copy_old_pathname,
+		new_pathname);
+
+	if ((rename(copy_old_pathname, new_pathname)) != 0) {
+		printf("on_basename_edited(): : failed to rename file/folder: \"%s\" to \"%s\"\n", copy_old_pathname, new_pathname);
+		//return;
+		goto wrap_up;
+	}
+
+	// set COLUMN_IS_EDITABLE to FALSE?
+	gtk_tree_store_set(GTK_TREE_STORE(model), &iter,
+		COLUMN_BASENAME, new_basename,
+		COLUMN_FULL_PATH, new_pathname,
+		COLUMN_IS_EDITABLE, FALSE,
+		-1);
+
+wrap_up:
+	free(copy_old_pathname);	
+	//free(old_basename); // ?
+	//free(new_basename); // ?
+
+	return;
 }
 
 static void on_menu_rename_selected(GtkMenuItem *item, gpointer data)
@@ -670,7 +601,7 @@ static void on_menu_delete_selected(GtkMenuItem *item, gpointer data)
 	gtk_tree_model_get_iter(model, &iter, path);
 	gtk_tree_model_get(model, &iter, COLUMN_FULL_PATH, &full_path, -1);
 
-	/* It works on Ubuntu 16.04 LTS bla-bla, no idea if it works on anywhere else.. */
+	/* It works on Ubuntu 16.04 LTS bla-bla, no idea if it works on anything else.. */
 	char command[256];
 	snprintf(command, 256, "mv \"%s\" /home/eero/.local/share/Trash/files", full_path);
 	ret = system(command);
@@ -762,6 +693,48 @@ static gboolean on_filebrowser_button_pressed(
 	return FALSE;
 }
 
+GtkTreeStore *create_store()
+{
+	//LOG_MSG("create_tree_store(): root_dir: %s\n", root_dir);
+	printf("create_tree_store(): root_dir: %s\n", root_dir);
+	GtkTreeStore *store = gtk_tree_store_new(
+		N_COLUMNS,
+		GDK_TYPE_PIXBUF,
+		G_TYPE_STRING,
+		G_TYPE_STRING,
+		G_TYPE_BOOLEAN,
+		G_TYPE_BOOLEAN,
+		G_TYPE_BOOLEAN
+	);
+	create_nodes_for_dir(store, NULL, root_dir, 2);
+	return store;
+}
+
+static GtkWidget *create_filebrowser_view(GtkTreeModel *model)
+{
+	printf("create_filebrowser_view()\n");
+	//getcwd(root_dir, sizeof(root_dir));
+
+	//GtkTreeStore *tree_store = create_tree_store();
+	GtkWidget *view = gtk_tree_view_new_with_model(model);
+
+
+	GtkTreeViewColumn *col = gtk_tree_view_column_new();
+
+	GtkCellRenderer *renderer = gtk_cell_renderer_pixbuf_new();
+	gtk_tree_view_column_pack_start(col, renderer, FALSE);
+	gtk_tree_view_column_set_attributes(col, renderer, "pixbuf", COLUMN_ICON, NULL);
+
+	renderer = gtk_cell_renderer_text_new();
+	gtk_tree_view_column_pack_start(col, renderer, TRUE);
+	gtk_tree_view_column_set_attributes(col, renderer, "text", COLUMN_BASENAME, "editable", COLUMN_IS_EDITABLE, NULL);
+	g_signal_connect(renderer, "edited", G_CALLBACK(on_basename_edited), model);
+	
+	gtk_tree_view_append_column(GTK_TREE_VIEW(view), col);
+
+	return view;
+}
+
 GtkWidget *create_filebrowser_widget(void)
 {
 	LOG_MSG("create_file_browser_widget()\n");
@@ -778,7 +751,7 @@ GtkWidget *create_filebrowser_widget(void)
 	g_signal_connect(filebrowser, "button-press-event", G_CALLBACK(on_filebrowser_button_pressed), NULL);
 
 	pthread_t id;
-	if ((pthread_create(&id, NULL, watch_for_fs_changes, NULL)) != 0) {
+	if ((pthread_create(&id, NULL, monitor_fs_changes, NULL)) != 0) {
 		printf("create_filebrowser_widget(): pthread_create() error!\n");
 	}
 
