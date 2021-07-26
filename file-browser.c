@@ -670,7 +670,19 @@ static void on_menu_delete_selected(GtkMenuItem *item, gpointer data)
 	gtk_tree_model_get_iter(model, &iter, path);
 	gtk_tree_model_get(model, &iter, COLUMN_FULL_PATH, &full_path, -1);
 
+	char command[256];
+	snprintf(command, 256, "mv \"%s\" /home/eero/.local/share/Trash/files", full_path);
+	ret = system(command);
+	printf("on_menu_delete_selected(): system() returned %d\n", ret);
+	if (ret != 0) {
+		printf("on_menu_delete_selected(): failed to trash file: \"%s\"!\n", full_path);
+	} else {
+		gtk_tree_store_remove(GTK_TREE_STORE(model), &iter);
+		printf("on_menu_delete_selected(): successfully trashed file: \"%s\"!\n", full_path);
+	}
+
 	/* remove() deletes files and empty directories */
+/*
 	ret = remove(full_path); // returns 0 on success, -1 on error
 	if (ret == -1) {
 		printf("on_menu_delete_selected(): failed to delete file: \"%s\"!\n", full_path);
@@ -678,6 +690,7 @@ static void on_menu_delete_selected(GtkMenuItem *item, gpointer data)
 		gtk_tree_store_remove(GTK_TREE_STORE(model), &iter);
 		printf("on_menu_delete_selected(): successfully deleted file: \"%s\"!\n", full_path);
 	}
+*/
 
 	gtk_tree_path_free(path);
 	free(full_path);
