@@ -52,6 +52,7 @@
 	/*font: Office Code Pro Regular 11;*/
 	/*font: Office Code Pro Medium 12;*/
 	/*font: Office Code Pro Bold 12;*/
+	/*font: Liberation Mono Regular 12;*/
 
 
 .app-window
@@ -69,6 +70,7 @@
 {
 	color: rgb(190, 190, 190);
 	font: Fira Mono Medium 12;
+	/*font: Liberation Mono Regular 12;*/
 } 
 
 .text-view

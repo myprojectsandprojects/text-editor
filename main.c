@@ -90,7 +90,7 @@ void set_root_dir(const char *path)
 	strcpy(root_dir, path);
 	
 	gtk_label_set_text(GTK_LABEL(root_dir_label), root_dir);
-	gtk_tree_view_set_model(GTK_TREE_VIEW(file_browser), GTK_TREE_MODEL(create_tree_store()));
+	gtk_tree_view_set_model(GTK_TREE_VIEW(file_browser), GTK_TREE_MODEL(create_store()));
 }
 
 /*void add_highlighting(GtkTextBuffer *text_buffer) {

@@ -5,9 +5,13 @@
 #include <sys/stat.h>
 #include <sys/inotify.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <libgen.h>
 #include <assert.h>
 
 #include "declarations.h"
+
+GtkWidget *filebrowser;
 
 extern char root_dir[100];
 
@@ -81,42 +85,7 @@ static void print_greeting(GtkMenuItem *item, gpointer greeting)
 	printf("print_greeting(): %s!\n", (const char *) greeting);
 }
 
-static gboolean on_filebrowser_button_pressed(GtkWidget *filebrowser,
-														GdkEvent *event,
-														gpointer data)
-{
-	//printf("on_filebrowser_button_pressed()\n");
 
-	GdkEventType event_type = gdk_event_get_event_type(event);
-	//printf("on_filebrowser_button_pressed(): type: %d\n", event_type);
-
-	//Strangely enough, even though we register this callback for "button-press-event", this assertion fails when a user double-clicks on a row:
-	//assert(event_type == GDK_BUTTON_PRESS);
-
-	if (event_type != GDK_BUTTON_PRESS) {
-		printf("on_filebrowser_button_pressed(): some unknown event, early out'ing..\n");
-		return TRUE; // no other handlers
-		//return FALSE; // propagate further 
-	}
-
-	GdkEventButton *button_event = (GdkEventButton *) event;
-	
-	/* left: 1, middle: 2, right: 3 */
-	printf("on_filebrowser_button_pressed(): GDK_BUTTON_PRESS (%d)\n", button_event->button);
-
-	if (button_event->button == 3) {
-		GtkWidget *menu = gtk_menu_new();
-
-		add_menu_item(GTK_MENU(menu), "Hello world", G_CALLBACK(print_greeting), (gpointer) "Hello world");
-		add_menu_item(GTK_MENU(menu), "Hello universe", G_CALLBACK(print_greeting), (gpointer) "Hello universe");
-		add_menu_item(GTK_MENU(menu), "Hello multiverse", G_CALLBACK(print_greeting), (gpointer) "Hello multiverse");
-		add_menu_item(GTK_MENU(menu), "Rename", G_CALLBACK(on_rename_selected), (gpointer) filebrowser);
-
-		gtk_widget_show_all(menu);
-		gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, button_event->button, button_event->time);
-	}
-	return FALSE;
-}
 /*
 static GtkTreeIter append_node_to_store(GtkTreeStore *store,
 												GtkTreeIter *parent,
@@ -247,7 +216,61 @@ static void create_nodes_for_dir(GtkTreeStore *store,
 	}
 }
 
-GtkTreeStore *create_tree_store()
+void on_basename_edited(
+	GtkCellRendererText *cell,
+	gchar *path_str,
+	gchar *new_basename,
+	gpointer data)
+{
+	printf("on_basename_edited()\n");
+
+	GtkTreeModel *model;
+	GtkTreeIter iter;
+	char *old_basename, *node_dirname, *old_pathname, new_pathname[256];
+
+	//model = (GtkTreeModel *) data;
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(filebrowser));
+
+	gboolean exists = gtk_tree_model_get_iter_from_string(model, &iter, path_str);
+	assert(exists == TRUE); // we assume that the row edited "just now" exists..
+	gtk_tree_model_get(model, &iter,
+		COLUMN_BASENAME, &old_basename,
+		COLUMN_FULL_PATH, &old_pathname,
+		-1);
+
+	char *copy_old_pathname = strdup(old_pathname); // seems that dirname() modifies the string given
+	node_dirname = dirname(old_pathname);
+
+	printf("on_basename_edited(): old dirname: \"%s\", old basename: \"%s\", new basename: \"%s\"\n",
+		node_dirname, old_basename, new_basename);
+
+	snprintf(new_pathname, 256, "%s/%s", node_dirname, new_basename);
+	printf("on_basename_edited(): old pathname: \"%s\", new pathname: \"%s\"\n",
+		copy_old_pathname,
+		new_pathname);
+
+	if ((rename(copy_old_pathname, new_pathname)) != 0) {
+		printf("on_basename_edited(): : failed to rename file/folder: \"%s\" to \"%s\"\n", copy_old_pathname, new_pathname);
+		//return;
+		goto wrap_up;
+	}
+
+	// set COLUMN_IS_EDITABLE to FALSE?
+	gtk_tree_store_set(GTK_TREE_STORE(model), &iter,
+		COLUMN_BASENAME, new_basename,
+		COLUMN_FULL_PATH, new_pathname,
+		COLUMN_IS_EDITABLE, FALSE,
+		-1);
+
+wrap_up:
+	free(copy_old_pathname);	
+	//free(old_basename); // ?
+	//free(new_basename); // ?
+
+	return;
+}
+
+GtkTreeStore *create_store()
 {
 	//LOG_MSG("create_tree_store(): root_dir: %s\n", root_dir);
 	printf("create_tree_store(): root_dir: %s\n", root_dir);
@@ -264,13 +287,13 @@ GtkTreeStore *create_tree_store()
 	return store;
 }
 
-static GtkWidget *create_filebrowser_view(void)
+static GtkWidget *create_filebrowser_view(GtkTreeModel *model)
 {
 	printf("create_filebrowser_view()\n");
 	//getcwd(root_dir, sizeof(root_dir));
 
-	GtkTreeStore *tree_store = create_tree_store();
-	GtkWidget *tree_view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(tree_store));
+	//GtkTreeStore *tree_store = create_tree_store();
+	GtkWidget *view = gtk_tree_view_new_with_model(model);
 
 
 	GtkTreeViewColumn *col = gtk_tree_view_column_new();
@@ -282,10 +305,11 @@ static GtkWidget *create_filebrowser_view(void)
 	renderer = gtk_cell_renderer_text_new();
 	gtk_tree_view_column_pack_start(col, renderer, TRUE);
 	gtk_tree_view_column_set_attributes(col, renderer, "text", COLUMN_BASENAME, "editable", COLUMN_IS_EDITABLE, NULL);
+	g_signal_connect(renderer, "edited", G_CALLBACK(on_basename_edited), model);
 	
-	gtk_tree_view_append_column(GTK_TREE_VIEW(tree_view), col);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(view), col);
 
-	return tree_view;
+	return view;
 }
 
 static void on_filebrowser_row_expanded(GtkTreeView *tree_view,
@@ -490,24 +514,262 @@ static void *watch_for_fs_changes(void *arg)
 	return NULL;
 }
 
+static void on_dir_menu_newfolder_selected(GtkMenuItem *item, gpointer data)
+{
+	printf("on_dir_menu_newfolder_selected()\n");
+
+	GtkTreeModel *model;
+	GtkTreePath *path;
+	GtkTreeIter parent_node, new_node;
+	char *parent_fullpath, new_fullpath[255]; //@ max filepath length?
+	gboolean is_dir = FALSE;
+
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(filebrowser));
+	path = (GtkTreePath *) data;
+
+	gtk_tree_model_get_iter(model, &parent_node, path);
+	gtk_tree_model_get(model, &parent_node,
+		COLUMN_FULL_PATH, &parent_fullpath,
+		COLUMN_IS_DIR, &is_dir,
+		-1);
+
+	assert(is_dir == TRUE);
+
+	snprintf(new_fullpath, 255, "%s/%s", parent_fullpath, "Untitled");
+
+	if (mkdir(new_fullpath, S_IRUSR | S_IWUSR | S_IXUSR) == -1) {
+		printf("on_dir_menu_newfolder_selected(): encountered an error when creating a folder: \"%s\"!\n", new_fullpath);
+		gtk_tree_path_free(path);
+		free(parent_fullpath);
+		return;
+	}
+	printf("on_dir_menu_newfolder_selected(): successfully created a folder: \"%s\"!\n", new_fullpath);
+
+	GdkPixbuf *icon = gdk_pixbuf_new_from_file(folder_icon_path, NULL);
+
+	gtk_tree_store_append(GTK_TREE_STORE(model), &new_node, &parent_node);
+	//gtk_tree_store_prepend(GTK_TREE_STORE(model), &new_node, &parent_node);
+	gtk_tree_store_set(GTK_TREE_STORE(model), &new_node,
+		COLUMN_ICON, icon,
+		COLUMN_BASENAME, "Untitled",
+		COLUMN_FULL_PATH, new_fullpath,
+		COLUMN_IS_DIR, TRUE,
+
+		//@ that could be tricky, we're fine here with TRUE I quess
+		// but it's only because we append this node, so it never appears before other
+		// directory-nodes. if we prepend it, we have a bug..
+		//@ also, the newly added node is not sorted along with other nodes in the directory..
+		// delete all nodes in directory and call create_nodes_for_dir(depth=2) after creating the
+		// folder?
+		COLUMN_IS_VISITED, TRUE,
+
+		COLUMN_IS_EDITABLE, FALSE,
+		-1);
+
+	gtk_tree_path_free(path);
+	free(parent_fullpath);
+}
+
+static void on_dir_menu_newfile_selected(GtkMenuItem *item, gpointer data)
+{
+	printf("on_dir_menu_newfile_selected()\n");
+
+	GtkTreeModel *model;
+	GtkTreePath *path;
+	GtkTreeIter parent_node, new_node;
+	char *parent_fullpath, new_fullpath[255]; //@ max filepath length?
+	gboolean is_dir = FALSE;
+	int fd;
+
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(filebrowser));
+	path = (GtkTreePath *) data;
+
+	gtk_tree_model_get_iter(model, &parent_node, path);
+	gtk_tree_model_get(model, &parent_node,
+		COLUMN_FULL_PATH, &parent_fullpath,
+		COLUMN_IS_DIR, &is_dir,
+		-1);
+
+	assert(is_dir == TRUE);
+
+	snprintf(new_fullpath, 255, "%s/%s", parent_fullpath, "Untitled");
+
+	fd = open(new_fullpath, O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+	if (fd == -1) {
+		printf("on_dir_menu_newfile_selected(): encountered an error when creating a file: \"%s\"!\n", new_fullpath);
+		gtk_tree_path_free(path);
+		free(parent_fullpath);
+		return;
+	}
+	printf("on_dir_menu_newfile_selected(): successfully created a file: \"%s\"\n", new_fullpath);
+
+	GdkPixbuf *icon = gdk_pixbuf_new_from_file(file_icon_path, NULL);
+
+	gtk_tree_store_append(GTK_TREE_STORE(model), &new_node, &parent_node);
+	gtk_tree_store_set(GTK_TREE_STORE(model), &new_node,
+		COLUMN_ICON, icon,
+		COLUMN_BASENAME, "Untitled",
+		COLUMN_FULL_PATH, new_fullpath,
+		COLUMN_IS_DIR, FALSE,
+		COLUMN_IS_VISITED, FALSE,
+		COLUMN_IS_EDITABLE, FALSE,
+		-1);
+
+	close(fd);
+
+	gtk_tree_path_free(path);
+	free(parent_fullpath);
+}
+
+static void on_menu_rename_selected(GtkMenuItem *item, gpointer data)
+{
+	printf("on_menu_rename_selected()\n");
+
+	GtkTreeModel *model;
+	GtkTreePath *path;
+	GtkTreeIter iter;
+	GtkTreeSelection *selection;
+
+	selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(filebrowser));
+	gboolean result = gtk_tree_selection_get_selected(selection, &model, &iter);
+	assert(result == TRUE); // there is a selection
+
+	path = (GtkTreePath *) data;
+	//path = gtk_tree_model_get_path(model, &iter);
+
+/*
+	GValue editability = G_VALUE_INIT;
+	g_value_init(&editability, G_TYPE_BOOLEAN);
+	g_value_set_boolean(&editability, TRUE);
+	gtk_tree_store_set_value(GTK_TREE_STORE(model), &iter, COLUMN_IS_EDITABLE, &editability);
+*/
+
+	gtk_tree_store_set(GTK_TREE_STORE(model), &iter, COLUMN_IS_EDITABLE, TRUE, -1);
+
+	GtkTreeViewColumn *col = gtk_tree_view_get_column(GTK_TREE_VIEW(filebrowser), 0);
+	gtk_tree_view_set_cursor(GTK_TREE_VIEW(filebrowser), path, col, TRUE);
+
+	char *basename;
+	gtk_tree_model_get(model, &iter, COLUMN_BASENAME, &basename, -1);
+	printf("on_menu_rename_selected(): selected node: \"%s\"\n", basename);
+}
+
+static void on_menu_delete_selected(GtkMenuItem *item, gpointer data)
+{
+	printf("on_menu_delete_selected()\n");
+
+	GtkTreeModel *model;
+	GtkTreePath *path;
+	GtkTreeIter iter;
+	char *full_path;
+	int ret;
+
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(filebrowser));
+	path = (GtkTreePath *) data;
+
+	gtk_tree_model_get_iter(model, &iter, path);
+	gtk_tree_model_get(model, &iter, COLUMN_FULL_PATH, &full_path, -1);
+
+	/* remove() deletes files and empty directories */
+	ret = remove(full_path); // returns 0 on success, -1 on error
+	if (ret == -1) {
+		printf("on_menu_delete_selected(): failed to delete file: \"%s\"!\n", full_path);
+	} else {
+		gtk_tree_store_remove(GTK_TREE_STORE(model), &iter);
+		printf("on_menu_delete_selected(): successfully deleted file: \"%s\"!\n", full_path);
+	}
+
+	gtk_tree_path_free(path);
+	free(full_path);
+}
+
+static gboolean on_filebrowser_button_pressed(
+	GtkWidget *filebrowser,
+	GdkEvent *event,
+	gpointer data)
+{
+	//printf("on_filebrowser_button_pressed()\n");
+
+	GdkEventType event_type = gdk_event_get_event_type(event);
+	//printf("on_filebrowser_button_pressed(): type: %d\n", event_type);
+
+	//Strangely enough, even though we register this callback for "button-press-event", this assertion fails when a user double-clicks on a row:
+	//assert(event_type == GDK_BUTTON_PRESS);
+
+	if (event_type != GDK_BUTTON_PRESS) {
+		printf("on_filebrowser_button_pressed(): unknown event.. exiting..\n");
+		//return TRUE; // no other handlers
+		return FALSE; // propagate further 
+	}
+
+	GdkEventButton *button_event = (GdkEventButton *) event;
+	
+	/* left: 1, middle: 2, right: 3 */
+	printf("on_filebrowser_button_pressed(): GDK_BUTTON_PRESS (%d)\n", button_event->button);
+
+	if (button_event->button == 3) {
+
+		// these seem to be relative to the widget the callback was registered for:
+		LOG_MSG("on_filebrowser_button_pressed(): x: %f, y: %f\n", button_event->x, button_event->y);
+
+		GtkTreePath *path;
+		gboolean path_exists = gtk_tree_view_get_path_at_pos(
+			GTK_TREE_VIEW(filebrowser),
+			(int) button_event->x, // float to int?
+			(int) button_event->y,
+			&path,
+			NULL, NULL, NULL);
+
+		if (path_exists == FALSE) {
+			printf("on_filebrowser_button_pressed(): no row at that location..\n");
+			return FALSE;
+		}
+
+		GtkTreeIter iter;
+		GtkTreeModel *model = gtk_tree_view_get_model(GTK_TREE_VIEW(filebrowser));
+		gtk_tree_model_get_iter(model, &iter, path);
+
+		gboolean is_dir;
+		gtk_tree_model_get(model, &iter, COLUMN_IS_DIR, &is_dir, -1);
+	
+		GtkWidget *menu = gtk_menu_new();
+
+		if (is_dir == TRUE) {
+			add_menu_item(GTK_MENU(menu), "New Folder", G_CALLBACK(on_dir_menu_newfolder_selected), (gpointer) path);
+			add_menu_item(GTK_MENU(menu), "New File", G_CALLBACK(on_dir_menu_newfile_selected), (gpointer) path);
+			add_menu_item(GTK_MENU(menu), "Rename", G_CALLBACK(on_menu_rename_selected), (gpointer) path);
+			add_menu_item(GTK_MENU(menu), "Delete", G_CALLBACK(on_menu_delete_selected), (gpointer) path);
+		} else {
+			add_menu_item(GTK_MENU(menu), "Rename", G_CALLBACK(on_menu_rename_selected), (gpointer) path);
+			add_menu_item(GTK_MENU(menu), "Delete", G_CALLBACK(on_menu_delete_selected), (gpointer) path);
+		}
+
+		gtk_widget_show_all(menu);
+		gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, button_event->button, button_event->time);
+	}
+
+	return FALSE;
+}
+
 GtkWidget *create_filebrowser_widget(void)
 {
-	//LOG_MSG("create_file_browser_widget()\n");
-	printf("create_filebrowser_widget()\n");
+	LOG_MSG("create_file_browser_widget()\n");
+	//printf("create_filebrowser_widget()\n");
 
-	GtkWidget *filebrowser_widget = create_filebrowser_view();
-	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(filebrowser_widget), FALSE);
+	GtkTreeStore *store = create_store();
+	filebrowser = create_filebrowser_view(GTK_TREE_MODEL(store));
+	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(filebrowser), FALSE);
 	//gtk_tree_view_set_level_indentation(GTK_TREE_VIEW(filebrowser_widget), 9);
-	add_class(filebrowser_widget, "filebrowser");
+	add_class(filebrowser, "filebrowser");
 
-	g_signal_connect(filebrowser_widget, "row-activated", G_CALLBACK(on_filebrowser_row_doubleclicked), NULL);
-	g_signal_connect(filebrowser_widget, "row-expanded", G_CALLBACK(on_filebrowser_row_expanded), NULL);
-	g_signal_connect(filebrowser_widget, "button-press-event", G_CALLBACK(on_filebrowser_button_pressed), NULL);
+	g_signal_connect(filebrowser, "row-activated", G_CALLBACK(on_filebrowser_row_doubleclicked), NULL);
+	g_signal_connect(filebrowser, "row-expanded", G_CALLBACK(on_filebrowser_row_expanded), NULL);
+	g_signal_connect(filebrowser, "button-press-event", G_CALLBACK(on_filebrowser_button_pressed), NULL);
 
 	pthread_t id;
 	if ((pthread_create(&id, NULL, watch_for_fs_changes, NULL)) != 0) {
 		printf("create_filebrowser_widget(): pthread_create() error!\n");
 	}
 
-	return filebrowser_widget;
+	return filebrowser;
 }

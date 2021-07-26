@@ -5,7 +5,7 @@
 
 /* file-browser.c: */
 GtkWidget *create_filebrowser_widget(void);
-GtkTreeStore *create_tree_store(void);
+GtkTreeStore *create_store(void);
 
 /* search-in-files.c: */
 GtkWidget *create_search_in_files_widget(void);
