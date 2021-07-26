@@ -670,6 +670,7 @@ static void on_menu_delete_selected(GtkMenuItem *item, gpointer data)
 	gtk_tree_model_get_iter(model, &iter, path);
 	gtk_tree_model_get(model, &iter, COLUMN_FULL_PATH, &full_path, -1);
 
+	/* It works on Ubuntu 16.04 LTS bla-bla, no idea if it works on anywhere else.. */
 	char command[256];
 	snprintf(command, 256, "mv \"%s\" /home/eero/.local/share/Trash/files", full_path);
 	ret = system(command);
@@ -750,12 +751,9 @@ static gboolean on_filebrowser_button_pressed(
 		if (is_dir == TRUE) {
 			add_menu_item(GTK_MENU(menu), "New Folder", G_CALLBACK(on_dir_menu_newfolder_selected), (gpointer) path);
 			add_menu_item(GTK_MENU(menu), "New File", G_CALLBACK(on_dir_menu_newfile_selected), (gpointer) path);
-			add_menu_item(GTK_MENU(menu), "Rename", G_CALLBACK(on_menu_rename_selected), (gpointer) path);
-			add_menu_item(GTK_MENU(menu), "Delete", G_CALLBACK(on_menu_delete_selected), (gpointer) path);
-		} else {
-			add_menu_item(GTK_MENU(menu), "Rename", G_CALLBACK(on_menu_rename_selected), (gpointer) path);
-			add_menu_item(GTK_MENU(menu), "Delete", G_CALLBACK(on_menu_delete_selected), (gpointer) path);
 		}
+		add_menu_item(GTK_MENU(menu), "Rename", G_CALLBACK(on_menu_rename_selected), (gpointer) path);
+		add_menu_item(GTK_MENU(menu), "Move To Trash", G_CALLBACK(on_menu_delete_selected), (gpointer) path);
 
 		gtk_widget_show_all(menu);
 		gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, button_event->button, button_event->time);
