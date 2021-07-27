@@ -440,10 +440,17 @@ static void on_dir_menu_newfolder_selected(GtkMenuItem *item, gpointer data)
 		// folder?
 		COLUMN_IS_VISITED, TRUE,
 
-		COLUMN_IS_EDITABLE, FALSE,
+		COLUMN_IS_EDITABLE, TRUE,
 		-1);
 
+	gtk_tree_view_expand_to_path(GTK_TREE_VIEW(filebrowser), path);
+
+	GtkTreeViewColumn *col = gtk_tree_view_get_column(GTK_TREE_VIEW(filebrowser), 0);
+	GtkTreePath *new_node_path = gtk_tree_model_get_path(model, &new_node);
+	gtk_tree_view_set_cursor(GTK_TREE_VIEW(filebrowser), new_node_path, col, TRUE);
+
 	gtk_tree_path_free(path);
+	gtk_tree_path_free(new_node_path);
 	free(parent_fullpath);
 }
 
@@ -454,7 +461,7 @@ static void on_dir_menu_newfile_selected(GtkMenuItem *item, gpointer data)
 	GtkTreeModel *model;
 	GtkTreePath *path;
 	GtkTreeIter parent_node, new_node;
-	char *parent_fullpath, new_fullpath[255]; //@ max filepath length?
+	char *parent_fullpath, new_fullpath[256]; //@ max filepath length?
 	gboolean is_dir = FALSE;
 	int fd;
 
@@ -469,7 +476,7 @@ static void on_dir_menu_newfile_selected(GtkMenuItem *item, gpointer data)
 
 	assert(is_dir == TRUE);
 
-	snprintf(new_fullpath, 255, "%s/%s", parent_fullpath, "Unnamed File");
+	snprintf(new_fullpath, 256, "%s/%s", parent_fullpath, "Unnamed File");
 
 	fd = open(new_fullpath, O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
 	if (fd == -1) {
@@ -480,6 +487,8 @@ static void on_dir_menu_newfile_selected(GtkMenuItem *item, gpointer data)
 	}
 	printf("on_dir_menu_newfile_selected(): successfully created a file: \"%s\"\n", new_fullpath);
 
+	close(fd);
+
 	GdkPixbuf *icon = gdk_pixbuf_new_from_file(file_icon_path, NULL);
 
 	gtk_tree_store_append(GTK_TREE_STORE(model), &new_node, &parent_node);
@@ -489,12 +498,19 @@ static void on_dir_menu_newfile_selected(GtkMenuItem *item, gpointer data)
 		COLUMN_FULL_PATH, new_fullpath,
 		COLUMN_IS_DIR, FALSE,
 		COLUMN_IS_VISITED, FALSE,
-		COLUMN_IS_EDITABLE, FALSE,
+		COLUMN_IS_EDITABLE, TRUE,
 		-1);
 
-	close(fd);
+	//gtk_tree_store_set(GTK_TREE_STORE(model), &new_node, COLUMN_IS_EDITABLE, TRUE, -1);
+
+	gtk_tree_view_expand_to_path(GTK_TREE_VIEW(filebrowser), path);
+
+	GtkTreeViewColumn *col = gtk_tree_view_get_column(GTK_TREE_VIEW(filebrowser), 0);
+	GtkTreePath *new_node_path = gtk_tree_model_get_path(model, &new_node);
+	gtk_tree_view_set_cursor(GTK_TREE_VIEW(filebrowser), new_node_path, col, TRUE);
 
 	gtk_tree_path_free(path);
+	gtk_tree_path_free(new_node_path);
 	free(parent_fullpath);
 }
 
@@ -580,9 +596,11 @@ static void on_menu_rename_selected(GtkMenuItem *item, gpointer data)
 	GtkTreeViewColumn *col = gtk_tree_view_get_column(GTK_TREE_VIEW(filebrowser), 0);
 	gtk_tree_view_set_cursor(GTK_TREE_VIEW(filebrowser), path, col, TRUE);
 
+/*
 	char *basename;
 	gtk_tree_model_get(model, &iter, COLUMN_BASENAME, &basename, -1);
 	printf("on_menu_rename_selected(): selected node: \"%s\"\n", basename);
+*/
 }
 
 static void on_menu_delete_selected(GtkMenuItem *item, gpointer data)
