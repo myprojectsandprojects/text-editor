@@ -1,3 +1,10 @@
+
+/*
+shift + enter replaces selected text with the text in replace-entry,
+so replace entry is a separate feature from search entirely.
+which is why it doesnt make sense to make replace-entry dependent on search-entry..
+*/
+
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <stdlib.h>

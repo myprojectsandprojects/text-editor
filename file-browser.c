@@ -1,3 +1,9 @@
+
+/*
+@ How would a user create a file/folder in "/"?
+@ If a user renames a folder, paths of all files and folders contained by that folder will change.. and we dont do that..
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -391,129 +397,6 @@ static void *monitor_fs_changes(void *arg)
 	return NULL;
 }
 
-static void on_dir_menu_newfolder_selected(GtkMenuItem *item, gpointer data)
-{
-	printf("on_dir_menu_newfolder_selected()\n");
-
-	GtkTreeModel *model;
-	GtkTreePath *path;
-	GtkTreeIter parent_node, new_node;
-	char *parent_fullpath, new_fullpath[255]; //@ max filepath length?
-	gboolean is_dir = FALSE;
-
-	model = gtk_tree_view_get_model(GTK_TREE_VIEW(filebrowser));
-	path = (GtkTreePath *) data;
-
-	gtk_tree_model_get_iter(model, &parent_node, path);
-	gtk_tree_model_get(model, &parent_node,
-		COLUMN_FULL_PATH, &parent_fullpath,
-		COLUMN_IS_DIR, &is_dir,
-		-1);
-
-	assert(is_dir == TRUE);
-
-	snprintf(new_fullpath, 255, "%s/%s", parent_fullpath, "Unnamed Folder");
-
-	if (mkdir(new_fullpath, S_IRUSR | S_IWUSR | S_IXUSR) == -1) {
-		printf("on_dir_menu_newfolder_selected(): encountered an error when creating a folder: \"%s\"!\n", new_fullpath);
-		gtk_tree_path_free(path);
-		free(parent_fullpath);
-		return;
-	}
-	printf("on_dir_menu_newfolder_selected(): successfully created a folder: \"%s\"!\n", new_fullpath);
-
-	GdkPixbuf *icon = gdk_pixbuf_new_from_file(folder_icon_path, NULL);
-
-	gtk_tree_store_append(GTK_TREE_STORE(model), &new_node, &parent_node);
-	//gtk_tree_store_prepend(GTK_TREE_STORE(model), &new_node, &parent_node);
-	gtk_tree_store_set(GTK_TREE_STORE(model), &new_node,
-		COLUMN_ICON, icon,
-		COLUMN_BASENAME, "Unnamed Folder",
-		COLUMN_FULL_PATH, new_fullpath,
-		COLUMN_IS_DIR, TRUE,
-
-		//@ that could be tricky, we're fine here with TRUE I quess
-		// but it's only because we APPEND this node, so it never appears before other
-		// directory-nodes. if we were to PREPEND it, we have a bug..
-		//@ also, the newly added node is not sorted along with other nodes in the directory..
-		// delete all nodes in directory and call create_nodes_for_dir(depth=2) after creating the
-		// folder?
-		COLUMN_IS_VISITED, TRUE,
-
-		COLUMN_IS_EDITABLE, TRUE,
-		-1);
-
-	gtk_tree_view_expand_to_path(GTK_TREE_VIEW(filebrowser), path);
-
-	GtkTreeViewColumn *col = gtk_tree_view_get_column(GTK_TREE_VIEW(filebrowser), 0);
-	GtkTreePath *new_node_path = gtk_tree_model_get_path(model, &new_node);
-	gtk_tree_view_set_cursor(GTK_TREE_VIEW(filebrowser), new_node_path, col, TRUE);
-
-	gtk_tree_path_free(path);
-	gtk_tree_path_free(new_node_path);
-	free(parent_fullpath);
-}
-
-static void on_dir_menu_newfile_selected(GtkMenuItem *item, gpointer data)
-{
-	printf("on_dir_menu_newfile_selected()\n");
-
-	GtkTreeModel *model;
-	GtkTreePath *path;
-	GtkTreeIter parent_node, new_node;
-	char *parent_fullpath, new_fullpath[256]; //@ max filepath length?
-	gboolean is_dir = FALSE;
-	int fd;
-
-	model = gtk_tree_view_get_model(GTK_TREE_VIEW(filebrowser));
-	path = (GtkTreePath *) data;
-
-	gtk_tree_model_get_iter(model, &parent_node, path);
-	gtk_tree_model_get(model, &parent_node,
-		COLUMN_FULL_PATH, &parent_fullpath,
-		COLUMN_IS_DIR, &is_dir,
-		-1);
-
-	assert(is_dir == TRUE);
-
-	snprintf(new_fullpath, 256, "%s/%s", parent_fullpath, "Unnamed File");
-
-	fd = open(new_fullpath, O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
-	if (fd == -1) {
-		printf("on_dir_menu_newfile_selected(): encountered an error when creating a file: \"%s\"!\n", new_fullpath);
-		gtk_tree_path_free(path);
-		free(parent_fullpath);
-		return;
-	}
-	printf("on_dir_menu_newfile_selected(): successfully created a file: \"%s\"\n", new_fullpath);
-
-	close(fd);
-
-	GdkPixbuf *icon = gdk_pixbuf_new_from_file(file_icon_path, NULL);
-
-	gtk_tree_store_append(GTK_TREE_STORE(model), &new_node, &parent_node);
-	gtk_tree_store_set(GTK_TREE_STORE(model), &new_node,
-		COLUMN_ICON, icon,
-		COLUMN_BASENAME, "Unnamed File",
-		COLUMN_FULL_PATH, new_fullpath,
-		COLUMN_IS_DIR, FALSE,
-		COLUMN_IS_VISITED, FALSE,
-		COLUMN_IS_EDITABLE, TRUE,
-		-1);
-
-	//gtk_tree_store_set(GTK_TREE_STORE(model), &new_node, COLUMN_IS_EDITABLE, TRUE, -1);
-
-	gtk_tree_view_expand_to_path(GTK_TREE_VIEW(filebrowser), path);
-
-	GtkTreeViewColumn *col = gtk_tree_view_get_column(GTK_TREE_VIEW(filebrowser), 0);
-	GtkTreePath *new_node_path = gtk_tree_model_get_path(model, &new_node);
-	gtk_tree_view_set_cursor(GTK_TREE_VIEW(filebrowser), new_node_path, col, TRUE);
-
-	gtk_tree_path_free(path);
-	gtk_tree_path_free(new_node_path);
-	free(parent_fullpath);
-}
-
 static void on_basename_edited(
 	GtkCellRendererText *cell,
 	gchar *path_str,
@@ -566,6 +449,137 @@ wrap_up:
 	//free(new_basename); // ?
 
 	return;
+}
+
+/*
+	Once user is done editing, "edited"-signal fires for the column edited..
+	So we can register a callback for that.
+*/
+static void set_node_editable(GtkTreeStore* store, GtkTreePath *parent, GtkTreePath *node)
+{
+	gtk_tree_view_expand_to_path(GTK_TREE_VIEW(filebrowser), parent);
+
+	GtkTreeIter node_iter;
+	gtk_tree_model_get_iter(GTK_TREE_MODEL(store), &node_iter, node);
+	gtk_tree_store_set(store, &node_iter, COLUMN_IS_EDITABLE, TRUE, -1);
+
+	GtkTreeViewColumn *col = gtk_tree_view_get_column(GTK_TREE_VIEW(filebrowser), 0);
+	gtk_tree_view_set_cursor(GTK_TREE_VIEW(filebrowser), node, col, TRUE);
+}
+
+static void on_dir_menu_newfolder_selected(GtkMenuItem *item, gpointer data)
+{
+	printf("on_dir_menu_newfolder_selected()\n");
+
+	GtkTreeModel *model;
+	GtkTreePath *path;
+	GtkTreeIter parent_node, new_node;
+	char *parent_fullpath, new_fullpath[255]; //@ max filepath length?
+	gboolean is_dir = FALSE;
+
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(filebrowser));
+	path = (GtkTreePath *) data;
+
+	gtk_tree_model_get_iter(model, &parent_node, path);
+	gtk_tree_model_get(model, &parent_node,
+		COLUMN_FULL_PATH, &parent_fullpath,
+		COLUMN_IS_DIR, &is_dir,
+		-1);
+
+	assert(is_dir == TRUE);
+
+	snprintf(new_fullpath, 255, "%s/%s", parent_fullpath, "Unnamed Folder");
+
+	if (mkdir(new_fullpath, S_IRUSR | S_IWUSR | S_IXUSR) == -1) {
+		printf("on_dir_menu_newfolder_selected(): encountered an error when creating a folder: \"%s\"!\n", new_fullpath);
+		gtk_tree_path_free(path);
+		free(parent_fullpath);
+		return;
+	}
+	printf("on_dir_menu_newfolder_selected(): successfully created a folder: \"%s\"!\n", new_fullpath);
+
+	GdkPixbuf *icon = gdk_pixbuf_new_from_file(folder_icon_path, NULL);
+
+	gtk_tree_store_append(GTK_TREE_STORE(model), &new_node, &parent_node);
+	//gtk_tree_store_prepend(GTK_TREE_STORE(model), &new_node, &parent_node);
+	gtk_tree_store_set(GTK_TREE_STORE(model), &new_node,
+		COLUMN_ICON, icon,
+		COLUMN_BASENAME, "Unnamed Folder",
+		COLUMN_FULL_PATH, new_fullpath,
+		COLUMN_IS_DIR, TRUE,
+
+		//@ that could be tricky, we're fine here with TRUE I quess
+		// but it's only because we APPEND this node, so it never appears before other
+		// directory-nodes. if we were to PREPEND it, we have a bug..
+		//@ also, the newly added node is not sorted along with other nodes in the directory..
+		// delete all nodes in directory and call create_nodes_for_dir(depth=2) after creating the
+		// folder?
+		COLUMN_IS_VISITED, TRUE,
+
+		COLUMN_IS_EDITABLE, FALSE,
+		-1);
+
+	GtkTreePath *new_node_path = gtk_tree_model_get_path(model, &new_node);
+	set_node_editable(GTK_TREE_STORE(model), path, new_node_path);
+
+	gtk_tree_path_free(path);
+	gtk_tree_path_free(new_node_path);
+	free(parent_fullpath);
+}
+
+static void on_dir_menu_newfile_selected(GtkMenuItem *item, gpointer data)
+{
+	printf("on_dir_menu_newfile_selected()\n");
+
+	GtkTreeModel *model;
+	GtkTreePath *path;
+	GtkTreeIter parent_node, new_node;
+	char *parent_fullpath, new_fullpath[256]; //@ max filepath length?
+	gboolean is_dir = FALSE;
+	int fd;
+
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(filebrowser));
+	path = (GtkTreePath *) data;
+
+	gtk_tree_model_get_iter(model, &parent_node, path);
+	gtk_tree_model_get(model, &parent_node,
+		COLUMN_FULL_PATH, &parent_fullpath,
+		COLUMN_IS_DIR, &is_dir,
+		-1);
+
+	assert(is_dir == TRUE);
+
+	snprintf(new_fullpath, 256, "%s/%s", parent_fullpath, "Unnamed File");
+
+	fd = open(new_fullpath, O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+	if (fd == -1) {
+		printf("on_dir_menu_newfile_selected(): encountered an error when creating a file: \"%s\"!\n", new_fullpath);
+		gtk_tree_path_free(path);
+		free(parent_fullpath);
+		return;
+	}
+	printf("on_dir_menu_newfile_selected(): successfully created a file: \"%s\"\n", new_fullpath);
+
+	close(fd);
+
+	GdkPixbuf *icon = gdk_pixbuf_new_from_file(file_icon_path, NULL);
+
+	gtk_tree_store_append(GTK_TREE_STORE(model), &new_node, &parent_node);
+	gtk_tree_store_set(GTK_TREE_STORE(model), &new_node,
+		COLUMN_ICON, icon,
+		COLUMN_BASENAME, "Unnamed File",
+		COLUMN_FULL_PATH, new_fullpath,
+		COLUMN_IS_DIR, FALSE,
+		COLUMN_IS_VISITED, FALSE,
+		COLUMN_IS_EDITABLE, FALSE,
+		-1);
+	
+	GtkTreePath *new_node_path = gtk_tree_model_get_path(model, &new_node);
+	set_node_editable(GTK_TREE_STORE(model), path, new_node_path);
+
+	gtk_tree_path_free(path);
+	gtk_tree_path_free(new_node_path);
+	free(parent_fullpath);
 }
 
 static void on_menu_rename_selected(GtkMenuItem *item, gpointer data)
