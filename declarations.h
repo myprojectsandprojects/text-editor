@@ -35,6 +35,12 @@ void add_class(GtkWidget *widget, const char *class_name);
 /* search.c: */
 void init_search(GtkWidget *tab);
 
+/* search-replace.c */
+gboolean toggle_search_entry(GdkEventKey *key_event);
+gboolean toggle_replace_entry(GdkEventKey *key_event);
+GtkWidget *create_search_and_replace_widget(GtkWidget *tab);
+gboolean search_or_search_and_replace(void);
+
 /* undo.c: */
 void init_undo(GtkWidget *tab);
 void actually_undo_last_action(GtkWidget *tab);
