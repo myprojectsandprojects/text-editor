@@ -74,6 +74,14 @@ const char *unsaved_changes_icon_path = "/home/eero/all/text-editor/icons/exclam
 const char *file_icon_path = "/home/eero/all/text-editor/icons/colors/file.png";
 const char *folder_icon_path = "/home/eero/all/text-editor/icons/colors/folder.png";
 
+/*
+We are only using this, because key_combinations array doesnt store multiple handlers.
+on_enter_key_pressed() calls handlers in this array.
+We could just blindly execute them all, in order, or a handler might wish to prevent other handlers from executing..
+I dont really know how we might want to do this, but for now, if handler returns TRUE, we'll take it to mean that the handler dealt with the key-combination and doesnt want other handlers to be called..
+*/
+gboolean (*key_combination_handlers[10])(void);
+
 
 void add_class(GtkWidget *widget, const char *class_name)
 {
@@ -365,13 +373,9 @@ void on_button_clicked(GtkButton *button, gpointer data)
 	gtk_text_buffer_delete_mark(text_buffer, selection_end);
 }
 
+/*
 void display_search_and_replace_dialog()
 {
-	/*GtkTextBuffer *text_buffer;
-	if ((text_buffer = get_visible_text_buffer(GTK_NOTEBOOK(notebook))) == NULL) {
-		return; // No tabs, nothing to do..
-	}*/
-
 	GtkTextBuffer *text_buffer;
 	text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
 	if (text_buffer == NULL) {
@@ -398,7 +402,8 @@ void display_search_and_replace_dialog()
 	g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(on_button_clicked), pointers);
 	gtk_widget_show_all(GTK_WIDGET(window));
 }
-
+*/
+/*
 gboolean search_and_replace(GdkEventKey *key_event)
 {
 	display_search_and_replace_dialog();
@@ -408,7 +413,8 @@ void on_menu_item_activate(GtkMenuItem *item, gpointer data)
 {
 	display_search_and_replace_dialog();
 }
-
+*/
+/*
 void on_text_view_populate_popup(GtkTextView *text_view, GtkWidget *popup, gpointer data)
 {
 	printf("populate popup!\n");
@@ -424,20 +430,8 @@ void on_text_view_populate_popup(GtkTextView *text_view, GtkWidget *popup, gpoin
 	//gtk_widget_show(sep);
 	gtk_widget_show(item);
 }
-/*
-gdouble page_size;
-void adjustment_changed(GtkAdjustment *adjustment, gpointer data) {
-	page_size = gtk_adjustment_get_page_size(adjustment);
-	gtk_widget_set_size_request(bottom_margin, -1, page_size); //@ that is not working...
-
-	g_print("adjustment: page-size: %f\n", page_size);
-}
-
-void on_scrolled_window_height_changed(GObject *scrolled_window)
-{
-	printf("scrolled window height changed!\n");
-}
 */
+
 void on_scrolled_window_size_allocate(GtkWidget *scrolled_window, GdkRectangle *allocation, gpointer bottom_margin)
 {
 	printf("scrolled window size allocate!\n");
@@ -490,6 +484,22 @@ GtkWidget *create_tab(const char *file_name)
 	tab = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	//gtk_widget_set_hexpand(tab, TRUE);
 
+	struct TabInfo *tab_info;
+	tab_info = malloc(sizeof(struct TabInfo)); //@ free?
+	if(file_name == NULL) {
+		tab_info->file_name = NULL;
+
+		tab_title = malloc(100); //@ free?
+		snprintf(tab_title, 100, "%s %d", "Untitled", count);
+		tab_info->title = tab_title;
+	} else {
+		tab_info->file_name = file_name;
+		tab_info->title = get_base_name(file_name);
+	}
+	tab_info->id = count;
+	count += 1;
+	g_object_set_data(G_OBJECT(tab), "tab-info", tab_info);
+
 	scrolled_window = gtk_scrolled_window_new(NULL, NULL);
 	//gtk_style_context_add_class (gtk_widget_get_style_context(scrolled_window), "scrolled-window");
 	gtk_widget_set_vexpand(scrolled_window, TRUE);
@@ -506,17 +516,14 @@ GtkWidget *create_tab(const char *file_name)
 	add_class(GTK_WIDGET(text_view), "text-view");
 	g_signal_connect(G_OBJECT(text_view), "size-allocate", G_CALLBACK(on_text_view_size_allocate), NULL);
 
-	GtkWidget *search_revealer = gtk_revealer_new();
-	//gtk_revealer_set_reveal_child(GTK_REVEALER(search_revealer), TRUE);
-	GtkWidget *search_entry = gtk_search_entry_new();
-	gtk_widget_set_name(search_entry, "search-entry");
-	add_class(search_entry, "text-entry");
+	GtkWidget *search_and_replace = create_search_and_replace_widget(tab);
 
 	GtkWidget *command_revealer = gtk_revealer_new();
 	//gtk_revealer_set_transition_type(GTK_REVEALER(sidebar_revealer), GTK_REVEALER_TRANSITION_TYPE_SLIDE_DOWN);
 	GtkWidget *command_entry = gtk_entry_new();
 	gtk_widget_set_name(command_entry, "command-entry");
-	add_class(command_entry, "text-entry");
+	add_class(command_entry, "text-entry-orange");
+	gtk_container_add(GTK_CONTAINER(command_revealer), command_entry);
 
 
 	GtkWidget *line_nr_label = gtk_label_new("Line");
@@ -540,71 +547,36 @@ GtkWidget *create_tab(const char *file_name)
 	gtk_grid_attach(GTK_GRID(status_bar), space, 2, 0, 1, 1);
 	gtk_grid_attach(GTK_GRID(status_bar), hl_menu_button, 3, 0, 1, 1);
 
-
 	add_class(status_bar, "status-bar");
-	add_class(line_nr_value, "line-number-value-label");
+	//add_class(line_nr_value, "line-number-value-label");
 	add_class(hl_menu_button, "xbutton");
 
-
-	/*GtkWidget *text_view_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-	GtkWidget *bottom_margin = gtk_frame_new(NULL);
-	gtk_frame_set_shadow_type(GTK_FRAME(bottom_margin), GTK_SHADOW_NONE);
-	//gtk_widget_set_vexpand(bottom_margin, TRUE);
-	gtk_style_context_add_class (gtk_widget_get_style_context(bottom_margin), "bottom-margin");*/
-
-	gtk_container_add(GTK_CONTAINER(tab), search_revealer);
-	gtk_container_add(GTK_CONTAINER(search_revealer), search_entry);
-	//gtk_container_add(GTK_CONTAINER(text_view_container), GTK_WIDGET(text_view));
-	//gtk_container_add(GTK_CONTAINER(text_view_container), bottom_margin);
-	//gtk_container_add(GTK_CONTAINER(scrolled_window), text_view_container);
-	gtk_container_add(GTK_CONTAINER(scrolled_window), GTK_WIDGET(text_view));
-	gtk_container_add(GTK_CONTAINER(tab), scrolled_window);
-	gtk_container_add(GTK_CONTAINER(tab), command_revealer);
-	gtk_container_add(GTK_CONTAINER(command_revealer), command_entry);
-	//gtk_container_add(GTK_CONTAINER(tab), statusbar);
-	gtk_container_add(GTK_CONTAINER(tab), status_bar);
-
-	gtk_widget_show_all(GTK_WIDGET(tab));
-
-
-	struct TabInfo *tab_info;
-	tab_info = malloc(sizeof(struct TabInfo)); //@ free?
-	if(file_name == NULL) {
-		tab_info->file_name = NULL;
-
-		tab_title = malloc(100); //@ free? buffer bounds
-		sprintf(tab_title, "%s %d", "Untitled", count);
-		tab_info->title = tab_title;
-	} else {
-		tab_info->file_name = file_name;
-		tab_info->title = get_base_name(file_name);
-	}
-	tab_info->id = count;
-	count += 1;
-	g_object_set_data(G_OBJECT(tab), "tab-info", tab_info);
-
 	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
-
-	tab_add_widget_4_retrieval(tab, COMMAND_REVEALER, command_revealer);
-	tab_add_widget_4_retrieval(tab, COMMAND_ENTRY, command_entry);
-	tab_add_widget_4_retrieval(tab, SEARCH_REVEALER, search_revealer);
-	tab_add_widget_4_retrieval(tab, SEARCH_ENTRY, search_entry);
-	tab_add_widget_4_retrieval(tab, TEXT_VIEW, text_view);
-	tab_add_widget_4_retrieval(tab, TEXT_BUFFER, text_buffer); //@ haa text-buffer is not a widget! void *?
-	//tab_add_widget_4_retrieval(tab, STATUS_MESSAGE_LABEL, status_message_label);
-
-
-	int page = gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, NULL);
-	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page);
-
-	tab_set_unsaved_changes_to(tab, FALSE);
-
 
 	if(file_name != NULL) {
 		char *contents = read_file(file_name); //@ error handling. if we cant open a file, we shouldnt create a tab?
 		gtk_text_buffer_set_text(text_buffer, contents, -1);
 		free(contents);
 	}
+
+	tab_add_widget_4_retrieval(tab, COMMAND_REVEALER, command_revealer);
+	tab_add_widget_4_retrieval(tab, COMMAND_ENTRY, command_entry);
+	tab_add_widget_4_retrieval(tab, TEXT_VIEW, text_view);
+	tab_add_widget_4_retrieval(tab, TEXT_BUFFER, text_buffer); //@ haa text-buffer is not a widget! void *?
+
+	gtk_container_add(GTK_CONTAINER(scrolled_window), GTK_WIDGET(text_view));
+	gtk_container_add(GTK_CONTAINER(tab), search_and_replace);
+	gtk_container_add(GTK_CONTAINER(tab), scrolled_window);
+	gtk_container_add(GTK_CONTAINER(tab), command_revealer);
+	//gtk_container_add(GTK_CONTAINER(tab), statusbar);
+	gtk_container_add(GTK_CONTAINER(tab), status_bar);
+
+	gtk_widget_show_all(GTK_WIDGET(tab));
+
+	int page = gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, NULL);
+	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page);
+
+	tab_set_unsaved_changes_to(tab, FALSE);
 
 	/* we create the menu here (after we set buffer contents) because we want to do the initial highlighting while creating the menu */
 	GtkWidget *menu = gtk_menu_new();
@@ -634,7 +606,6 @@ GtkWidget *create_tab(const char *file_name)
 	gtk_menu_button_set_popup(GTK_MENU_BUTTON(hl_menu_button), menu);
 	//gtk_menu_button_set_direction(GTK_MENU_BUTTON(hl_menu_button), GTK_ARROW_UP);
 
-	init_search(tab);
 	init_undo(tab);
 /*
 	init_autocomplete(GTK_APPLICATION_WINDOW(window),
@@ -645,31 +616,13 @@ GtkWidget *create_tab(const char *file_name)
 	g_signal_connect(G_OBJECT(text_view), "cut-clipboard", G_CALLBACK(text_view_cut_clipboard), NULL);
 	g_signal_connect(G_OBJECT(text_view), "paste-clipboard", G_CALLBACK(text_view_paste_clipboard), NULL);
 
-	g_signal_connect(G_OBJECT(text_view), "populate-popup", G_CALLBACK(on_text_view_populate_popup), NULL);
+	//g_signal_connect(G_OBJECT(text_view), "populate-popup", G_CALLBACK(on_text_view_populate_popup), NULL);
 
 	gtk_text_buffer_create_tag(text_buffer, "line-highlight", "paragraph-background", "rgb(55, 55, 65)", NULL);
 	text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, line_nr_value);
 	g_signal_connect(G_OBJECT(text_buffer), "notify::cursor-position", G_CALLBACK(text_buffer_cursor_position_changed), line_nr_value);
 
 	g_signal_connect(G_OBJECT(text_buffer), "changed", G_CALLBACK(text_buffer_changed), NULL);
-
-
-	/*GtkAdjustment *adjustment = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scrolled_window));
-	gdouble page_size = gtk_adjustment_get_page_size(adjustment);
-	printf("adjustment: page-size: %f\n", page_size); // 0.0
-	g_signal_connect(G_OBJECT(adjustment), "changed", G_CALLBACK(adjustment_changed), NULL);*/
-	//g_object_set(G_OBJECT(text_view), "margin-bottom", 200, NULL);
-	//gtk_widget_set_vexpand(GTK_WIDGET(text_view), TRUE);
-	/*int height, height_request;
-	gtk_widget_get_size_request(scrolled_window, NULL, &height);
-	g_object_get(G_OBJECT(scrolled_window), "height-request", &height_request, NULL);
-	printf("gtk_widget_get_size_request: height: %d\n", height);
-	printf("height-request: %d\n", height_request);*/
-
-	//g_signal_connect(G_OBJECT(scrolled_window), "notify::height-request", G_CALLBACK(on_scrolled_window_height_changed), NULL);
-	//g_signal_connect(G_OBJECT(scrolled_window), "size-allocate", G_CALLBACK(on_scrolled_window_size_allocate), bottom_margin);
-
-	//gtk_widget_set_size_request(bottom_margin, -1, 1000);
 
 	return tab;
 }
@@ -1027,35 +980,6 @@ gboolean less_fancy_toggle_notebook(GdkEventKey *key_event)
 	return TRUE;
 }
 
-gboolean toggle_search_entry(GdkEventKey *key_event)
-{
-	GtkWidget *search_entry = visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), SEARCH_ENTRY);
-	GtkRevealer *search_revealer = (GtkRevealer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), SEARCH_REVEALER);
-	//GtkRevealer *search_revealer = GTK_REVEALER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), SEARCH_REVEALER));
-	GtkWidget *text_view = visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
-
-	if (search_entry == NULL && search_revealer == NULL && text_view == NULL) {
-		printf("no tabs open -> doing nothing\n");
-		return FALSE;
-	}
-
-	assert(search_entry != NULL);
-	assert(search_revealer != NULL);
-	assert(text_view != NULL);
-
-	if(gtk_revealer_get_reveal_child(search_revealer) == FALSE) { // not revealed
-		gtk_revealer_set_reveal_child(search_revealer, TRUE);
-		gtk_widget_grab_focus(search_entry);
-	} else if(gtk_widget_is_focus(search_entry)) { // revealed
-		gtk_revealer_set_reveal_child(search_revealer, FALSE);
-		gtk_widget_grab_focus(text_view);
-	} else {
-		gtk_widget_grab_focus(search_entry);
-	}
-
-	return TRUE;
-}
-
 gboolean toggle_command_entry(GdkEventKey *key_event)
 {
 	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
@@ -1109,7 +1033,7 @@ gboolean handle_enter(GdkEventKey *key_event)
 	//GtkWidget *search_entry = visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), SEARCH_ENTRY);
 	GtkWidget *search_entry = tab_retrieve_widget(tab, SEARCH_ENTRY);
 	if(gtk_widget_is_focus(search_entry) == TRUE) {
-		do_search(tab);
+//		do_search(tab);
 		return TRUE;
 	}
 
@@ -1132,6 +1056,54 @@ gboolean handle_enter(GdkEventKey *key_event)
 		return TRUE;
 	}
 
+	return FALSE;
+}
+
+gboolean execute_command(void)
+{
+	printf("execute_command()\n");
+
+	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
+	if(tab == NULL) {
+		printf("no tabs open -> doing nothing\n");
+		return FALSE;
+	}
+
+	GtkWidget *command_entry = tab_retrieve_widget(tab, COMMAND_ENTRY);
+
+	if (gtk_widget_is_focus(command_entry) == TRUE)
+	{
+		const char *text = gtk_entry_get_text(GTK_ENTRY(command_entry)); //@ free?
+		if(strlen(text) == 0)
+		{
+			return TRUE;
+		}
+
+		GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
+		GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
+		int line_number = atoi(text);
+		//@ Should check if valid line number maybe...
+		GtkTextIter iter;
+		gtk_text_buffer_get_iter_at_line(text_buffer, &iter, line_number - 1); // ...counting from 0 or 1
+		gtk_widget_grab_focus(GTK_WIDGET(text_view));
+		gtk_text_buffer_place_cursor(text_buffer, &iter);
+		gtk_text_view_scroll_to_iter(text_view, &iter, 0.0, FALSE, 0.0, 0.0);
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+gboolean on_enter_key_pressed(GdkEventKey *key_event)
+{
+	printf("on_enter_key_pressed(): \n");
+
+	for (int i = 0; key_combination_handlers[i] != NULL; ++i) {
+		gboolean rv = key_combination_handlers[i]();
+		if (rv == TRUE) {
+			return TRUE;
+		}
+	}
 	return FALSE;
 }
 
@@ -1266,37 +1238,21 @@ Calling apply_css_from_file() directly crashes the app when modifying the css-fi
 	}
 }
 
-void activate_handler(GtkApplication *app, gpointer data) {
+void activate_handler(GtkApplication *app, gpointer data)
+{
 
 	LOG_MSG("activate_handler() called\n");
 
-	//test_get_parent_path();
-
-	//gtk_menu_popup_at_rect(); // -> undefined reference to `gtk_menu_popup_at_rect'
-	//gtk_menu_popdown (); // -> too few arguments to function ‘gtk_menu_popdown’
-
-	/*gboolean open_line_before(GtkTextBuffer *text_buffer);
-	gboolean open_line_after(GtkTextBuffer *text_buffer);
-	gboolean autocomplete_single_quote(GtkTextBuffer *text_buffer);
-
-	void autocomplete_character_a(GtkTextBuffer *text_buffer);
-	void autocomplete_character_b(GtkTextBuffer *text_buffer);
-	void autocomplete_character_c(GtkTextBuffer *text_buffer);
-	key_combinations[0][38] = autocomplete_character_a;
-	key_combinations[0][56] = autocomplete_character_b;
-	key_combinations[0][54] = autocomplete_character_c;
-
-	unsigned short modifiers = CTRL | ALT;
-	key_combinations[modifiers][10] = test_handler; // ctrl + alt + 1 (10)
-	modifiers = ALT;
-	key_combinations[modifiers][35] = open_line_before; // alt + õ (35)
-	key_combinations[modifiers][51] = open_line_after; // alt + ' (51)*/
-	/*modifiers = 0;
-	key_combinations[modifiers][51] = autocomplete_single_quote; // ' (51)*/
-
 	key_combinations[0][23] = handle_tab; // <tab>
 	key_combinations[SHIFT][23] = handle_tab; // <tab> + shift
-	key_combinations[0][36] = handle_enter; // <enter>
+	//key_combinations[0][36] = handle_enter; // <enter>
+
+	key_combinations[SHIFT][36] = replace_selected_text; // shift + <enter>
+	key_combinations[0][36] = on_enter_key_pressed; // <enter>
+	// on_enter_key_pressed() calls these handlers:
+		key_combination_handlers[0] = search;
+		key_combination_handlers[1] = execute_command;
+		key_combination_handlers[2] = NULL;
 
 	key_combinations[CTRL][111] = move_up_by_block; // ctrl + <up>
 	key_combinations[CTRL][116] = move_down_by_block; // ctrl + <down>
@@ -1315,7 +1271,7 @@ void activate_handler(GtkApplication *app, gpointer data) {
 	key_combinations[ALTGR][16] = autocomplete_character; // altgr + 16 -> {
 	key_combinations[ALTGR][17] = autocomplete_character; // altgr + 17 -> [
 
-	key_combinations[CTRL][27] = search_and_replace; // ctrl + r
+//	key_combinations[CTRL][27] = search_and_replace; // ctrl + r
 
 	key_combinations[CTRL][52] = undo_last_action; // ctrl + z
 
@@ -1327,6 +1283,7 @@ void activate_handler(GtkApplication *app, gpointer data) {
 	key_combinations[CTRL][32] = do_open; // ctrl + o
 
 	key_combinations[CTRL][41] = toggle_search_entry; // ctrl + f
+	key_combinations[CTRL][27] = toggle_replace_entry; // ctrl + h
 	key_combinations[CTRL][43] = toggle_command_entry; // ctrl + h
 
 	key_combinations[CTRL][42] = less_fancy_toggle_sidebar; // ctrl + g

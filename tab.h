@@ -1,4 +1,10 @@
 
+/*
+Its totally tedious having to update this enum, when "registering" a new *thing*.
+Can't we have a function like register_thing(tab, "name-for-the-thing", (void *) the-thing) ?
+And then go like get_the_thing(tab, "name-for-the-thing") ..
+*/
+
 enum WidgetName{
 	TEXT_VIEW,
 	TEXT_BUFFER,
@@ -6,6 +12,8 @@ enum WidgetName{
 	COMMAND_ENTRY,
 	SEARCH_REVEALER,
 	SEARCH_ENTRY,
+	REPLACE_REVEALER,
+	REPLACE_ENTRY,
 	STATUS_MESSAGE_LABEL,
 	N_WIDGETS
 };

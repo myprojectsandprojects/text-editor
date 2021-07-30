@@ -66,7 +66,12 @@
 /* No effect in GTK 3.18.9 */
 /*GtkPaned {background: background: rgb(85, 85, 95);}*/
 
-.text-view, .text-entry, .suggestions-popup
+.text-view,
+.text-entry,
+.text-entry-limegreen,
+.text-entry-deepskyblue,
+.text-entry-orange,
+.suggestions-popup
 {
 	color: rgb(190, 190, 190);
 	font: Fira Mono Medium 12;
@@ -83,28 +88,62 @@
 	border: none;
 	border-radius: 0;
 
-	background: rgb(65, 65, 75);
+	/*background: rgb(65, 65, 75);*/
+	background: rgb(85, 65, 75);
 	color: rgb(190, 190, 190);
-
-	/*padding: 3px;*/
 }
+
+.text-entry:focus
+{
+	/*background: rgb(85, 85, 95);*/
+	background: rgb(105, 85, 95);
+}
+
+.text-entry-limegreen
+{
+	border: none;
+	border-radius: 0;
+
+	background: rgb(50, 205, 50);
+	color: black;
+}
+
+/*.text-entry-limegreen:focus {background: rgb(90, 245, 90);}*/
+
+.text-entry-deepskyblue
+{
+	border: none;
+	border-radius: 0;
+
+	background: rgb(0, 191, 255);
+	color: black;
+}
+
+/*.text-entry-deepskyblue:focus {background: rgb(40, 231, 255);}*/
+
+.text-entry-orange
+{
+	border: none;
+	border-radius: 0;
+
+	background: rgb(255, 165, 0);
+	color: black;
+}
+
+/*.text-entry-orange:focus {background: rgb(255, 205, 40);}*/
 
 /*
 :focus pseudoclass conflicts with :selected pseudoclass (?)
 */
 .text-view:selected,
 #search-entry:selected,
+#replace-entry:selected,
 #command-entry:selected,
 #search-phrase-entry:selected,
 #filename-patterns-entry:selected
 {
 	color: white;
 	background: red;
-}
-
-.text-entry:focus
-{
-	background: rgb(85, 85, 95);
 }
 
 /*#command-entry {background: orange;}*/
