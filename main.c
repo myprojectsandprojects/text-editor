@@ -1062,6 +1062,35 @@ gboolean handle_enter(GdkEventKey *key_event)
 gboolean execute_command(void)
 {
 	printf("execute_command()\n");
+
+	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
+	if(tab == NULL) {
+		printf("no tabs open -> doing nothing\n");
+		return FALSE;
+	}
+
+	GtkWidget *command_entry = tab_retrieve_widget(tab, COMMAND_ENTRY);
+
+	if (gtk_widget_is_focus(command_entry) == TRUE)
+	{
+		const char *text = gtk_entry_get_text(GTK_ENTRY(command_entry)); //@ free?
+		if(strlen(text) == 0)
+		{
+			return TRUE;
+		}
+
+		GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
+		GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
+		int line_number = atoi(text);
+		//@ Should check if valid line number maybe...
+		GtkTextIter iter;
+		gtk_text_buffer_get_iter_at_line(text_buffer, &iter, line_number - 1); // ...counting from 0 or 1
+		gtk_widget_grab_focus(GTK_WIDGET(text_view));
+		gtk_text_buffer_place_cursor(text_buffer, &iter);
+		gtk_text_view_scroll_to_iter(text_view, &iter, 0.0, FALSE, 0.0, 0.0);
+		return TRUE;
+	}
+
 	return FALSE;
 }
 
@@ -1209,41 +1238,19 @@ Calling apply_css_from_file() directly crashes the app when modifying the css-fi
 	}
 }
 
-void activate_handler(GtkApplication *app, gpointer data) {
+void activate_handler(GtkApplication *app, gpointer data)
+{
 
 	LOG_MSG("activate_handler() called\n");
-
-	//test_get_parent_path();
-
-	//gtk_menu_popup_at_rect(); // -> undefined reference to `gtk_menu_popup_at_rect'
-	//gtk_menu_popdown (); // -> too few arguments to function ‘gtk_menu_popdown’
-
-	/*gboolean open_line_before(GtkTextBuffer *text_buffer);
-	gboolean open_line_after(GtkTextBuffer *text_buffer);
-	gboolean autocomplete_single_quote(GtkTextBuffer *text_buffer);
-
-	void autocomplete_character_a(GtkTextBuffer *text_buffer);
-	void autocomplete_character_b(GtkTextBuffer *text_buffer);
-	void autocomplete_character_c(GtkTextBuffer *text_buffer);
-	key_combinations[0][38] = autocomplete_character_a;
-	key_combinations[0][56] = autocomplete_character_b;
-	key_combinations[0][54] = autocomplete_character_c;
-
-	unsigned short modifiers = CTRL | ALT;
-	key_combinations[modifiers][10] = test_handler; // ctrl + alt + 1 (10)
-	modifiers = ALT;
-	key_combinations[modifiers][35] = open_line_before; // alt + õ (35)
-	key_combinations[modifiers][51] = open_line_after; // alt + ' (51)*/
-	/*modifiers = 0;
-	key_combinations[modifiers][51] = autocomplete_single_quote; // ' (51)*/
 
 	key_combinations[0][23] = handle_tab; // <tab>
 	key_combinations[SHIFT][23] = handle_tab; // <tab> + shift
 	//key_combinations[0][36] = handle_enter; // <enter>
 
+	key_combinations[SHIFT][36] = replace_selected_text; // shift + <enter>
 	key_combinations[0][36] = on_enter_key_pressed; // <enter>
 	// on_enter_key_pressed() calls these handlers:
-		key_combination_handlers[0] = search_or_search_and_replace;
+		key_combination_handlers[0] = search;
 		key_combination_handlers[1] = execute_command;
 		key_combination_handlers[2] = NULL;
 

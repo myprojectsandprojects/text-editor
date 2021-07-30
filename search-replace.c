@@ -10,9 +10,6 @@
 
 extern GtkWidget *notebook;
 
-#define NEXT_MATCH 0
-#define REPLACE_MATCH 1
-
 
 gboolean toggle_search_entry(GdkEventKey *key_event)
 {
@@ -152,12 +149,38 @@ static void go_to_next_match(GtkTextView *view, const char *search_phrase)
 /*
 	Let's try the following:
 
-	search-entry focused -> search mode (Enter -> highlights next match)
-	replace-entry focused -> replace mode (Enter -> highlights next match, Enter -> replaces the match, ..)
+	if search-entry or replace entry are focus:
+	enter -> move to the next match, select it
+	shift + enter -> replaces selected text with what is in the replace-entry, if empty, then deletes the selection.
 */
-gboolean search_or_search_and_replace(void)
+
+gboolean replace_selected_text(GdkEventKey *key_event)
 {
-	printf("do_search_or_search_and_replace()\n");
+	printf("replace_selected_text()\n");
+
+	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
+	if (tab == NULL)
+	{
+		return FALSE; // No tabs open..
+	}
+
+	GtkWidget *replace_entry = (GtkWidget *) tab_retrieve_widget(tab, REPLACE_ENTRY);
+	GtkTextBuffer *buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
+
+	GtkTextIter s_start, s_end;
+	gboolean s = gtk_text_buffer_get_selection_bounds(buffer, &s_start, &s_end);
+	assert(s);
+	
+	gtk_text_buffer_delete(buffer, &s_start, &s_end);
+	const char *replacement_phrase = gtk_entry_get_text(GTK_ENTRY(replace_entry));
+	gtk_text_buffer_insert(buffer, &s_start, replacement_phrase, -1);
+
+	return TRUE;
+}
+
+gboolean search(void)
+{
+	printf("search()\n");
 
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
 	assert(tab != NULL); // it's arguable, but we'll put an assert here..
@@ -168,49 +191,18 @@ gboolean search_or_search_and_replace(void)
 	GtkWidget *replace_revealer = (GtkWidget *) tab_retrieve_widget(tab, REPLACE_REVEALER);
 	GtkWidget *text_view = (GtkWidget *) tab_retrieve_widget(tab, TEXT_VIEW);
 	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
-	int *p_next_action = (int *) tab_retrieve_widget(tab, REPLACE_NEXT_ACTION);
+	//int *p_next_action = (int *) tab_retrieve_widget(tab, REPLACE_NEXT_ACTION);
 
 	const char *search_phrase = gtk_entry_get_text(GTK_ENTRY(search_entry));
 	if (strlen(search_phrase) < 1)
 	{
-		printf("search_or_search_and_replace(): no search phrase.. exiting..\n");
+		printf("search(): no search phrase.. exiting..\n");
 		return FALSE;
 	}
 
-	if (gtk_revealer_get_reveal_child(replace_revealer)) 
+	if ((gtk_widget_is_focus(search_entry) || gtk_widget_is_focus(replace_entry))) 
 	{
-		if (*p_next_action == REPLACE_MATCH)
-		{
-			printf("search_or_search_and_replace(): in replace mode.. should replace match..\n");
-
-			GtkTextIter s_start, s_end;
-			gboolean s = gtk_text_buffer_get_selection_bounds(text_buffer, &s_start, &s_end);
-			assert(s);
-
-			gtk_text_buffer_delete(text_buffer, &s_start, &s_end);
-			const char *replacement_phrase = gtk_entry_get_text(GTK_ENTRY(replace_entry));
-			gtk_text_buffer_insert(text_buffer, &s_start, replacement_phrase, -1);
-			
-			*p_next_action = NEXT_MATCH;
-		}
-		else
-		{
-			printf("search_or_search_and_replace(): in replace mode.. should go to the next match..\n");
-			printf("search_or_search_and_replace(): searching for: \"%s\"\n", search_phrase);
-
-			go_to_next_match(GTK_TEXT_VIEW(text_view), search_phrase);
-
-			*p_next_action = REPLACE_MATCH;
-		}
-
-		return TRUE;
-	}
-	else if (gtk_widget_is_focus(search_entry)) // search-mode
-	{
-		printf("search_or_search_and_replace(): in search mode..\n");
-		
 		go_to_next_match(GTK_TEXT_VIEW(text_view), search_phrase);
-
 		return TRUE;
 	}
 
@@ -237,10 +229,6 @@ void on_search_entry_changed(GtkEditable *search_entry, gpointer data)
 		LOG_MSG("on_search_entry_changed(): we have a mark..\n");
 		gtk_text_buffer_move_mark_by_name(buffer, "search", &start);
 	}
-
-	int *p_next_action = (int *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), REPLACE_NEXT_ACTION);
-	*p_next_action = NEXT_MATCH;
-	
 }
 
 GtkWidget *create_search_and_replace_widget(GtkWidget *tab)
@@ -266,10 +254,6 @@ GtkWidget *create_search_and_replace_widget(GtkWidget *tab)
 	tab_add_widget_4_retrieval(tab, SEARCH_ENTRY, search_entry);
 	tab_add_widget_4_retrieval(tab, REPLACE_REVEALER, replace_revealer);
 	tab_add_widget_4_retrieval(tab, REPLACE_ENTRY, replace_entry);
-
-	int *p_next_action = malloc(sizeof(int));
-	tab_add_widget_4_retrieval(tab, REPLACE_NEXT_ACTION, p_next_action);
-	*p_next_action = NEXT_MATCH;
 
 	gtk_widget_set_name(search_entry, "search-entry");
 	gtk_widget_set_name(replace_entry, "replace-entry");
