@@ -2,7 +2,16 @@
 /*
 shift + enter replaces selected text with the text in replace-entry,
 so replace entry is a separate feature from search entirely.
+(while it is convenient to use them together)
 which is why it doesnt make sense to make replace-entry dependent on search-entry..
+-- it is definately more convenient than to use search and ctrl+V, because when replacing text with ctrl+V, user needs to switch focus between search-entry and text-view.. but it is merely a matter of convenience and not a unique feature on its own(what is the difference?)
+
+Maybe replace should change all matches at once? I personally have never had any use for such a feature, especially when working with large files, because it's hard to see ahead what will actually get replaced.
+
+Scoped searching (and replacing)?
+Searching from the cursor? Forward/backward?
+
+Undo and replacements? Undoing by a (language) token?
 */
 
 #include <gtk/gtk.h>
@@ -176,7 +185,7 @@ gboolean replace_selected_text(GdkEventKey *key_event)
 
 	GtkTextIter s_start, s_end;
 	gboolean s = gtk_text_buffer_get_selection_bounds(buffer, &s_start, &s_end);
-	assert(s);
+	if (!s) return FALSE;
 	
 	gtk_text_buffer_delete(buffer, &s_start, &s_end);
 	const char *replacement_phrase = gtk_entry_get_text(GTK_ENTRY(replace_entry));
@@ -190,7 +199,8 @@ gboolean search(void)
 	printf("search()\n");
 
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
-	assert(tab != NULL); // it's arguable, but we'll put an assert here..
+	// what are you smoking?: assert(tab != NULL); // it's arguable, but we'll put an assert here..
+	if (tab == NULL) return FALSE;
 
 	GtkWidget *search_entry = (GtkWidget *) tab_retrieve_widget(tab, SEARCH_ENTRY);
 	GtkWidget *search_revealer = (GtkWidget *) tab_retrieve_widget(tab, SEARCH_REVEALER);

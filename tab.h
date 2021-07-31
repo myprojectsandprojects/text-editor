@@ -3,6 +3,11 @@
 Its totally tedious having to update this enum, when "registering" a new *thing*.
 Can't we have a function like register_thing(tab, "name-for-the-thing", (void *) the-thing) ?
 And then go like get_the_thing(tab, "name-for-the-thing") ..
+
+Really I think its a matter of minimizing the amount of dependencies between modules..
+For some reason it seems like a good idea to have abstractions as separated from eachother and independent as possible.. for code reusability purposes I quess, but also to keep the complexity at a minimum. but thats only ofcourse when abstractions are good..
+
+@ So in this case, maybe we could create a hash-table or something? Even if a hash-table in this particular case (where perhaps a simple array of some structs would do) would be an overkill, a hash-table is such a general-purpose data-structure that I think we might want one around anyways.
 */
 
 enum WidgetName{

@@ -1,43 +1,42 @@
 
-//@ bug: large file + small window size (also toggling the sidebar) crashes application with an X Server message if adding text_view_container to scrolled window.
-//@ bug: highlighting: double quotes inside block-comments
+ //@ bug: highlighting: double quotes inside block-comments
 //@ bug: highlighting: backslash inside a string
 //@ bug: highlighting: line comment & preprocessor directive
-//@ bug: changing css of search results from another editor may crash the application... (try to time the procedure-call: g_timeout_add_seconds())
 //@ bug: if we cant open a file, we shouldnt end up with a gtk error...
 //@ bug: unindenting a block of code is buggy
 
 
-// bash commands: locate [pattern], sudo updatedb (fast)
+// bash commands: locate [pattern], sudo updatedb (fast). quickly opening files?
 
 // plausable feature: searching limited to a specific scope somehow? like only inside a function...
 
-// in progress: obviously search-in-files should open & scroll
-// plausable feature: search-in-files: ui should be responsive while searching, sort results, group results under filename, search depth, filter by filename
 // search depth! when i want to find something i have pieces of information. i may for example know, that its a hidden file.. narrowing down the possibilities seems to be very good performance-wise. large resultsets render the application unresposive, can something be done? large number of results isnt very helpful anyways -- display only some of them? some results are total bogus -- needs investigation. search used to crash, is this gone?
+
 // plausable feature: easy way to find & open files by name... in search-in-files we could filter by file name while leaving the search phrase empty (it makes sense to think about an empty string this way) and the results would be just clickable file names? use command entry somehow?
 
-// plausable feature: sort files & dirs in the file-browser? group by type?
 // plausable feature: keeping file browser up-to-date with fs-changes
 
-// plausable feature: can we hide the notebook entirely when maxing the search results window? or at least hide it when the notebook cant be made smaller? 
 
-// plausable feature: we have ctrl + <left/right>, what about ctrl + <up/down>?
+// plausable feature: we have ctrl + <left/right>, what about ctrl + <up/down>? We have that, but we dont scroll along with the cursor..
 // plausable feature: indent when opening a line
 // plausable feature: delete end of line
-// plausable feature: select a whole line when double clicking on a wrapped line
+// plausable feature: select a whole line when triple-clicking on a wrapped line
 // plausable feature: consider keeping the cursor offset when deleting a line?
 
 // plausable feature: tabs, file changes on disk...
 // plausable feature: opening & highlighting large files is really slow and ui becomes unresponsive (but it eventually manages to do it)
 
-// in progress: highlighting... 4 different languages and how to support that? no-highlighting option
+// in progress: highlighting... 4 different languages and how to support that?
 
 // plausable feature: conf-file 4 key-combinations
 
-// plausable feature: logging messages which have at least 2 possible levels associated with them, so that we can disable all logging messages except the ones we are currently interested in. otherwise its very hard to spot important messages.
-
-// UI: from some point onwards opening new tabs starts resizing the window.
+//@ when all tabs are closed, sidebar's back-button might receive focus.
+// When sidebar's back-button is focus then hitting enter triggers a button-pressed-event which changes the root directory.
+// Unless we are root, we can not read contents of the root directory,
+// (or some directories inside the root directory rather) 
+// so if we hit enter multiple times then eventually we reach at the root directory which causes an assertion to fail..
+// so that's no good.
+// We should have error handling for permission-related things..
 
 
 #include <gtk/gtk.h>
