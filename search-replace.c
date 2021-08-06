@@ -194,9 +194,113 @@ gboolean replace_selected_text(GdkEventKey *key_event)
 	return TRUE;
 }
 
-gboolean search(void)
+/*
+bounds = scope of the cursor position
+*/
+
+/* - bounds are not dependent on text buffer contents.. */
+GtkTextMark *m_bounds_start, *m_bounds_end, *m_search_pointer;
+gboolean is_new_search = TRUE;
+/*
+void search_and_highlight_next_match(GtkTextView *view)
 {
-	printf("search()\n");
+	printf("search_and_highlight_next_match()\n");
+}
+*/
+static void determine_bounds(GtkTextView *view)
+{
+	printf("determine_bounds()\n");
+
+	GtkTextBuffer *buffer;
+
+	assert(m_bounds_start != NULL && m_bounds_end != NULL);
+
+	buffer = gtk_text_view_get_buffer(view);
+
+	// determine bounds
+	// get iter at cursor
+	GtkTextIter i;
+	GtkTextMark *m_cursor;
+	m_cursor = gtk_text_buffer_get_mark(buffer, "insert");
+	gtk_text_buffer_get_iter_at_mark(buffer, &i, m_cursor);
+	//printf("search_and_highlight_first_match(): cursor offset: %d\n", gtk_text_iter_get_offset(&i));
+
+	// determine the beginning
+	int count = 0;
+	while (gtk_text_iter_backward_char(&i))
+	{
+		gunichar c = gtk_text_iter_get_char(&i);
+		if (c == '}')
+			count += 1;
+		else if (c == '{')
+		{
+			if (count > 0)
+				count -= 1;
+			else // count == 0
+				break;
+		}
+	}
+	gtk_text_buffer_move_mark(buffer, m_bounds_start, &i);
+
+	// determine the end
+	count = 0;
+	while (gtk_text_iter_forward_char(&i))
+	{
+		gunichar c = gtk_text_iter_get_char(&i);
+		if (c == '{')
+			count += 1;
+		else if (c == '}')
+		{
+			if (count > 0)
+				count -= 1;
+			else // count == 0
+				break;
+		}
+	}
+	gtk_text_buffer_move_mark(buffer, m_bounds_end, &i);
+
+	GtkTextIter i_bounds_start, i_bounds_end;
+	gtk_text_buffer_get_iter_at_mark(buffer, &i_bounds_start, m_bounds_start);
+	gtk_text_buffer_get_iter_at_mark(buffer, &i_bounds_end, m_bounds_end);
+	char *text = gtk_text_buffer_get_text(buffer, &i_bounds_start, &i_bounds_end, FALSE);
+	printf("determine_bounds(): text: \n%s\n\n", text);
+}
+/*
+void search_and_highlight_first_match(GtkTextView *view, char *search_phrase)
+{
+	GtkTextIter i_start, i_end;
+	char sp_buffer[100];
+
+	printf("search_and_highlight_first_match()\n");
+
+	is_new_search = FALSE;
+
+	if (search_phrase[0] == ':')
+	{
+		snprintf(sp_buffer, 100, "%s", &search_phrase[1]);
+
+		determine_bounds(view);
+	}
+	else
+	{
+		snprintf(sp_buffer, 100, "%s", &search_phrase[0]);
+
+		gtk_text_buffer_get_bounds(buffer, &i_start, &i_end);
+	}
+	//free(search_phrase);
+	search_phrase = sp_buffer;
+
+	search_and_highlight_next_match(view, sp_buffer);
+}
+*/
+/*
+This is where the action happens.
+When search-entry is focus we find and highlight the next match
+and when replace-entry is focus we replace all matches in the file.
+*/
+gboolean on_search_and_replace(void)
+{
+	printf("on_search_and_replace()\n");
 
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
 	// what are you smoking?: assert(tab != NULL); // it's arguable, but we'll put an assert here..
@@ -206,24 +310,261 @@ gboolean search(void)
 	GtkWidget *search_revealer = (GtkWidget *) tab_retrieve_widget(tab, SEARCH_REVEALER);
 	GtkWidget *replace_entry = (GtkWidget *) tab_retrieve_widget(tab, REPLACE_ENTRY);
 	GtkWidget *replace_revealer = (GtkWidget *) tab_retrieve_widget(tab, REPLACE_REVEALER);
-	GtkWidget *text_view = (GtkWidget *) tab_retrieve_widget(tab, TEXT_VIEW);
-	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+	GtkWidget *view = (GtkWidget *) tab_retrieve_widget(tab, TEXT_VIEW);
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
 	//int *p_next_action = (int *) tab_retrieve_widget(tab, REPLACE_NEXT_ACTION);
 
-	const char *search_phrase = gtk_entry_get_text(GTK_ENTRY(search_entry));
+	//@ should assert
+
+	if ( !(gtk_widget_is_focus(search_entry) || gtk_widget_is_focus(replace_entry)) ) 
+	{
+		printf("on_search_and_replace(): widgets not (in?) focus.. exiting..\n");
+		return FALSE; // we didnt deal with the event that triggered us..
+	}
+
+	char *search_phrase = gtk_entry_get_text(GTK_ENTRY(search_entry));
 	if (strlen(search_phrase) < 1)
 	{
-		printf("search(): no search phrase.. exiting..\n");
-		return FALSE;
+		printf("on_search_and_replace(): no search phrase.. exiting..\n");
+		return TRUE; // we dealt with the event that triggered us..
 	}
 
-	if ((gtk_widget_is_focus(search_entry) || gtk_widget_is_focus(replace_entry))) 
+	char sp_buffer[100];
+	if (search_phrase[0] == ':')
 	{
-		go_to_next_match(GTK_TEXT_VIEW(text_view), search_phrase);
+		snprintf(sp_buffer, 100, "%s", &search_phrase[1]);
+	}
+	else
+	{
+		snprintf(sp_buffer, 100, "%s", &search_phrase[0]);
+	}
+
+	if (is_new_search)
+	{
+		printf("on_search_and_replace(): starting new search!\n");
+
+		if (search_phrase[0] == ':')
+		{
+			determine_bounds(GTK_TEXT_VIEW(view));
+		}
+		else
+		{
+			GtkTextIter i_start, i_end;
+			gtk_text_buffer_get_bounds(buffer, &i_start, &i_end);
+			gtk_text_buffer_move_mark(buffer, m_bounds_start, &i_start);
+			gtk_text_buffer_move_mark(buffer, m_bounds_end, &i_end);
+		}
+
+		// move search-pointer to the beginning of the scope
+		GtkTextIter i;
+		gtk_text_buffer_get_iter_at_mark(buffer, &i, m_bounds_start);
+		gtk_text_buffer_move_mark(buffer, m_search_pointer, &i);
+
+		is_new_search = FALSE;
+	}
+		
+	//free(search_phrase);
+	search_phrase = sp_buffer;
+
+	if (gtk_widget_is_focus(search_entry))
+	{
+		GtkTextIter iter, i_bounds_start, i_bounds_end, match_start, match_end;
+		gboolean found;
+
+		gtk_text_buffer_get_iter_at_mark(buffer, &iter, m_search_pointer);
+		gtk_text_buffer_get_iter_at_mark(buffer, &i_bounds_start, m_bounds_start);
+		gtk_text_buffer_get_iter_at_mark(buffer, &i_bounds_end, m_bounds_end);
+	
+		DO_SEARCH:
+		printf("searching for \"%s\"\n", search_phrase);
+		char *text = gtk_text_buffer_get_text(buffer, &iter, &i_bounds_end, FALSE);
+		printf("in: \n%s\n", text);
+
+		found = gtk_text_iter_forward_search(&iter, search_phrase,
+			GTK_TEXT_SEARCH_CASE_INSENSITIVE,
+			&match_start, &match_end, &i_bounds_end);
+	
+		if (found == TRUE)
+		{
+			gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(view), &match_start, 0.0, FALSE, 0.0, 0.0);
+			gtk_text_buffer_select_range(buffer, &match_end, &match_start);
+			iter = match_end;
+			gtk_text_buffer_move_mark(buffer, m_search_pointer, &iter);
+		}
+		else
+		{
+			if(gtk_text_iter_compare(&iter, &i_bounds_start) != 0)
+			{
+				printf("search: there were matches for \"%s\" -> back to the beginning\n", search_phrase);	
+				//gtk_text_buffer_get_start_iter(buffer, &iter);
+				gtk_text_buffer_get_iter_at_mark(buffer, &iter, m_bounds_start);
+				goto DO_SEARCH;
+			}
+			else
+			{
+				printf("search: there were no matches for \"%s\"\n", search_phrase);
+			}
+		}
+	}
+	else if (gtk_widget_is_focus(replace_entry))
+	{
+		GtkTextIter search, i_bounds_start, i_bounds_end;
+
+		//gtk_text_buffer_get_iter_at_mark(buffer, &iter, m_search_pointer);
+		gtk_text_buffer_get_iter_at_mark(buffer, &i_bounds_start, m_bounds_start);
+		gtk_text_buffer_get_iter_at_mark(buffer, &i_bounds_end, m_bounds_end);
+
+		search = i_bounds_start;
+
+		const char *replace_phrase = gtk_entry_get_text(GTK_ENTRY(replace_entry));
+		printf("on_search_and_replace(): replaceing \"%s\" with \"%s\"\n", search_phrase, replace_phrase);
+
+		GtkTextMark *m1 = gtk_text_buffer_create_mark(buffer, NULL, &i_bounds_start, FALSE);
+		GtkTextMark *m2 = gtk_text_buffer_create_mark(buffer, NULL, &i_bounds_start, FALSE); // doesnt matter where they are in the beginning
+	
+		GtkTextIter match_start, match_end;
+		while (gtk_text_iter_forward_search(&search, search_phrase, 
+				GTK_TEXT_SEARCH_CASE_INSENSITIVE, &match_start, &match_end, &i_bounds_end))
+		{
+			gtk_text_buffer_move_mark(buffer, m1, &match_start);
+			gtk_text_buffer_move_mark(buffer, m2, &match_end);
+			gtk_text_buffer_delete(buffer, &match_start, &match_end);
+			gtk_text_buffer_get_iter_at_mark(buffer, &search, m1);
+			gtk_text_buffer_insert(buffer, &search, replace_phrase, -1);
+			gtk_text_buffer_get_iter_at_mark(buffer, &search, m2);
+			//gtk_text_buffer_get_end_iter(buffer, &end);
+			gtk_text_buffer_get_iter_at_mark(buffer, &i_bounds_end, m_bounds_end);
+		}
+	
+		gtk_text_buffer_delete_mark(buffer, m1);
+		gtk_text_buffer_delete_mark(buffer, m2);
+	}
+
+/*
+	GtkTextIter bounds_start, bounds_end;
+	gtk_text_buffer_get_bounds(buffer, &bounds_start, &bounds_end);
+
+	char sp_buffer[100];
+	{ // Figure out what the bounds of the search are:
+
+		GtkTextIter i, match_start, match_end;
+
+		if (search_phrase[0] == '{')
+		{
+			snprintf(sp_buffer, 100, "%s", &search_phrase[1]);
+	
+			GtkTextMark *m_cursor = gtk_text_buffer_get_mark(buffer, "insert");
+			gtk_text_buffer_get_iter_at_mark(buffer, &i, m_cursor);
+			gboolean found = gtk_text_iter_backward_search(&i, "{", GTK_TEXT_SEARCH_CASE_INSENSITIVE, &match_start, &match_end, NULL);
+			if (found)
+			{
+				bounds_start = match_start;
+				i = bounds_start;
+				// just the first closing-1 for now..:
+				found = gtk_text_iter_forward_search(&i, "}", GTK_TEXT_SEARCH_CASE_INSENSITIVE, &match_start, &match_end, NULL);
+				if (found)
+				{
+					//bounds_end = match_end;
+					bounds_end = match_start; // ?
+				}
+			}
+		}
+		else
+		{
+			snprintf(sp_buffer, 100, "%s", &search_phrase[0]);
+		}
+		//free(search_phrase);
+		search_phrase = sp_buffer;
+	}
+
+
+	if (gtk_widget_is_focus(search_entry)) 
+	{
+		GtkTextMark *mark;
+		GtkTextIter iter, match_start, match_end;
+		gboolean found;
+
+		//printf("on_search_and_replace(): should search\n");
+
+		mark = gtk_text_buffer_get_mark(buffer, "search");
+		assert(mark != NULL);
+		gtk_text_buffer_get_iter_at_mark(buffer, &iter, mark);
+
+		int o_search = gtk_text_iter_get_offset(&iter);
+		int o_bounds_start = gtk_text_iter_get_offset(&bounds_start);
+		int o_bounds_end = gtk_text_iter_get_offset(&bounds_end);
+		if (o_search < o_bounds_start || o_search > o_bounds_end)
+		{
+			iter = bounds_start;
+		}
+
+		DO_SEARCH:
+		found = gtk_text_iter_forward_search(&iter, search_phrase,
+			GTK_TEXT_SEARCH_CASE_INSENSITIVE,
+			&match_start, &match_end, &bounds_end);
+
+		if (found == TRUE)
+		{
+			gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(view), &match_start, 0.0, FALSE, 0.0, 0.0);
+			gtk_text_buffer_select_range(buffer, &match_end, &match_start);
+			iter = match_end;
+			gtk_text_buffer_move_mark(buffer, mark, &iter);
+		}
+		else
+		{
+			//if(gtk_text_iter_is_start(&iter) == FALSE)
+			int o_iter = gtk_text_iter_get_offset(&iter);
+			int o_bounds_start = gtk_text_iter_get_offset(&bounds_start);
+			if(o_iter != o_bounds_start)
+			{
+				printf("search: there were matches for \"%s\" -> back to the beginning\n", search_phrase);	
+				//gtk_text_buffer_get_start_iter(buffer, &iter);
+				iter = bounds_start;
+				goto DO_SEARCH;
+			}
+			else
+			{
+				printf("search: there were no matches for \"%s\"\n", search_phrase);
+			}
+		}
+
 		return TRUE;
 	}
+*/
+/*
+	else if (gtk_widget_is_focus(replace_entry))
+	{
+		//printf("on_search_and_replace(): should search & replace\n");
+		const char *replace_phrase = gtk_entry_get_text(GTK_ENTRY(replace_entry));
+		printf("on_search_and_replace(): replaceing \"%s\" with \"%s\"\n", search_phrase, replace_phrase);
 
-	return FALSE;
+		GtkTextIter search, start, end;
+
+		//gtk_text_buffer_get_selection_bounds(text_buffer, &start, &end);
+		gtk_text_buffer_get_bounds(buffer, &start, &end);
+		search = start;
+		GtkTextMark *m1 = gtk_text_buffer_create_mark(buffer, NULL, &start, FALSE);
+		GtkTextMark *m2 = gtk_text_buffer_create_mark(buffer, NULL, &start, FALSE); // doesnt matter where they are in the beginning
+	
+		GtkTextIter match_start, match_end;
+		while (gtk_text_iter_forward_search(&search, search_phrase, GTK_TEXT_SEARCH_CASE_INSENSITIVE, &match_start, &match_end, &end)) {
+			gtk_text_buffer_move_mark(buffer, m1, &match_start);
+			gtk_text_buffer_move_mark(buffer, m2, &match_end);
+			gtk_text_buffer_delete(buffer, &match_start, &match_end);
+			gtk_text_buffer_get_iter_at_mark(buffer, &search, m1);
+			gtk_text_buffer_insert(buffer, &search, replace_phrase, -1);
+			gtk_text_buffer_get_iter_at_mark(buffer, &search, m2);
+			gtk_text_buffer_get_end_iter(buffer, &end);
+		}
+	
+		gtk_text_buffer_delete_mark(buffer, m1);
+		gtk_text_buffer_delete_mark(buffer, m2);
+
+		return TRUE;
+	}*/
+
+
+	return TRUE;
 }
 
 void on_search_entry_changed(GtkEditable *search_entry, gpointer data)
@@ -231,10 +572,20 @@ void on_search_entry_changed(GtkEditable *search_entry, gpointer data)
 	GtkTextBuffer *buffer;
 	GtkTextIter start;
 
+	is_new_search = TRUE;
+
 	buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
 	assert(buffer != NULL);
 	gtk_text_buffer_get_start_iter(buffer, &start);
 
+	if (!m_search_pointer)
+	{
+		printf("CREATING THE MARKS\n");
+		m_search_pointer = gtk_text_buffer_create_mark(buffer, NULL, &start, TRUE);
+		m_bounds_start = gtk_text_buffer_create_mark(buffer, NULL, &start, TRUE);
+		m_bounds_end = gtk_text_buffer_create_mark(buffer, NULL, &start, TRUE);
+	}
+/*
 	GtkTextMark *mark = gtk_text_buffer_get_mark(buffer, "search");
 	if (!mark)
 	{
@@ -246,6 +597,7 @@ void on_search_entry_changed(GtkEditable *search_entry, gpointer data)
 		LOG_MSG("on_search_entry_changed(): we have a mark..\n");
 		gtk_text_buffer_move_mark_by_name(buffer, "search", &start);
 	}
+*/
 }
 
 GtkWidget *create_search_and_replace_widget(GtkWidget *tab)
@@ -277,7 +629,21 @@ GtkWidget *create_search_and_replace_widget(GtkWidget *tab)
 	add_class(search_entry, "text-entry-deepskyblue");
 	add_class(replace_entry, "text-entry-limegreen");
 
-	g_signal_connect(G_OBJECT(search_entry), "changed", G_CALLBACK(on_search_entry_changed), NULL);
+	g_signal_connect(G_OBJECT(search_entry), "changed",
+		G_CALLBACK(on_search_entry_changed), NULL);
+
+	// We could observe cursor-position property and be up-to-date in terms of scope at all times
+	// and then, when doing the search, just search in that scope.
+	// But we dont really know if the text-buffer is available for us at the time we are called
+	// and we dont want to set strict rules as to when exactly we are suppose to be called..
+	// Maybe it would be nice to have an event which is fired once the tab is fully created..
+	// Or maybe it doesnt matter at all if we enforce strict order in which things should be initialized?
+	// or maybe we should export an event handler?
+	// or maybe we should register our callback at the time when search-entry receives its 1st changed-signal?
+	/*
+	g_signal_connect(G_OBJECT(text_buffer), "notify::cursor-position",
+		G_CALLBACK(text_buffer_cursor_position_changed), line_nr_value);
+	*/
 
 	return container;
 }

@@ -15,7 +15,6 @@ void tab_add_widget_4_retrieval(GtkWidget *tab, enum WidgetName widget_name, voi
 {
 	struct TabInfo *tab_info = (struct TabInfo *) g_object_get_data(G_OBJECT(tab), "tab-info");
 	tab_widgets[tab_info->id][widget_name] = widget;
-	printf("tab_add_widget_4_retrieval(): tab id: %d, widget: %d\n", tab_info->id, widget_name);
 }
 
 void *tab_retrieve_widget(GtkWidget *tab, enum WidgetName widget_name)

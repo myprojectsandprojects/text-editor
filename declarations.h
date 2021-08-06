@@ -20,6 +20,7 @@ void actually_open_line_before(GtkTextBuffer *text_buffer);
 void actually_autocomplete_character(GtkTextBuffer *text_buffer, char character);
 gboolean move_up_by_block(GdkEventKey *key_event);
 gboolean move_down_by_block(GdkEventKey *key_event);
+gboolean handle_tab_key(GtkTextBuffer *text_buffer, GdkEventKey *key_event);
 
 /* fileio.c: */
 char *read_file(const char *filename);
@@ -36,7 +37,7 @@ void add_class(GtkWidget *widget, const char *class_name);
 gboolean toggle_search_entry(GdkEventKey *key_event);
 gboolean toggle_replace_entry(GdkEventKey *key_event);
 GtkWidget *create_search_and_replace_widget(GtkWidget *tab);
-gboolean search(void);
+gboolean on_search_and_replace(void);
 gboolean replace_selected_text(GdkEventKey *key_event);
 
 /* undo.c: */

@@ -55,6 +55,9 @@ void unindent_selected_block(GtkTextBuffer *text_buffer, GtkTextIter *selection_
 
 /*
 	returns TRUE if handled the tab, otherwise FALSE
+
+	@ just have 2 functions: 1 handles tab, another handles shift+tab.
+	and map them directly to key-combinations
 */
 gboolean handle_tab_key(GtkTextBuffer *text_buffer, GdkEventKey *key_event)
 {

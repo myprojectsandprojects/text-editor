@@ -37,6 +37,7 @@
 // so if we hit enter multiple times then eventually we reach at the root directory which causes an assertion to fail..
 // so that's no good.
 // We should have error handling for permission-related things..
+// auto-closing parenthesis, quotes etc. could be done at buffer-insert level (?)
 
 
 #include <gtk/gtk.h>
@@ -1064,7 +1065,7 @@ gboolean execute_command(void)
 
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
 	if(tab == NULL) {
-		printf("no tabs open -> doing nothing\n");
+		printf("execute_command(): no tabs open -> doing nothing\n");
 		return FALSE;
 	}
 
@@ -1249,7 +1250,7 @@ void activate_handler(GtkApplication *app, gpointer data)
 	key_combinations[SHIFT][36] = replace_selected_text; // shift + <enter>
 	key_combinations[0][36] = on_enter_key_pressed; // <enter>
 	// on_enter_key_pressed() calls these handlers:
-		key_combination_handlers[0] = search;
+		key_combination_handlers[0] = on_search_and_replace;
 		key_combination_handlers[1] = execute_command;
 		key_combination_handlers[2] = NULL;
 
