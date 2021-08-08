@@ -122,7 +122,7 @@ gboolean toggle_replace_entry(GdkEventKey *key_event)
 
 	return TRUE;
 }
-
+/*
 static void go_to_next_match(GtkTextView *view, const char *search_phrase)
 {
 	GtkTextBuffer *buffer;
@@ -161,7 +161,7 @@ static void go_to_next_match(GtkTextView *view, const char *search_phrase)
 		}
 	}
 }
-
+*/
 /*
 	Let's try the following:
 
@@ -259,11 +259,11 @@ static void determine_bounds(GtkTextView *view)
 	}
 	gtk_text_buffer_move_mark(buffer, m_bounds_end, &i);
 
-	GtkTextIter i_bounds_start, i_bounds_end;
-	gtk_text_buffer_get_iter_at_mark(buffer, &i_bounds_start, m_bounds_start);
-	gtk_text_buffer_get_iter_at_mark(buffer, &i_bounds_end, m_bounds_end);
-	char *text = gtk_text_buffer_get_text(buffer, &i_bounds_start, &i_bounds_end, FALSE);
-	printf("determine_bounds(): text: \n%s\n\n", text);
+	//GtkTextIter i_bounds_start, i_bounds_end;
+	//gtk_text_buffer_get_iter_at_mark(buffer, &i_bounds_start, m_bounds_start);
+	//gtk_text_buffer_get_iter_at_mark(buffer, &i_bounds_end, m_bounds_end);
+	//char *text = gtk_text_buffer_get_text(buffer, &i_bounds_start, &i_bounds_end, FALSE);
+	//printf("determine_bounds(): text: \n%s\n\n", text);
 }
 /*
 void search_and_highlight_first_match(GtkTextView *view, char *search_phrase)
@@ -322,7 +322,7 @@ gboolean on_search_and_replace(void)
 		return FALSE; // we didnt deal with the event that triggered us..
 	}
 
-	char *search_phrase = gtk_entry_get_text(GTK_ENTRY(search_entry));
+	const char *search_phrase = gtk_entry_get_text(GTK_ENTRY(search_entry));
 	if (strlen(search_phrase) < 1)
 	{
 		printf("on_search_and_replace(): no search phrase.. exiting..\n");

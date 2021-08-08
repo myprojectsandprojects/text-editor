@@ -1,45 +1,3 @@
-
- //@ bug: highlighting: double quotes inside block-comments
-//@ bug: highlighting: backslash inside a string
-//@ bug: highlighting: line comment & preprocessor directive
-//@ bug: if we cant open a file, we shouldnt end up with a gtk error...
-//@ bug: unindenting a block of code is buggy
-
-
-// bash commands: locate [pattern], sudo updatedb (fast). quickly opening files?
-
-// plausable feature: searching limited to a specific scope somehow? like only inside a function...
-
-// search depth! when i want to find something i have pieces of information. i may for example know, that its a hidden file.. narrowing down the possibilities seems to be very good performance-wise. large resultsets render the application unresposive, can something be done? large number of results isnt very helpful anyways -- display only some of them? some results are total bogus -- needs investigation. search used to crash, is this gone?
-
-// plausable feature: easy way to find & open files by name... in search-in-files we could filter by file name while leaving the search phrase empty (it makes sense to think about an empty string this way) and the results would be just clickable file names? use command entry somehow?
-
-// plausable feature: keeping file browser up-to-date with fs-changes
-
-
-// plausable feature: we have ctrl + <left/right>, what about ctrl + <up/down>? We have that, but we dont scroll along with the cursor..
-// plausable feature: indent when opening a line
-// plausable feature: delete end of line
-// plausable feature: select a whole line when triple-clicking on a wrapped line
-// plausable feature: consider keeping the cursor offset when deleting a line?
-
-// plausable feature: tabs, file changes on disk...
-// plausable feature: opening & highlighting large files is really slow and ui becomes unresponsive (but it eventually manages to do it)
-
-// in progress: highlighting... 4 different languages and how to support that?
-
-// plausable feature: conf-file 4 key-combinations
-
-//@ when all tabs are closed, sidebar's back-button might receive focus.
-// When sidebar's back-button is focus then hitting enter triggers a button-pressed-event which changes the root directory.
-// Unless we are root, we can not read contents of the root directory,
-// (or some directories inside the root directory rather) 
-// so if we hit enter multiple times then eventually we reach at the root directory which causes an assertion to fail..
-// so that's no good.
-// We should have error handling for permission-related things..
-// auto-closing parenthesis, quotes etc. could be done at buffer-insert level (?)
-
-
 #include <gtk/gtk.h>
 #include <fcntl.h>
 #include <string.h>
@@ -1254,11 +1212,18 @@ void activate_handler(GtkApplication *app, gpointer data)
 		key_combination_handlers[1] = execute_command;
 		key_combination_handlers[2] = NULL;
 
-	key_combinations[CTRL][111] = move_up_by_block; // ctrl + <up>
-	key_combinations[CTRL][116] = move_down_by_block; // ctrl + <down>
+	//@ cursors blink is off for move_cursor_left() & move_cursor_right()
+	// also comments..
+	key_combinations[CTRL][113] = move_cursor_left; // ctrl + <left arrow>
+	key_combinations[CTRL][114] = move_cursor_right; // ctrl + <right arrow>
+
+	key_combinations[CTRL][111] = move_cursor_up; // ctrl + <up>
+	key_combinations[CTRL][116] = move_cursor_down; // ctrl + <down>
 
 	key_combinations[ALT][111] = move_lines_up; // alt + <up arrow>
 	key_combinations[ALT][116] = move_lines_down; // alt + <down arrow>
+	key_combinations[ALT][113] = move_token_left; // alt + <left arrow>
+	key_combinations[ALT][114] = move_token_right; // alt + <right arrow>
 	key_combinations[ALT][40] = duplicate_line; // alt + d
 	key_combinations[ALT][119] = delete_line; // alt + <delete>
 	key_combinations[ALT][35] = open_line_before; // alt + õ (35)
@@ -1402,11 +1367,6 @@ int main() {
 
 	status = g_application_run(G_APPLICATION(app), 0, NULL);
 
-	g_object_unref(app);
+	//g_object_unref(app);
 	return status;
 }
-
-
-
-
-

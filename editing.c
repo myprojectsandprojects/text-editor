@@ -1,10 +1,217 @@
 #include <gtk/gtk.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 
 #include "tab.h"
+#include "declarations.h"
 
 extern GtkWidget *notebook;
+
+
+// m, i, o -- output values
+// output values are optional (pass in NULL if you dont want one)
+void get_cursor_position(GtkTextBuffer *buffer,
+	GtkTextMark **pm, GtkTextIter *pi, gint *po)
+{
+	GtkTextMark *m;
+	GtkTextIter i;
+	gint o;
+
+	assert(buffer);
+	m = gtk_text_buffer_get_mark(buffer, "insert");
+	assert(m);
+	gtk_text_buffer_get_iter_at_mark(buffer, &i, m);
+	o = gtk_text_iter_get_offset(&i);
+	LOG_MSG("get_cursor_position(): cursor offset: %d\n", o);
+
+	if (pm) *pm = m;
+	if (pi) *pi = i;
+	if (po) *po = o;
+}
+
+
+// returns a NULL-terminated list of opening-tag names
+char **get_opening_tags(GtkTextIter *i)
+{
+	LOG_MSG("get_opening_tags()\n");
+
+	GSList *tags = gtk_text_iter_get_toggled_tags(i, TRUE); // toggled on: TRUE
+	//guint n_tags = g_slist_length(tags);
+	//gunichar c = gtk_text_iter_get_char(i_token_begin);
+	//printf("%c: (%d)\n", c, n_tags);
+
+	//const int MAX_NAME_LENGTH = 100; // ... ascii-characters
+	const int MAX_LIST_LENGTH = 10; // ... strings
+
+	char **names = malloc(sizeof(char *) * (MAX_LIST_LENGTH + 1)); // + terminating-NULL
+
+	int j = 0;
+	for (GSList *p = tags; p != NULL; p = p->next, ++j) {
+		char *tag_name;
+		GtkTextTag *tag = (GtkTextTag *) p->data;
+		g_object_get(tag, "name", &tag_name, NULL);
+		//printf("tag name: %s\n", tag_name);
+
+		//char *name = malloc(MAX_NAME_LENGTH + 1); // + terminating-0
+		char *name = malloc(strlen(tag_name) + 1); // + terminating-0
+		sprintf(name, "%s", tag_name);
+		names[j] = name;
+	}
+	names[j] = NULL;
+
+	return names;	
+}
+
+
+// moves iterator to the beginning of the next token (returns TRUE)
+// does nothing if no next token (returns FALSE)
+gboolean move_to_next_token(GtkTextIter *pi)
+{
+	printf("move_to_next_token()\n");
+
+	GtkTextIter i = *pi;
+
+	char **tag_names;
+	gboolean found = FALSE;
+	while (!found && !gtk_text_iter_is_end(&i)) {
+		gtk_text_iter_forward_char(&i);
+		tag_names = get_opening_tags(&i);
+		for (int i = 0; tag_names[i] != NULL; ++i) {
+			if (strcmp(tag_names[i], "line-highlight") != 0) {
+				found = TRUE;
+				break;
+			}
+		}
+	}
+
+	if (found) {
+		*pi = i;
+		return TRUE;
+	} else {
+		return FALSE;
+	}
+}
+
+
+// moves iterator to the beginning of the previous (or current) token (returns TRUE)
+// does nothing if no previous token (returns FALSE)
+gboolean move_to_prev_token(GtkTextIter *pi)
+{
+	printf("move_to_prev_token()\n");
+
+	GtkTextIter i = *pi;
+
+	char **tag_names;
+	gboolean found = FALSE;
+	while (!found && !gtk_text_iter_is_start(&i)) {
+		gtk_text_iter_backward_char(&i);
+		tag_names = get_opening_tags(&i);
+		for (int i = 0; tag_names[i] != NULL; ++i) {
+			if (strcmp(tag_names[i], "line-highlight") != 0) {
+				found = TRUE;
+				break;
+			}
+		}
+	}
+
+	if (found) {
+		*pi = i;
+		return TRUE;
+	} else {
+		return FALSE;
+	}
+}
+
+
+char **get_closing_tags(GtkTextIter *i)
+{}
+
+
+//
+// moves iter to the start of the token and returns TRUE
+// or if couldnt find a start of the token, does nothing and returns FALSE
+//
+gboolean move_to_token_start(GtkTextIter *iter)
+{
+/*
+	gunichar c = gtk_text_iter_get_char(iter);	
+	if (c == ' ' || c == '\t' || c == '\n') // oh I dont know..
+		return FALSE;
+*/
+	GtkTextIter i = *iter;
+	gboolean found = FALSE;
+
+	do {
+		GSList* tags = gtk_text_iter_get_toggled_tags(&i, TRUE); // toggled on: TRUE
+		guint n_tags = g_slist_length(tags);
+		//gunichar c = gtk_text_iter_get_char(i_token_begin);
+		//printf("%c: (%d)\n", c, n_tags);
+
+		if (n_tags == 0) continue;
+
+		for (GSList *p = tags; p != NULL; p = p->next) {
+			char *name;
+			GtkTextTag *tag = (GtkTextTag *) p->data;
+			g_object_get(tag, "name", &name, NULL);
+			//printf("%s, ", name);
+			if (strcmp(name, "line-highlight") != 0) {
+				found = TRUE; // once we find a tag other than line-highlight were done..
+				break;
+			}
+		}
+		
+		if (found) break;
+	} while (gtk_text_iter_backward_char(&i));
+
+	if (found) {
+		*iter = i;
+	}
+
+	return found;
+}
+
+
+//
+// moves iter to the end of the token and returns TRUE
+// or if couldnt find an end of the token, does nothing and returns FALSE
+//
+gboolean move_to_token_end(GtkTextIter *iter)
+{
+	GtkTextIter i = *iter; 
+	gboolean found = FALSE;
+	gboolean not_at_end = TRUE;
+
+	while (not_at_end) { // returns false when reaches the end
+		not_at_end = gtk_text_iter_forward_char(&i); // if this hits the end, it returns FALSE
+		GSList* tags = gtk_text_iter_get_toggled_tags(&i, FALSE); // toggled on: FALSE
+		guint n_tags = g_slist_length(tags);
+
+		/*gunichar c = gtk_text_iter_get_char(&i);
+		printf("%c: (%d)\n", c, n_tags);*/
+
+		if (n_tags == 0) continue;
+		for (GSList *p = tags; p != NULL; p = p->next) {
+			GtkTextTag *tag = (GtkTextTag *) p->data;
+			char *name;
+			g_object_get(tag, "name", &name, NULL);
+			//printf("%s, ", name);
+			if (strcmp(name, "line-highlight") != 0) {
+				found = TRUE; // once we find a tag other than line-highlight were done..
+				break;
+			}
+		}
+		
+		if (found) break;
+	}
+
+	if (found) {
+		*iter = i;
+	}
+
+	return found;
+}
+
 
 //@ Shouldnt call add_highlighting() every single time!
 void indent_selected_block(GtkTextBuffer *text_buffer, GtkTextIter *selection_start, GtkTextIter *selection_end)
@@ -20,6 +227,7 @@ void indent_selected_block(GtkTextBuffer *text_buffer, GtkTextIter *selection_st
 		if(gtk_text_iter_forward_line(selection_start) == FALSE) return;
 	}
 }
+
 
 void unindent_selected_block(GtkTextBuffer *text_buffer, GtkTextIter *selection_start, GtkTextIter *selection_end)
 {
@@ -52,6 +260,7 @@ void unindent_selected_block(GtkTextBuffer *text_buffer, GtkTextIter *selection_
 
 	// Should delete marks???
 }
+
 
 /*
 	returns TRUE if handled the tab, otherwise FALSE
@@ -113,6 +322,7 @@ tab inserts tabs or replaces selected text with a tab as long as the selection d
 	return TRUE;
 }
 
+
 void actually_open_line_before(GtkTextBuffer *text_buffer)
 {
 	g_print("open_line_before() called!");
@@ -130,6 +340,7 @@ void actually_open_line_before(GtkTextBuffer *text_buffer)
 	//gtk_text_view_scroll_to_iter(global_text_view, &iter_start, 0.0, FALSE, 0.0, 0.0);
 }
 
+
 void actually_open_line_after(GtkTextBuffer *text_buffer)
 {
 	GtkTextIter iter;
@@ -146,6 +357,7 @@ void actually_open_line_after(GtkTextBuffer *text_buffer)
 	}
 	gtk_text_buffer_place_cursor(text_buffer, &iter);
 }
+
 
 char autocomplete_map[128];
 
@@ -173,6 +385,7 @@ void actually_autocomplete_character(GtkTextBuffer *text_buffer, char character)
 
 	free(buffer);
 }
+
 
 gboolean move_lines_up(GdkEventKey *key_event)
 {
@@ -211,6 +424,7 @@ gboolean move_lines_up(GdkEventKey *key_event)
 	gtk_text_buffer_insert(text_buffer, &iter, text, -1);
 	gtk_text_buffer_delete_mark(text_buffer, keep_this);
 }
+
 
 gboolean move_lines_down(GdkEventKey *key_event)
 {
@@ -252,6 +466,7 @@ gboolean move_lines_down(GdkEventKey *key_event)
 	gtk_text_buffer_delete_mark(text_buffer, keep_this);
 }
 
+
 gboolean duplicate_line(GdkEventKey *key_event)
 {
 	GtkTextBuffer *text_buffer;
@@ -291,6 +506,7 @@ gboolean duplicate_line(GdkEventKey *key_event)
 	gtk_text_buffer_delete_mark(text_buffer, end_mark);
 }
 
+
 gboolean delete_line(GdkEventKey *key_event)
 {
 	printf("delete_line()\n");
@@ -314,7 +530,103 @@ gboolean delete_line(GdkEventKey *key_event)
 	return TRUE;
 }
 
-gboolean move_up_by_block(GdkEventKey *key_event)
+
+gboolean move_cursor_left(GdkEventKey *key_event)
+{
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	printf("move_cursor_left()\n");
+
+	view = GTK_TEXT_VIEW(
+		visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
+	if (view == NULL) {
+		printf("move_cursor_left(): no tabs open\n");
+		return FALSE;
+	}
+	if (!gtk_widget_is_focus(GTK_WIDGET(view))) {
+		printf("move_cursor_left(): text-view not in focus\n");
+		return FALSE;
+	}
+	buffer = gtk_text_view_get_buffer(view);
+
+	GtkTextIter i_cursor;
+
+	get_cursor_position(buffer, NULL, &i_cursor, NULL);
+	//printf("move_cursor_left(): cursor location: %d\n", o_cursor);
+
+	gboolean moved = move_to_prev_token(&i_cursor);
+	if (!moved) {
+		// didnt find next token
+		//gtk_text_buffer_get_start_iter(&i_cursor);
+	}
+
+	// regardless of wheter we found a start-tag or hit the beginning of the buffer
+	// put the cursor to a new location.
+	gtk_text_buffer_place_cursor(buffer, &i_cursor);
+	view = visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
+	gtk_text_view_set_cursor_visible(view, FALSE);
+	gtk_text_view_set_cursor_visible(view, TRUE);
+	//gtk_text_view_reset_cursor_blink(view); 3.20 or something..
+	gtk_text_view_scroll_to_iter(view, &i_cursor, 0.0, FALSE, 0.0, 0.0);
+/*
+	GtkTextIter i;
+	gtk_text_buffer_get_start_iter(buffer, &i);
+	do {
+		gunichar c = gtk_text_iter_get_char(&i);
+		char **tag_names = get_opening_tags(&i);
+
+		printf("%c (", c);
+		for (int i = 0; tag_names[i] != NULL; ++i) {
+			printf("%s, ", tag_names[i]);
+		}
+		printf(")\n");
+
+	} while (gtk_text_iter_forward_char(&i));
+*/
+	return TRUE;
+}
+
+
+gboolean move_cursor_right(GdkEventKey *key_event)
+{
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	printf("move_cursor_right()\n");
+
+	view = GTK_TEXT_VIEW(
+		visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
+	if (view == NULL) {
+		printf("move_cursor_right(): no tabs open\n");
+		return FALSE;
+	}
+	if (!gtk_widget_is_focus(GTK_WIDGET(view))) {
+		printf("move_cursor_right(): text-view not in focus\n");
+		return FALSE;
+	}
+	buffer = gtk_text_view_get_buffer(view);
+
+	GtkTextIter i_cursor;
+
+	get_cursor_position(buffer, NULL, &i_cursor, NULL);
+
+	gboolean moved = move_to_next_token(&i_cursor);
+	if (!moved) {
+		// didnt find next token
+		//gtk_text_buffer_get_end_iter(&i_cursor);
+	}
+
+	// regardless of wheter we found a start-tag or hit the beginning of the buffer
+	// put the cursor to a new location.
+	gtk_text_buffer_place_cursor(buffer, &i_cursor);
+	gtk_text_view_scroll_to_iter(view, &i_cursor, 0.0, FALSE, 0.0, 0.0);
+
+	return TRUE;
+}
+
+
+gboolean move_cursor_up(GdkEventKey *key_event)
 {
 	printf("move_up_by_block()\n");
 
@@ -342,10 +654,14 @@ gboolean move_up_by_block(GdkEventKey *key_event)
 
 	gtk_text_buffer_place_cursor(text_buffer, &iter);
 
+	GtkTextView *view = visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
+	gtk_text_view_scroll_to_iter(view, &iter, 0.0, FALSE, 0.0, 0.0);
+
 	return TRUE;
 }
 
-gboolean move_down_by_block(GdkEventKey *key_event)
+
+gboolean move_cursor_down(GdkEventKey *key_event)
 {
 	printf("move_down_by_block()\n");
 
@@ -373,5 +689,132 @@ gboolean move_down_by_block(GdkEventKey *key_event)
 
 	gtk_text_buffer_place_cursor(text_buffer, &iter);
 
+	GtkTextView *view = visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
+	gtk_text_view_scroll_to_iter(view, &iter, 0.0, FALSE, 0.0, 0.0);
+
+	return TRUE;
+}
+
+
+// returns FALSE if iterator not on a token
+gboolean get_token_bounds(const GtkTextIter *pi, GtkTextIter *pi_start, GtkTextIter *pi_end)
+{
+	GtkTextIter i = *pi;
+
+	gunichar c = gtk_text_iter_get_char(&i);	
+	if (c == ' ' || c == '\t' || c == '\n' || gtk_text_iter_is_end(&i)) return FALSE;
+
+	if (!move_to_token_start(&i)) {
+		return FALSE;
+	}
+	*pi_start = i;
+
+	if (!move_to_token_end(&i)) {
+		return FALSE;
+	}
+	*pi_end = i;
+
+	return TRUE;
+}
+
+// rather than swapping tokens, maybe try moving character at a time..
+gboolean move_token_left(GdkEventKey *key_event)
+{
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	printf("move_words_left()\n");
+
+	view = GTK_TEXT_VIEW(
+		visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
+	if (view == NULL) {
+		printf("move_words_left(): no tabs open\n");
+		return FALSE;
+	}
+	if (!gtk_widget_is_focus(GTK_WIDGET(view))) {
+		printf("move_words_left(): text-view not in focus\n");
+		return FALSE;
+	}
+	buffer = gtk_text_view_get_buffer(view);
+
+	GtkTextIter i_cursor, i_token_start, i_token_end;
+
+	get_cursor_position(buffer, NULL, &i_cursor, NULL);
+
+	if (!get_token_bounds(&i_cursor, &i_token_start, &i_token_end)) {
+		printf("move_token_left(): cursor not on a token\n");
+		return TRUE;
+	}
+
+	i_cursor = i_token_start;
+
+/*
+	if (!move_to_prev_token(&i_cursor)) {
+		printf("move_token_left(): already the first token\n");
+		return TRUE;
+	}
+*/
+	gtk_text_iter_backward_char(&i_cursor);
+
+	char *token = gtk_text_buffer_get_text(buffer, &i_token_start, &i_token_end, FALSE);
+	//printf("move_token_left(): token: %s\n", token);
+
+	GtkTextMark *m_temp = gtk_text_buffer_create_mark(buffer, NULL, &i_cursor, TRUE);
+	gtk_text_buffer_delete(buffer, &i_token_start, &i_token_end);
+	gtk_text_buffer_get_iter_at_mark(buffer, &i_cursor, m_temp);
+	gtk_text_buffer_insert(buffer, &i_cursor, token, -1);
+	gtk_text_buffer_get_iter_at_mark(buffer, &i_cursor, m_temp);
+	gtk_text_buffer_place_cursor(buffer, &i_cursor);
+	gtk_text_view_scroll_to_iter(view, &i_cursor, 0.0, FALSE, 0.0, 0.0);
+
+	gtk_text_buffer_delete_mark(buffer, m_temp);
+	return TRUE;
+}
+
+
+gboolean move_token_right(GdkEventKey *key_event)
+{
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	printf("move_words_right()\n");
+
+	view = GTK_TEXT_VIEW(
+		visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
+	if (view == NULL) {
+		printf("move_words_right(): no tabs open\n");
+		return FALSE;
+	}
+	if (!gtk_widget_is_focus(GTK_WIDGET(view))) {
+		printf("move_words_right(): text-view not in focus\n");
+		return FALSE;
+	}
+	buffer = gtk_text_view_get_buffer(view);
+
+	GtkTextIter i_cursor, i_token_start, i_token_end;
+
+	get_cursor_position(buffer, NULL, &i_cursor, NULL);
+
+	if (!get_token_bounds(&i_cursor, &i_token_start, &i_token_end)) {
+		printf("move_token_right(): cursor not on a token\n");
+		return TRUE;
+	}
+
+	i_cursor = i_token_end;
+
+	gtk_text_iter_forward_char(&i_cursor);
+
+	char *token = gtk_text_buffer_get_text(buffer, &i_token_start, &i_token_end, FALSE);
+	//printf("move_token_right(): token: %s\n", token);
+
+	GtkTextMark *m_temp = gtk_text_buffer_create_mark(buffer, NULL, &i_cursor, TRUE);
+	gtk_text_buffer_delete(buffer, &i_token_start, &i_token_end);
+	gtk_text_buffer_get_iter_at_mark(buffer, &i_cursor, m_temp);
+	gtk_text_buffer_insert(buffer, &i_cursor, token, -1);
+	gtk_text_buffer_get_iter_at_mark(buffer, &i_cursor, m_temp);
+	gtk_text_buffer_place_cursor(buffer, &i_cursor);
+	gtk_text_view_scroll_to_iter(view, &i_cursor, 0.0, FALSE, 0.0, 0.0);
+
+	gtk_text_buffer_delete_mark(buffer, m_temp);
 	return TRUE;
 }
