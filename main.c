@@ -476,6 +476,8 @@ GtkWidget *create_tab(const char *file_name)
 
 	GtkWidget *search_and_replace = create_search_and_replace_widget(tab);
 
+	// if we are going to open files using command-entry,
+	// it doesnt make any sense for command-entry to be part of a tab.
 	GtkWidget *command_revealer = gtk_revealer_new();
 	//gtk_revealer_set_transition_type(GTK_REVEALER(sidebar_revealer), GTK_REVEALER_TRANSITION_TYPE_SLIDE_DOWN);
 	GtkWidget *command_entry = gtk_entry_new();
@@ -823,40 +825,8 @@ gboolean autocomplete_character(GdkEventKey *key_event)
 
 	return TRUE;
 }
+
 /*
-gboolean move_lines_up(GdkEventKey *key_event)
-{
-	GtkTextBuffer *text_buffer;
-	if ((text_buffer = get_visible_text_buffer(GTK_NOTEBOOK(notebook))) == NULL) {
-		printf("No tabs open! Nothing to do...\n");
-		return FALSE;
-	}
-
-	actually_open_line_before(text_buffer);
-}
-
-gboolean move_lines_down(GdkEventKey *key_event)
-{
-	GtkTextBuffer *text_buffer;
-	if ((text_buffer = get_visible_text_buffer(GTK_NOTEBOOK(notebook))) == NULL) {
-		printf("No tabs open! Nothing to do...\n");
-		return FALSE;
-	}
-
-	actually_open_line_before(text_buffer);
-}
-
-gboolean duplicate_line(GdkEventKey *key_event)
-{
-	GtkTextBuffer *text_buffer;
-	if ((text_buffer = get_visible_text_buffer(GTK_NOTEBOOK(notebook))) == NULL) {
-		printf("No tabs open! Nothing to do...\n");
-		return FALSE;
-	}
-
-	actually_open_line_before(text_buffer);
-}*/
-
 gboolean open_line_before(GdkEventKey *key_event)
 {
 	GtkTextBuffer *text_buffer;
@@ -878,6 +848,7 @@ gboolean open_line_after(GdkEventKey *key_event)
 
 	actually_open_line_after(text_buffer);
 }
+*/
 
 gboolean create_empty_tab(GdkEventKey *key_event)
 {
@@ -1213,21 +1184,27 @@ void activate_handler(GtkApplication *app, gpointer data)
 		key_combination_handlers[2] = NULL;
 
 	//@ cursors blink is off for move_cursor_left() & move_cursor_right()
-	// also comments..
+	// also comments & identifiers -- not very convenient
 	key_combinations[CTRL][113] = move_cursor_left; // ctrl + <left arrow>
 	key_combinations[CTRL][114] = move_cursor_right; // ctrl + <right arrow>
+	key_combinations[SHIFT|CTRL][113] = move_cursor_left;
+	key_combinations[SHIFT|CTRL][114] = move_cursor_right;
 
 	key_combinations[CTRL][111] = move_cursor_up; // ctrl + <up>
 	key_combinations[CTRL][116] = move_cursor_down; // ctrl + <down>
+
+	key_combinations[CTRL][47] = move_cursor_start_line; // ctrl + ö
+	key_combinations[CTRL][48] = move_cursor_end_line; // ctrl + ä
 
 	key_combinations[ALT][111] = move_lines_up; // alt + <up arrow>
 	key_combinations[ALT][116] = move_lines_down; // alt + <down arrow>
 	key_combinations[ALT][113] = move_token_left; // alt + <left arrow>
 	key_combinations[ALT][114] = move_token_right; // alt + <right arrow>
+	key_combinations[ALT][35] = insert_line_before; // alt + õ (35)
+	key_combinations[ALT][51] = insert_line_after; // alt + ' (51)
 	key_combinations[ALT][40] = duplicate_line; // alt + d
 	key_combinations[ALT][119] = delete_line; // alt + <delete>
-	key_combinations[ALT][35] = open_line_before; // alt + õ (35)
-	key_combinations[ALT][51] = open_line_after; // alt + ' (51)
+	key_combinations[ALT][34] = change_line; // alt + ü
 
 	// Auto-close(/-complete):
 	key_combinations[0][51] = autocomplete_character; // 51 -> '
@@ -1235,8 +1212,6 @@ void activate_handler(GtkApplication *app, gpointer data)
 	key_combinations[SHIFT][17] = autocomplete_character; // shift + 17 -> (
 	key_combinations[ALTGR][16] = autocomplete_character; // altgr + 16 -> {
 	key_combinations[ALTGR][17] = autocomplete_character; // altgr + 17 -> [
-
-//	key_combinations[CTRL][27] = search_and_replace; // ctrl + r
 
 	key_combinations[CTRL][52] = undo_last_action; // ctrl + z
 
@@ -1248,7 +1223,7 @@ void activate_handler(GtkApplication *app, gpointer data)
 	key_combinations[CTRL][32] = do_open; // ctrl + o
 
 	key_combinations[CTRL][41] = toggle_search_entry; // ctrl + f
-	key_combinations[CTRL][27] = toggle_replace_entry; // ctrl + h
+	key_combinations[CTRL][27] = toggle_replace_entry; // ctrl + r
 	key_combinations[CTRL][43] = toggle_command_entry; // ctrl + h
 
 	key_combinations[CTRL][42] = less_fancy_toggle_sidebar; // ctrl + g

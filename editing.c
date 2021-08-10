@@ -9,6 +9,34 @@
 extern GtkWidget *notebook;
 
 
+// could shorten this even further by using a macro?
+static gboolean init(GtkTextView **pview, GtkTextBuffer **pbuffer)
+{
+	GtkTextView *view;
+	GtkTextBuffer *buffer; 
+
+	view = GTK_TEXT_VIEW(
+		visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
+
+	if (view == NULL) {
+		printf("get_textview_or_earlyout(): no tabs open\n");
+		return FALSE;
+	}
+
+	if (!gtk_widget_is_focus(GTK_WIDGET(view))) {
+		printf("get_textview_or_earlyout(): text-view not in focus\n");
+		return FALSE;
+	}
+
+	buffer = gtk_text_view_get_buffer(view);
+
+	*pview = view;
+	*pbuffer = buffer;
+
+	return TRUE;
+}
+
+
 // m, i, o -- output values
 // output values are optional (pass in NULL if you dont want one)
 void get_cursor_position(GtkTextBuffer *buffer,
@@ -76,7 +104,7 @@ gboolean move_to_next_token(GtkTextIter *pi)
 	gboolean found = FALSE;
 	while (!found && !gtk_text_iter_is_end(&i)) {
 		gtk_text_iter_forward_char(&i);
-		tag_names = get_opening_tags(&i);
+		tag_names = get_opening_tags(&i); //@ free this and others
 		for (int i = 0; tag_names[i] != NULL; ++i) {
 			if (strcmp(tag_names[i], "line-highlight") != 0) {
 				found = TRUE;
@@ -323,39 +351,95 @@ tab inserts tabs or replaces selected text with a tab as long as the selection d
 }
 
 
-void actually_open_line_before(GtkTextBuffer *text_buffer)
+char *get_line_indent(GtkTextBuffer *buffer, GtkTextIter *pi)
 {
-	g_print("open_line_before() called!");
+	GtkTextIter i, i_indent_begin, i_indent_end;
 
-	GtkTextIter iter_start, iter;
-	gtk_text_buffer_get_start_iter(text_buffer, &iter_start);
+	i = *pi;
+	gtk_text_iter_set_line_offset(&i, 0);
+	i_indent_end = i_indent_begin = i;
 
-	GtkTextMark *cursor = gtk_text_buffer_get_mark(text_buffer, "insert");
-	gtk_text_buffer_get_iter_at_mark(text_buffer, &iter, cursor);
-	gtk_text_iter_set_line_offset(&iter, 0); // to the beginning of the line 
-	gtk_text_buffer_insert(text_buffer, &iter, "\n", -1);
-	gtk_text_iter_backward_char(&iter);
-	gtk_text_buffer_place_cursor(text_buffer, &iter);
-	//gtk_text_buffer_insert_at_cursor (global_text_buffer, "\n", -1);
-	//gtk_text_view_scroll_to_iter(global_text_view, &iter_start, 0.0, FALSE, 0.0, 0.0);
+	while (1) {
+		gunichar c = gtk_text_iter_get_char(&i_indent_end);
+		if (c == ' ' || c == '\t')
+			gtk_text_iter_forward_char(&i_indent_end);
+		else
+			break;
+	}
+	char *indent = gtk_text_buffer_get_text(buffer, &i_indent_begin, &i_indent_end, FALSE);
+	if (strlen(indent) > 0)
+		printf("get_line_indent(): indent: %s\n", indent);
+	else
+		printf("get_line_indent(): no indent\n");
+
+	return indent;
 }
 
 
-void actually_open_line_after(GtkTextBuffer *text_buffer)
+gboolean insert_line_before(GdkEventKey *key_event)
 {
-	GtkTextIter iter;
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
 
-	GtkTextMark *cursor = gtk_text_buffer_get_mark(text_buffer, "insert");
-	gtk_text_buffer_get_iter_at_mark(text_buffer, &iter, cursor);
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
 
-	gtk_text_iter_forward_line(&iter); // to the beginning of the next line or to the end of the current line (if already on the last line)
-	if (gtk_text_iter_is_end(&iter) == FALSE) {
-		gtk_text_buffer_insert(text_buffer, &iter, "\n", -1);
-		gtk_text_iter_backward_char(&iter);
+	GtkTextIter iter_start, i;
+	gtk_text_buffer_get_start_iter(buffer, &iter_start);
+
+	get_cursor_position(buffer, NULL, &i, NULL);
+
+	char insert[100];
+	char *indent = get_line_indent(buffer, &i);
+	snprintf(insert, 100, "%s\n", indent);
+
+	gtk_text_iter_set_line_offset(&i, 0);
+
+	GtkTextMark *m = gtk_text_buffer_create_mark(buffer, NULL, &i, FALSE);
+	gtk_text_buffer_insert(buffer, &i, insert, -1);
+	gtk_text_buffer_get_iter_at_mark(buffer, &i, m);
+	//gtk_text_iter_forward_chars(&i, indent_len);
+	gtk_text_iter_backward_char(&i);
+	gtk_text_buffer_place_cursor(buffer, &i);
+	gtk_text_buffer_delete_mark(buffer, m);
+
+	return TRUE;
+}
+
+
+gboolean insert_line_after(GdkEventKey *key_event)
+{
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
+
+	GtkTextIter i;
+
+	get_cursor_position(buffer, NULL, &i, NULL);
+
+	char insert[100];
+	char *indent = get_line_indent(buffer, &i);
+	snprintf(insert, 100, "%s\n", indent);
+
+	gtk_text_iter_forward_line(&i); // to the beginning of the next line or to the end of the current line (if already on the last line)
+	GtkTextMark *m = gtk_text_buffer_create_mark(buffer, NULL, &i, FALSE);
+	if (!gtk_text_iter_is_end(&i)) {
+		snprintf(insert, 100, "%s\n", indent);
+		gtk_text_buffer_insert(buffer, &i, insert, -1);
+		gtk_text_buffer_get_iter_at_mark(buffer, &i, m);
+		gtk_text_iter_backward_char(&i);
 	} else {
-		gtk_text_buffer_insert(text_buffer, &iter, "\n", -1);
+		snprintf(insert, 100, "\n%s", indent);
+		gtk_text_buffer_insert(buffer, &i, insert, -1);
+		gtk_text_buffer_get_iter_at_mark(buffer, &i, m);
 	}
-	gtk_text_buffer_place_cursor(text_buffer, &iter);
+	gtk_text_buffer_place_cursor(buffer, &i);
+
+	return TRUE;
 }
 
 
@@ -530,97 +614,223 @@ gboolean delete_line(GdkEventKey *key_event)
 	return TRUE;
 }
 
-
-gboolean move_cursor_left(GdkEventKey *key_event)
+gboolean change_line(GdkEventKey *key_event)
 {
 	GtkTextView *view;
 	GtkTextBuffer *buffer;
 
-	printf("move_cursor_left()\n");
+	printf("change_line()\n");
 
 	view = GTK_TEXT_VIEW(
 		visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
 	if (view == NULL) {
-		printf("move_cursor_left(): no tabs open\n");
+		printf("change_line(): no tabs open\n");
 		return FALSE;
 	}
 	if (!gtk_widget_is_focus(GTK_WIDGET(view))) {
-		printf("move_cursor_left(): text-view not in focus\n");
+		printf("change_line(): text-view not in focus\n");
 		return FALSE;
 	}
 	buffer = gtk_text_view_get_buffer(view);
 
-	GtkTextIter i_cursor;
+	GtkTextIter i, i1, i2;
 
-	get_cursor_position(buffer, NULL, &i_cursor, NULL);
-	//printf("move_cursor_left(): cursor location: %d\n", o_cursor);
+	get_cursor_position(buffer, NULL, &i, NULL);
 
-	gboolean moved = move_to_prev_token(&i_cursor);
-	if (!moved) {
-		// didnt find next token
-		//gtk_text_buffer_get_start_iter(&i_cursor);
+	gtk_text_iter_set_line_offset(&i, 0);
+	while (1) {
+		gunichar c = gtk_text_iter_get_char(&i);
+		if (c == ' ' || c == '\t')
+			gtk_text_iter_forward_char(&i);
+		else
+			break;
+	}
+	i1 = i;
+	gtk_text_iter_forward_line(&i);
+	if (!gtk_text_iter_is_end(&i))
+		gtk_text_iter_backward_char(&i);
+	i2 = i;
+	gtk_text_buffer_delete(buffer, &i1, &i2);
+
+	return TRUE;
+}
+
+
+gboolean move_cursor_start_line(GdkEventKey *key_event)
+{
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	printf("move_cursor_start_line()\n");
+
+	view = GTK_TEXT_VIEW(
+		visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
+	if (view == NULL) {
+		printf("move_cursor_start_line(): no tabs open\n");
+		return FALSE;
+	}
+	if (!gtk_widget_is_focus(GTK_WIDGET(view))) {
+		printf("move_cursor_start_line(): text-view not in focus\n");
+		return FALSE;
+	}
+	buffer = gtk_text_view_get_buffer(view);
+
+	GtkTextIter i;
+
+	get_cursor_position(buffer, NULL, &i, NULL);
+
+	gtk_text_iter_set_line_offset(&i, 0);
+	while (1) {
+		gunichar c = gtk_text_iter_get_char(&i);
+		if (c == ' ' || c == '\t')
+			gtk_text_iter_forward_char(&i);
+		else
+			break;
 	}
 
-	// regardless of wheter we found a start-tag or hit the beginning of the buffer
-	// put the cursor to a new location.
-	gtk_text_buffer_place_cursor(buffer, &i_cursor);
-	view = visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
-	gtk_text_view_set_cursor_visible(view, FALSE);
-	gtk_text_view_set_cursor_visible(view, TRUE);
-	//gtk_text_view_reset_cursor_blink(view); 3.20 or something..
-	gtk_text_view_scroll_to_iter(view, &i_cursor, 0.0, FALSE, 0.0, 0.0);
-/*
+	gtk_text_buffer_place_cursor(buffer, &i);
+
+	return TRUE;
+}
+
+
+gboolean move_cursor_end_line(GdkEventKey *key_event)
+{
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	printf("move_cursor_end_line()\n");
+
+	view = GTK_TEXT_VIEW(
+		visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
+	if (view == NULL) {
+		printf("move_cursor_end_line(): no tabs open\n");
+		return FALSE;
+	}
+	if (!gtk_widget_is_focus(GTK_WIDGET(view))) {
+		printf("move_cursor_end_line(): text-view not in focus\n");
+		return FALSE;
+	}
+	buffer = gtk_text_view_get_buffer(view);
+
 	GtkTextIter i;
-	gtk_text_buffer_get_start_iter(buffer, &i);
-	do {
-		gunichar c = gtk_text_iter_get_char(&i);
-		char **tag_names = get_opening_tags(&i);
 
-		printf("%c (", c);
-		for (int i = 0; tag_names[i] != NULL; ++i) {
-			printf("%s, ", tag_names[i]);
+	get_cursor_position(buffer, NULL, &i, NULL);
+
+	gtk_text_iter_forward_line(&i);
+	if (!gtk_text_iter_is_end(&i))
+		gtk_text_iter_backward_char(&i);
+
+	gtk_text_buffer_place_cursor(buffer, &i);
+
+	return TRUE;
+}
+
+
+gboolean move_cursor_left(GdkEventKey *key_event)
+{
+	printf("move_cursor_left()\n");
+
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
+
+	GtkTextIter i, i_prev, i_sel_start, i_sel_end;
+
+	get_cursor_position(buffer, NULL, &i, NULL);
+	//printf("move_cursor_left(): cursor location: %d\n", o_cursor);
+
+	// store the previous location in case we should select (shift)
+	// get_selection_bounds() gives us the selection bounds in the ascending order
+	// we want the bound which is not equal to the cursor
+	if (key_event->state & GDK_SHIFT_MASK) {
+		if (gtk_text_buffer_get_selection_bounds(buffer, &i_sel_start, &i_sel_end)) {
+			if (gtk_text_iter_compare(&i_sel_start, &i) == 0) {
+				// i_sel_start is where the cursor is..
+				i_prev = i_sel_end;
+			} else {
+				// assuming i_sel_end is where the cursor is..
+				i_prev = i_sel_start;
+			}
+		} else {
+			i_prev = i;
 		}
-		printf(")\n");
+	}
 
-	} while (gtk_text_iter_forward_char(&i));
-*/
+	gboolean moved = move_to_prev_token(&i);
+	if (!moved) {
+		// didnt find next token
+		//gtk_text_buffer_get_start_iter(&i);
+	}
+
+	// if we have shift, we should select
+	if (key_event->state & GDK_SHIFT_MASK) {
+		printf("move_cursor_left(): we have a shift\n");
+		gtk_text_buffer_select_range(buffer, &i, &i_prev); // 1st insertion, 2nd selection-bound
+	} else {
+		gtk_text_buffer_place_cursor(buffer, &i);
+		//gtk_text_view_set_cursor_visible(view, FALSE);
+		//gtk_text_view_set_cursor_visible(view, TRUE);
+		//gtk_text_view_reset_cursor_blink(view); 3.20 or something..
+	}
+	gtk_text_view_scroll_to_iter(view, &i, 0.0, FALSE, 0.0, 0.0);
+
 	return TRUE;
 }
 
 
 gboolean move_cursor_right(GdkEventKey *key_event)
 {
+	printf("move_cursor_right()\n");
+
 	GtkTextView *view;
 	GtkTextBuffer *buffer;
 
-	printf("move_cursor_right()\n");
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
 
-	view = GTK_TEXT_VIEW(
-		visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
-	if (view == NULL) {
-		printf("move_cursor_right(): no tabs open\n");
-		return FALSE;
+	GtkTextIter i, i_prev, i_sel_start, i_sel_end;
+
+	get_cursor_position(buffer, NULL, &i, NULL);
+
+	// store the previous location in case we should select (shift)
+	// get_selection_bounds() gives us the selection bounds in the ascending order
+	// we want the bound which is not equal to the cursor
+	if (key_event->state & GDK_SHIFT_MASK) {
+		if (gtk_text_buffer_get_selection_bounds(buffer, &i_sel_start, &i_sel_end)) {
+			if (gtk_text_iter_compare(&i_sel_start, &i) == 0) {
+				// i_sel_start is where the cursor is..
+				i_prev = i_sel_end;
+			} else {
+				// assuming i_sel_end is where the cursor is..
+				i_prev = i_sel_start;
+			}
+		} else {
+			i_prev = i;
+		}
 	}
-	if (!gtk_widget_is_focus(GTK_WIDGET(view))) {
-		printf("move_cursor_right(): text-view not in focus\n");
-		return FALSE;
-	}
-	buffer = gtk_text_view_get_buffer(view);
 
-	GtkTextIter i_cursor;
-
-	get_cursor_position(buffer, NULL, &i_cursor, NULL);
-
-	gboolean moved = move_to_next_token(&i_cursor);
+	gboolean moved = move_to_next_token(&i);
 	if (!moved) {
 		// didnt find next token
-		//gtk_text_buffer_get_end_iter(&i_cursor);
+		gtk_text_buffer_get_end_iter(buffer, &i);
 	}
 
-	// regardless of wheter we found a start-tag or hit the beginning of the buffer
-	// put the cursor to a new location.
-	gtk_text_buffer_place_cursor(buffer, &i_cursor);
-	gtk_text_view_scroll_to_iter(view, &i_cursor, 0.0, FALSE, 0.0, 0.0);
+	// if we have shift, we should select
+	if (key_event->state & GDK_SHIFT_MASK) {
+		printf("move_cursor_left(): we have a shift\n");
+		gtk_text_buffer_select_range(buffer, &i, &i_prev); // 1st insertion, 2nd selection-bound
+	} else {
+		gtk_text_buffer_place_cursor(buffer, &i);
+		//gtk_text_view_set_cursor_visible(view, FALSE);
+		//gtk_text_view_set_cursor_visible(view, TRUE);
+		//gtk_text_view_reset_cursor_blink(view); 3.20 or something..
+	}
+	gtk_text_view_scroll_to_iter(view, &i, 0.0, FALSE, 0.0, 0.0);
 
 	return TRUE;
 }
@@ -771,7 +981,6 @@ gboolean move_token_left(GdkEventKey *key_event)
 	return TRUE;
 }
 
-
 gboolean move_token_right(GdkEventKey *key_event)
 {
 	GtkTextView *view;
@@ -779,17 +988,9 @@ gboolean move_token_right(GdkEventKey *key_event)
 
 	printf("move_words_right()\n");
 
-	view = GTK_TEXT_VIEW(
-		visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
-	if (view == NULL) {
-		printf("move_words_right(): no tabs open\n");
-		return FALSE;
-	}
-	if (!gtk_widget_is_focus(GTK_WIDGET(view))) {
-		printf("move_words_right(): text-view not in focus\n");
-		return FALSE;
-	}
-	buffer = gtk_text_view_get_buffer(view);
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
 
 	GtkTextIter i_cursor, i_token_start, i_token_end;
 

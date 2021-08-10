@@ -14,17 +14,20 @@ GtkWidget *create_search_in_files_widget(void);
 gboolean handle_tab_key(GtkTextBuffer *text_buffer, GdkEventKey *key_event);
 gboolean duplicate_line(GdkEventKey *key_event);
 gboolean delete_line(GdkEventKey *key_event);
-void actually_open_line_after(GtkTextBuffer *text_buffer);
-void actually_open_line_before(GtkTextBuffer *text_buffer);
+gboolean insert_line_before(GdkEventKey *key_event);
+gboolean insert_line_after(GdkEventKey *key_event);
 void actually_autocomplete_character(GtkTextBuffer *text_buffer, char character);
 gboolean move_cursor_left(GdkEventKey *key_event);
 gboolean move_cursor_right(GdkEventKey *key_event);
 gboolean move_cursor_up(GdkEventKey *key_event);
 gboolean move_cursor_down(GdkEventKey *key_event);
+gboolean move_cursor_start_line(GdkEventKey *key_event);
+gboolean move_cursor_end_line(GdkEventKey *key_event);
 gboolean move_lines_up(GdkEventKey *key_event);
 gboolean move_lines_down(GdkEventKey *key_event);
 gboolean move_token_left(GdkEventKey *key_event);
 gboolean move_token_right(GdkEventKey *key_event);
+gboolean change_line(GdkEventKey *key_event);
 
 /* fileio.c: */
 char *read_file(const char *filename);

@@ -151,3 +151,41 @@ in:
 
 (a.out:3899): GLib-GObject-CRITICAL **: g_object_unref: assertion 'G_IS_OBJECT (object)' failed
 
+---
+
+on_enter_key_pressed(): 
+on_search_and_replace()
+on_search_and_replace(): starting new search!
+
+(a.out:2339): Gtk-CRITICAL **: gtk_text_buffer_move_mark: assertion 'GTK_IS_TEXT_MARK (mark)' failed
+
+(a.out:2339): Gtk-CRITICAL **: gtk_text_buffer_move_mark: assertion 'GTK_IS_TEXT_MARK (mark)' failed
+
+(a.out:2339): Gtk-CRITICAL **: gtk_text_buffer_get_iter_at_mark: assertion 'GTK_IS_TEXT_MARK (mark)' failed
+
+(a.out:2339): Gtk-CRITICAL **: gtk_text_buffer_move_mark: assertion 'GTK_IS_TEXT_MARK (mark)' failed
+
+(a.out:2339): Gtk-CRITICAL **: gtk_text_buffer_get_iter_at_mark: assertion 'GTK_IS_TEXT_MARK (mark)' failed
+
+(a.out:2339): Gtk-CRITICAL **: gtk_text_buffer_get_iter_at_mark: assertion 'GTK_IS_TEXT_MARK (mark)' failed
+
+(a.out:2339): Gtk-CRITICAL **: gtk_text_buffer_get_iter_at_mark: assertion 'GTK_IS_TEXT_MARK (mark)' failed
+searching for "init"
+
+(a.out:2339): Gtk-WARNING **: Invalid text buffer iterator: either the iterator is uninitialized, or the characters/pixbufs/widgets in the buffer have been modified since the iterator was created.
+You must use marks, character numbers, or line numbers to preserve a position across buffer modifications.
+You can apply tags and insert marks without invalidating your iterators,
+but any mutation that affects 'indexable' buffer contents (contents that can be referred to by character offset)
+will invalidate all outstanding iterators
+
+(a.out:2339): Gtk-CRITICAL **: gtk_text_buffer_get_text: assertion 'gtk_text_iter_get_buffer (start) == buffer' failed
+in: 
+(null)
+
+(a.out:2339): Gtk-WARNING **: Invalid text buffer iterator: either the iterator is uninitialized, or the characters/pixbufs/widgets in the buffer have been modified since the iterator was created.
+You must use marks, character numbers, or line numbers to preserve a position across buffer modifications.
+You can apply tags and insert marks without invalidating your iterators,
+but any mutation that affects 'indexable' buffer contents (contents that can be referred to by character offset)
+will invalidate all outstanding iterators
+Segmentation fault (core dumped)
+

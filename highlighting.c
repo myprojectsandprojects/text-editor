@@ -32,9 +32,9 @@ gunichar get_next_character(GtkTextIter *iter)
 
 void highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end)
 {
-	char *text = gtk_text_buffer_get_text(text_buffer, start, end, FALSE);
-	LOG_MSG("highlighting: \"%s\"\n", text);
-	free(text);
+	//char *text = gtk_text_buffer_get_text(text_buffer, start, end, FALSE);
+	//LOG_MSG("highlighting: \"%s\"\n", text);
+	//free(text);
 
 	//printf("adding highlighting to range: %d -> %d\n", gtk_text_iter_get_offset(start), gtk_text_iter_get_offset(end));
 
