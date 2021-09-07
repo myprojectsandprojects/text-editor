@@ -476,15 +476,6 @@ GtkWidget *create_tab(const char *file_name)
 
 	GtkWidget *search_and_replace = create_search_and_replace_widget(tab);
 
-	// if we are going to open files using command-entry,
-	// it doesnt make any sense for command-entry to be part of a tab.
-	GtkWidget *command_revealer = gtk_revealer_new();
-	//gtk_revealer_set_transition_type(GTK_REVEALER(sidebar_revealer), GTK_REVEALER_TRANSITION_TYPE_SLIDE_DOWN);
-	GtkWidget *command_entry = gtk_entry_new();
-	gtk_widget_set_name(command_entry, "command-entry");
-	add_class(command_entry, "text-entry-orange");
-	gtk_container_add(GTK_CONTAINER(command_revealer), command_entry);
-
 
 	GtkWidget *line_nr_label = gtk_label_new("Line");
 	GtkWidget *line_nr_value = gtk_label_new(NULL);
@@ -519,15 +510,17 @@ GtkWidget *create_tab(const char *file_name)
 		free(contents);
 	}
 
+	/*
 	tab_add_widget_4_retrieval(tab, COMMAND_REVEALER, command_revealer);
 	tab_add_widget_4_retrieval(tab, COMMAND_ENTRY, command_entry);
+	*/
 	tab_add_widget_4_retrieval(tab, TEXT_VIEW, text_view);
 	tab_add_widget_4_retrieval(tab, TEXT_BUFFER, text_buffer); //@ haa text-buffer is not a widget! void *?
 
 	gtk_container_add(GTK_CONTAINER(scrolled_window), GTK_WIDGET(text_view));
 	gtk_container_add(GTK_CONTAINER(tab), search_and_replace);
 	gtk_container_add(GTK_CONTAINER(tab), scrolled_window);
-	gtk_container_add(GTK_CONTAINER(tab), command_revealer);
+	//gtk_container_add(GTK_CONTAINER(tab), command_revealer);
 	//gtk_container_add(GTK_CONTAINER(tab), statusbar);
 	gtk_container_add(GTK_CONTAINER(tab), status_bar);
 
@@ -909,6 +902,7 @@ gboolean less_fancy_toggle_notebook(GdkEventKey *key_event)
 	return TRUE;
 }
 
+/*
 gboolean toggle_command_entry(GdkEventKey *key_event)
 {
 	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
@@ -937,6 +931,7 @@ gboolean toggle_command_entry(GdkEventKey *key_event)
 
 	return TRUE;
 }
+*/
 
 /* tab-handling should probably be refactored in a more sensible way */
 gboolean handle_tab(GdkEventKey *key_event)
@@ -988,6 +983,7 @@ gboolean handle_enter(GdkEventKey *key_event)
 	return FALSE;
 }
 
+/*
 gboolean execute_command(void)
 {
 	printf("execute_command()\n");
@@ -999,6 +995,7 @@ gboolean execute_command(void)
 	}
 
 	GtkWidget *command_entry = tab_retrieve_widget(tab, COMMAND_ENTRY);
+	assert(command_entry);
 
 	if (gtk_widget_is_focus(command_entry) == TRUE)
 	{
@@ -1022,6 +1019,7 @@ gboolean execute_command(void)
 
 	return FALSE;
 }
+*/
 
 gboolean on_enter_key_pressed(GdkEventKey *key_event)
 {
@@ -1169,7 +1167,6 @@ Calling apply_css_from_file() directly crashes the app when modifying the css-fi
 
 void activate_handler(GtkApplication *app, gpointer data)
 {
-
 	LOG_MSG("activate_handler() called\n");
 
 	key_combinations[0][23] = handle_tab; // <tab>
@@ -1180,7 +1177,7 @@ void activate_handler(GtkApplication *app, gpointer data)
 	key_combinations[0][36] = on_enter_key_pressed; // <enter>
 	// on_enter_key_pressed() calls these handlers:
 		key_combination_handlers[0] = on_search_and_replace;
-		key_combination_handlers[1] = execute_command;
+		//key_combination_handlers[1] = execute_command;
 		key_combination_handlers[2] = NULL;
 
 	//@ cursors blink is off for move_cursor_left() & move_cursor_right()
@@ -1224,7 +1221,7 @@ void activate_handler(GtkApplication *app, gpointer data)
 
 	key_combinations[CTRL][41] = toggle_search_entry; // ctrl + f
 	key_combinations[CTRL][27] = toggle_replace_entry; // ctrl + r
-	key_combinations[CTRL][43] = toggle_command_entry; // ctrl + h
+	key_combinations[CTRL][43] = toggle_openfile; // ctrl + h
 
 	key_combinations[CTRL][42] = less_fancy_toggle_sidebar; // ctrl + g
 	key_combinations[CTRL][44] = less_fancy_toggle_notebook; // ctrl + j
@@ -1276,6 +1273,10 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	gtk_widget_set_vexpand(sidebar_notebook, TRUE);
 	gtk_widget_set_hexpand(sidebar_notebook, TRUE);
 
+
+	GtkWidget *openfile_revealer = create_openfile_widget();
+	GtkWidget *openfile_entry = gtk_bin_get_child(GTK_BIN(openfile_revealer));
+
 	notebook = gtk_notebook_new();
 	gtk_notebook_set_scrollable(GTK_NOTEBOOK(notebook), TRUE);
 	// Generally we would like to keep the focus on the text-view widget.
@@ -1286,6 +1287,10 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_class(notebook, "main-notebook");
 	
 	gtk_widget_set_hexpand(notebook, TRUE);
+
+	GtkWidget *nb_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	gtk_container_add(GTK_CONTAINER(nb_container), openfile_revealer);
+	gtk_container_add(GTK_CONTAINER(nb_container), notebook);
 
 
 	window = gtk_application_window_new(app);
@@ -1313,7 +1318,8 @@ we could also pass in a list of functions to app's key-press handler and then ca
 
 	GtkWidget *paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
 	gtk_paned_add1(GTK_PANED(paned), sidebar_container);
-	gtk_paned_add2(GTK_PANED(paned), notebook);
+	//gtk_paned_add2(GTK_PANED(paned), notebook);
+	gtk_paned_add2(GTK_PANED(paned), nb_container);
 	gtk_container_add(GTK_CONTAINER(window), paned);
 
 	gtk_widget_show_all(window);

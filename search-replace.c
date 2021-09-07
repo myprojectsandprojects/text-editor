@@ -44,7 +44,7 @@ gboolean toggle_search_entry(GdkEventKey *key_event)
 	GtkWidget *replace_revealer = (GtkWidget *) tab_retrieve_widget(tab, REPLACE_REVEALER);
 
 	assert(text_view != NULL && search_revealer != NULL && search_entry != NULL
-		&& search_revealer != NULL && search_entry != NULL);
+		&& search_revealer != NULL && search_entry != NULL); // @
 
 	if (gtk_revealer_get_reveal_child(GTK_REVEALER(search_revealer)))
 	{

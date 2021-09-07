@@ -73,6 +73,10 @@ gboolean autocomplete_on_window_key_press(GtkWidget *window,
 /* root-navigation.c */
 GtkWidget *create_root_nav_widget(void);
 
+/* open.c */
+GtkWidget *create_openfile_widget(void);
+gboolean toggle_openfile(GdkEventKey *key_event);
+
 //#define PRINT_LOG_MESSAGES
 #ifdef PRINT_LOG_MESSAGES
 	//#define LOG_MSG(...) printf(__VA_ARGS__)

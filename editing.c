@@ -9,7 +9,6 @@
 extern GtkWidget *notebook;
 
 
-// could shorten this even further by using a macro?
 static gboolean init(GtkTextView **pview, GtkTextBuffer **pbuffer)
 {
 	GtkTextView *view;
@@ -19,16 +18,17 @@ static gboolean init(GtkTextView **pview, GtkTextBuffer **pbuffer)
 		visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
 
 	if (view == NULL) {
-		printf("get_textview_or_earlyout(): no tabs open\n");
+		LOG_MSG("init(): no tabs open -> exiting\n");
 		return FALSE;
 	}
 
 	if (!gtk_widget_is_focus(GTK_WIDGET(view))) {
-		printf("get_textview_or_earlyout(): text-view not in focus\n");
+		LOG_MSG("init(): text-view not in focus\n");
 		return FALSE;
 	}
 
 	buffer = gtk_text_view_get_buffer(view);
+	assert(buffer);
 
 	*pview = view;
 	*pbuffer = buffer;
@@ -92,11 +92,15 @@ char **get_opening_tags(GtkTextIter *i)
 }
 
 
+char **get_closing_tags(GtkTextIter *i)
+{}
+
+
 // moves iterator to the beginning of the next token (returns TRUE)
 // does nothing if no next token (returns FALSE)
 gboolean move_to_next_token(GtkTextIter *pi)
 {
-	printf("move_to_next_token()\n");
+	LOG_MSG("move_to_next_token()\n");
 
 	GtkTextIter i = *pi;
 
@@ -126,7 +130,7 @@ gboolean move_to_next_token(GtkTextIter *pi)
 // does nothing if no previous token (returns FALSE)
 gboolean move_to_prev_token(GtkTextIter *pi)
 {
-	printf("move_to_prev_token()\n");
+	LOG_MSG("move_to_prev_token()\n");
 
 	GtkTextIter i = *pi;
 
@@ -150,10 +154,6 @@ gboolean move_to_prev_token(GtkTextIter *pi)
 		return FALSE;
 	}
 }
-
-
-char **get_closing_tags(GtkTextIter *i)
-{}
 
 
 //
@@ -368,9 +368,9 @@ char *get_line_indent(GtkTextBuffer *buffer, GtkTextIter *pi)
 	}
 	char *indent = gtk_text_buffer_get_text(buffer, &i_indent_begin, &i_indent_end, FALSE);
 	if (strlen(indent) > 0)
-		printf("get_line_indent(): indent: %s\n", indent);
+		LOG_MSG("get_line_indent(): indent: %s\n", indent);
 	else
-		printf("get_line_indent(): no indent\n");
+		LOG_MSG("get_line_indent(): no indent\n");
 
 	return indent;
 }
@@ -381,9 +381,9 @@ gboolean insert_line_before(GdkEventKey *key_event)
 	GtkTextView *view;
 	GtkTextBuffer *buffer;
 
-	gboolean rv = init(&view, &buffer);
-	if (!rv)
-		return rv;
+	printf("insert_line_before()\n");
+	
+	if (!init(&view, &buffer)) return FALSE;
 
 	GtkTextIter iter_start, i;
 	gtk_text_buffer_get_start_iter(buffer, &iter_start);
@@ -413,9 +413,9 @@ gboolean insert_line_after(GdkEventKey *key_event)
 	GtkTextView *view;
 	GtkTextBuffer *buffer;
 
-	gboolean rv = init(&view, &buffer);
-	if (!rv)
-		return rv;
+	printf("insert_line_before()\n");
+	
+	if (!init(&view, &buffer)) return FALSE;
 
 	GtkTextIter i;
 
@@ -473,165 +473,158 @@ void actually_autocomplete_character(GtkTextBuffer *text_buffer, char character)
 
 gboolean move_lines_up(GdkEventKey *key_event)
 {
-	GtkTextBuffer *text_buffer;
-	text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
-	if (text_buffer == NULL) {
-		printf("No tabs open! Nothing to do...\n");
-		return FALSE;
-	}
+	LOG_MSG("move_lines_up()\n");
+
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
 
 	// Delete the line before selected lines.
 	// Insert the line after selected lines
 
 	GtkTextIter selection_start_iter, selection_end_iter, iter;
-	gtk_text_buffer_get_selection_bounds(text_buffer, &selection_start_iter, &selection_end_iter);
+	gtk_text_buffer_get_selection_bounds(buffer, &selection_start_iter, &selection_end_iter);
 
 	iter = selection_start_iter;
 	gboolean result = gtk_text_iter_backward_lines(&iter, 1); // Go to the beginning of the previous line
 	if (result == FALSE) {
-		printf("No lines before..\n");
+		LOG_MSG("move_lines_up(): no lines before selection -> earlyout\n");
 		return TRUE;
 	}
-	//printf("iter offset: %d\n", gtk_text_iter_get_offset(&iter));
+	
 	GtkTextIter start_prev_line, end_prev_line;
 	start_prev_line = iter;
 	gtk_text_iter_forward_line(&iter);
 	end_prev_line = iter;
-	char *text = gtk_text_buffer_get_text(text_buffer, &start_prev_line, &end_prev_line, FALSE);
-	printf("previous line: %s\n", text);
+	char *text = gtk_text_buffer_get_text(buffer, &start_prev_line, &end_prev_line, FALSE);
+	//printf("move_lines_up(): previous line: %s\n", text);
 
 	iter = selection_end_iter;
 	gtk_text_iter_forward_line(&iter);
-	GtkTextMark *keep_this = gtk_text_buffer_create_mark(text_buffer, NULL, &iter, TRUE);
-	gtk_text_buffer_delete(text_buffer, &start_prev_line, &end_prev_line);
-	gtk_text_buffer_get_iter_at_mark(text_buffer, &iter, keep_this);
-	gtk_text_buffer_insert(text_buffer, &iter, text, -1);
-	gtk_text_buffer_delete_mark(text_buffer, keep_this);
+	GtkTextMark *keep_this = gtk_text_buffer_create_mark(buffer, NULL, &iter, TRUE);
+	gtk_text_buffer_delete(buffer, &start_prev_line, &end_prev_line);
+	gtk_text_buffer_get_iter_at_mark(buffer, &iter, keep_this);
+	gtk_text_buffer_insert(buffer, &iter, text, -1);
+	gtk_text_buffer_delete_mark(buffer, keep_this);
 }
 
 
 gboolean move_lines_down(GdkEventKey *key_event)
 {
-	GtkTextBuffer *text_buffer;
-	text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
-	if (text_buffer == NULL) {
-		printf("No tabs open! Nothing to do...\n");
-		return FALSE;
-	}
+	LOG_MSG("move_lines_down()\n");
 
-	printf("Should move lines down...\n");
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
 
 	// Delete the line after selected lines.
 	// Insert the line before selected lines
 
 	GtkTextIter selection_start_iter, selection_end_iter, iter;
-	gtk_text_buffer_get_selection_bounds(text_buffer, &selection_start_iter, &selection_end_iter);
+	gtk_text_buffer_get_selection_bounds(buffer, &selection_start_iter, &selection_end_iter);
 
 	iter = selection_end_iter;
 	gboolean result = gtk_text_iter_forward_line(&iter);
 	if (result == FALSE) {
-		printf("No lines after..\n");
+		LOG_MSG("move_lines_down(): no lines after selection -> earlyout\n");
 		return TRUE;
 	}
-	//printf("iter offset: %d\n", gtk_text_iter_get_offset(&iter));
 	GtkTextIter start_next_line, end_next_line;
 	start_next_line = iter;
 	gtk_text_iter_forward_line(&iter);
 	end_next_line = iter;
-	char *text = gtk_text_buffer_get_text(text_buffer, &start_next_line, &end_next_line, FALSE);
-	//printf("next line: %s\n", text);
+	char *text = gtk_text_buffer_get_text(buffer, &start_next_line, &end_next_line, FALSE);
+	//printf("move_lines_down(): next line: %s\n", text);
 
 	iter = selection_start_iter;
 	gtk_text_iter_set_line_offset(&iter, 0);
-	GtkTextMark *keep_this = gtk_text_buffer_create_mark(text_buffer, NULL, &iter, TRUE);
-	gtk_text_buffer_delete(text_buffer, &start_next_line, &end_next_line);
-	gtk_text_buffer_get_iter_at_mark(text_buffer, &iter, keep_this);
-	gtk_text_buffer_insert(text_buffer, &iter, text, -1);
-	gtk_text_buffer_delete_mark(text_buffer, keep_this);
+	GtkTextMark *keep_this = gtk_text_buffer_create_mark(buffer, NULL, &iter, TRUE);
+	gtk_text_buffer_delete(buffer, &start_next_line, &end_next_line);
+	gtk_text_buffer_get_iter_at_mark(buffer, &iter, keep_this);
+	gtk_text_buffer_insert(buffer, &iter, text, -1);
+	gtk_text_buffer_delete_mark(buffer, keep_this);
 }
 
 
 gboolean duplicate_line(GdkEventKey *key_event)
 {
-	GtkTextBuffer *text_buffer;
-	text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
-	if (text_buffer == NULL) {
-		printf("No tabs open! Nothing to do...\n");
-		return FALSE;
-	}
+	LOG_MSG("duplicate_line()\n");
 
-	//printf("Should duplicate line...\n");
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
 
 	GtkTextIter start, end;
 
-	GtkTextMark *cursor = gtk_text_buffer_get_mark(text_buffer, "insert");
-	gtk_text_buffer_get_iter_at_mark(text_buffer, &start, cursor);
+	GtkTextMark *cursor = gtk_text_buffer_get_mark(buffer, "insert");
+	gtk_text_buffer_get_iter_at_mark(buffer, &start, cursor);
 	end = start,
 	gtk_text_iter_set_line_offset(&start, 0);
 	gtk_text_iter_forward_line(&end);
-	GtkTextMark *start_mark = gtk_text_buffer_create_mark(text_buffer, NULL, &start, FALSE);
-	GtkTextMark *end_mark = gtk_text_buffer_create_mark(text_buffer, NULL, &end, FALSE);
+	GtkTextMark *start_mark = gtk_text_buffer_create_mark(buffer, NULL, &start, FALSE);
+	GtkTextMark *end_mark = gtk_text_buffer_create_mark(buffer, NULL, &end, FALSE);
 	if (gtk_text_iter_is_end(&end)) {
 		gtk_text_iter_backward_char(&end);
 		gunichar c = gtk_text_iter_get_char(&end);
 		gtk_text_iter_forward_char(&end);
 		if (c != '\n') {
-			gtk_text_buffer_insert(text_buffer, &end, "\n", -1);
-			gtk_text_buffer_get_iter_at_mark(text_buffer, &start, start_mark);
-			gtk_text_buffer_get_iter_at_mark(text_buffer, &end, end_mark);
+			gtk_text_buffer_insert(buffer, &end, "\n", -1);
+			gtk_text_buffer_get_iter_at_mark(buffer, &start, start_mark);
+			gtk_text_buffer_get_iter_at_mark(buffer, &end, end_mark);
 		}
 	}
-	char *text = gtk_text_buffer_get_text(text_buffer, &start, &end, FALSE);
-	printf("inserting: %s\n", text);
-	gtk_text_buffer_insert(text_buffer, &end, text, -1);
+	char *text = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
+	//printf("duplicate_line(): inserting: %s\n", text);
+	gtk_text_buffer_insert(buffer, &end, text, -1);
 	/*gtk_text_iter_backward_char(&iter); //@ at the end of the buffer -- bug?
-	gtk_text_buffer_place_cursor(text_buffer, &iter);*/
-	gtk_text_buffer_delete_mark(text_buffer, start_mark);
-	gtk_text_buffer_delete_mark(text_buffer, end_mark);
+	gtk_text_buffer_place_cursor(buffer, &iter);*/
+	gtk_text_buffer_delete_mark(buffer, start_mark);
+	gtk_text_buffer_delete_mark(buffer, end_mark);
 }
 
 
 gboolean delete_line(GdkEventKey *key_event)
 {
-	printf("delete_line()\n");
+	LOG_MSG("delete_line()\n");
 
-	GtkTextBuffer *text_buffer;
-	text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
-	if (text_buffer == NULL) {
-		printf("No tabs open! Nothing to do...\n");
-		return FALSE;
-	}
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
 
 	GtkTextIter start, end;
 
-	GtkTextMark *cursor = gtk_text_buffer_get_mark(text_buffer, "insert");
-	gtk_text_buffer_get_iter_at_mark(text_buffer, &start, cursor);
+	GtkTextMark *cursor = gtk_text_buffer_get_mark(buffer, "insert");
+	gtk_text_buffer_get_iter_at_mark(buffer, &start, cursor);
 	end = start,
 	gtk_text_iter_set_line_offset(&start, 0);
 	gtk_text_iter_forward_line(&end);
-	gtk_text_buffer_delete(text_buffer, &start, &end);
+	gtk_text_buffer_delete(buffer, &start, &end);
 
 	return TRUE;
 }
 
 gboolean change_line(GdkEventKey *key_event)
 {
+	printf("change_line()\n");
+
 	GtkTextView *view;
 	GtkTextBuffer *buffer;
 
-	printf("change_line()\n");
-
-	view = GTK_TEXT_VIEW(
-		visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
-	if (view == NULL) {
-		printf("change_line(): no tabs open\n");
-		return FALSE;
-	}
-	if (!gtk_widget_is_focus(GTK_WIDGET(view))) {
-		printf("change_line(): text-view not in focus\n");
-		return FALSE;
-	}
-	buffer = gtk_text_view_get_buffer(view);
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
 
 	GtkTextIter i, i1, i2;
 
@@ -658,22 +651,14 @@ gboolean change_line(GdkEventKey *key_event)
 
 gboolean move_cursor_start_line(GdkEventKey *key_event)
 {
+	printf("move_cursor_start_line()\n");
+
 	GtkTextView *view;
 	GtkTextBuffer *buffer;
 
-	printf("move_cursor_start_line()\n");
-
-	view = GTK_TEXT_VIEW(
-		visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
-	if (view == NULL) {
-		printf("move_cursor_start_line(): no tabs open\n");
-		return FALSE;
-	}
-	if (!gtk_widget_is_focus(GTK_WIDGET(view))) {
-		printf("move_cursor_start_line(): text-view not in focus\n");
-		return FALSE;
-	}
-	buffer = gtk_text_view_get_buffer(view);
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
 
 	GtkTextIter i;
 
@@ -696,22 +681,14 @@ gboolean move_cursor_start_line(GdkEventKey *key_event)
 
 gboolean move_cursor_end_line(GdkEventKey *key_event)
 {
+	printf("move_cursor_end_line()\n");
+
 	GtkTextView *view;
 	GtkTextBuffer *buffer;
 
-	printf("move_cursor_end_line()\n");
-
-	view = GTK_TEXT_VIEW(
-		visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
-	if (view == NULL) {
-		printf("move_cursor_end_line(): no tabs open\n");
-		return FALSE;
-	}
-	if (!gtk_widget_is_focus(GTK_WIDGET(view))) {
-		printf("move_cursor_end_line(): text-view not in focus\n");
-		return FALSE;
-	}
-	buffer = gtk_text_view_get_buffer(view);
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
 
 	GtkTextIter i;
 
@@ -838,14 +815,14 @@ gboolean move_cursor_right(GdkEventKey *key_event)
 
 gboolean move_cursor_up(GdkEventKey *key_event)
 {
-	printf("move_up_by_block()\n");
+	LOG_MSG("move_cursor_up()\n");
 
+	GtkTextView *view;
 	GtkTextBuffer *text_buffer;
-	text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
-	if (text_buffer == NULL) {
-		printf("No tabs open! Nothing to do...\n");
-		return FALSE;
-	}
+
+	gboolean rv = init(&view, &text_buffer);
+	if (!rv)
+		return rv;
 
 	GtkTextIter iter, start, end;
 
@@ -864,7 +841,6 @@ gboolean move_cursor_up(GdkEventKey *key_event)
 
 	gtk_text_buffer_place_cursor(text_buffer, &iter);
 
-	GtkTextView *view = visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
 	gtk_text_view_scroll_to_iter(view, &iter, 0.0, FALSE, 0.0, 0.0);
 
 	return TRUE;
@@ -873,14 +849,14 @@ gboolean move_cursor_up(GdkEventKey *key_event)
 
 gboolean move_cursor_down(GdkEventKey *key_event)
 {
-	printf("move_down_by_block()\n");
+	LOG_MSG("move_cursor_down()\n");
 
+	GtkTextView *view;
 	GtkTextBuffer *text_buffer;
-	text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
-	if (text_buffer == NULL) {
-		printf("No tabs open! Nothing to do...\n");
-		return FALSE;
-	}
+
+	gboolean rv = init(&view, &text_buffer);
+	if (!rv)
+		return rv;
 
 	GtkTextIter iter, start, end;
 
@@ -899,7 +875,6 @@ gboolean move_cursor_down(GdkEventKey *key_event)
 
 	gtk_text_buffer_place_cursor(text_buffer, &iter);
 
-	GtkTextView *view = visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
 	gtk_text_view_scroll_to_iter(view, &iter, 0.0, FALSE, 0.0, 0.0);
 
 	return TRUE;
@@ -926,6 +901,7 @@ gboolean get_token_bounds(const GtkTextIter *pi, GtkTextIter *pi_start, GtkTextI
 
 	return TRUE;
 }
+
 
 // rather than swapping tokens, maybe try moving character at a time..
 gboolean move_token_left(GdkEventKey *key_event)

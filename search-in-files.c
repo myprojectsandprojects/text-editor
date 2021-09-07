@@ -449,6 +449,7 @@ void search_handler(GtkButton *button, gpointer data)
 		-n -> display line numbers
 		-i -> do insensitive search
 		-H -> display filename even if only 1 argument given
+		-F -> do not interpret the search string as a regular expression
 	*/
 
 //	char command[1000];
@@ -456,7 +457,7 @@ void search_handler(GtkButton *button, gpointer data)
 	command[0] = 0;
 
 	sprintf(command,
-		"find %s -type f%s%s | xargs -d '\n' grep -IniH \"%s\"",
+		"find %s -type f%s%s | xargs -d '\n' grep -IniHF \"%s\"",
 		root_dir, (ignore_hidden) ? " -not -wholename \"*/.*\"": "", patterns, search_phrase);
 	printf("search_handler(): command to execute: %s\n", command);
 
