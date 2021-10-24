@@ -74,8 +74,9 @@
 .suggestions-popup
 {
 	color: rgb(190, 190, 190);
-	font: Fira Mono Medium 12;
+	font: Ubuntu Mono Bold 13;
 /*
+	font: Fira Mono Medium 12;
 	font: Victor Mono Bold 12;
 	font: Victor Mono Medium 12;
 	font: Liberation Mono Regular 12;
@@ -92,15 +93,13 @@
 	border: none;
 	border-radius: 0;
 
-	/*background: rgb(65, 65, 75);*/
-	background: rgb(85, 65, 75);
+	background: rgb(65, 65, 75);
 	color: rgb(190, 190, 190);
 }
 
 .text-entry:focus
 {
-	/*background: rgb(85, 85, 95);*/
-	background: rgb(105, 85, 95);
+	background: rgb(85, 85, 95);
 }
 
 .text-entry-limegreen

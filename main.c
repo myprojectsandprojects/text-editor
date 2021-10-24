@@ -655,7 +655,7 @@ gboolean on_app_window_key_press(GtkWidget *window, GdkEvent *event, gpointer us
 	#define NO_MODIFIERS 0x2000000 // Value of key_event->state if no (known) modifiers are set.
 
 	GdkEventKey *key_event = (GdkEventKey *) event;
-	LOG_MSG("on_app_window_key_press(): hardware keycode: %d\n", key_event->hardware_keycode);
+	printf("on_app_window_key_press(): hardware keycode: %d\n", key_event->hardware_keycode);
 
 	unsigned short int modifiers = 0;
 	if(key_event->state & GDK_CONTROL_MASK) {
@@ -1273,10 +1273,6 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	gtk_widget_set_vexpand(sidebar_notebook, TRUE);
 	gtk_widget_set_hexpand(sidebar_notebook, TRUE);
 
-
-	GtkWidget *openfile_revealer = create_openfile_widget();
-	GtkWidget *openfile_entry = gtk_bin_get_child(GTK_BIN(openfile_revealer));
-
 	notebook = gtk_notebook_new();
 	gtk_notebook_set_scrollable(GTK_NOTEBOOK(notebook), TRUE);
 	// Generally we would like to keep the focus on the text-view widget.
@@ -1289,7 +1285,6 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	gtk_widget_set_hexpand(notebook, TRUE);
 
 	GtkWidget *nb_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-	gtk_container_add(GTK_CONTAINER(nb_container), openfile_revealer);
 	gtk_container_add(GTK_CONTAINER(nb_container), notebook);
 
 

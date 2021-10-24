@@ -29,7 +29,8 @@ extern GtkWidget *notebook;
 
 gboolean toggle_search_entry(GdkEventKey *key_event)
 {
-	LOG_MSG("toggle_search_entry()\n");
+	//LOG_MSG("toggle_search_entry()\n");
+	printf("toggle_search_entry()\n");
 
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
 
@@ -42,9 +43,6 @@ gboolean toggle_search_entry(GdkEventKey *key_event)
 	GtkWidget *search_revealer = (GtkWidget *) tab_retrieve_widget(tab, SEARCH_REVEALER);
 	GtkWidget *search_entry = (GtkWidget *) tab_retrieve_widget(tab, SEARCH_ENTRY);
 	GtkWidget *replace_revealer = (GtkWidget *) tab_retrieve_widget(tab, REPLACE_REVEALER);
-
-	assert(text_view != NULL && search_revealer != NULL && search_entry != NULL
-		&& search_revealer != NULL && search_entry != NULL); // @
 
 	if (gtk_revealer_get_reveal_child(GTK_REVEALER(search_revealer)))
 	{
@@ -303,7 +301,6 @@ gboolean on_search_and_replace(void)
 	printf("on_search_and_replace()\n");
 
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
-	// what are you smoking?: assert(tab != NULL); // it's arguable, but we'll put an assert here..
 	if (tab == NULL) return FALSE;
 
 	GtkWidget *search_entry = (GtkWidget *) tab_retrieve_widget(tab, SEARCH_ENTRY);
@@ -312,9 +309,6 @@ gboolean on_search_and_replace(void)
 	GtkWidget *replace_revealer = (GtkWidget *) tab_retrieve_widget(tab, REPLACE_REVEALER);
 	GtkWidget *view = (GtkWidget *) tab_retrieve_widget(tab, TEXT_VIEW);
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
-	//int *p_next_action = (int *) tab_retrieve_widget(tab, REPLACE_NEXT_ACTION);
-
-	//@ should assert
 
 	if ( !(gtk_widget_is_focus(search_entry) || gtk_widget_is_focus(replace_entry)) ) 
 	{
