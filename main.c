@@ -474,8 +474,6 @@ GtkWidget *create_tab(const char *file_name)
 	add_class(GTK_WIDGET(text_view), "text-view");
 	g_signal_connect(G_OBJECT(text_view), "size-allocate", G_CALLBACK(on_text_view_size_allocate), NULL);
 
-	GtkWidget *search_and_replace = create_search_and_replace_widget(tab);
-
 
 	GtkWidget *line_nr_label = gtk_label_new("Line");
 	GtkWidget *line_nr_value = gtk_label_new(NULL);
@@ -516,12 +514,12 @@ GtkWidget *create_tab(const char *file_name)
 	*/
 	tab_add_widget_4_retrieval(tab, TEXT_VIEW, text_view);
 	tab_add_widget_4_retrieval(tab, TEXT_BUFFER, text_buffer); //@ haa text-buffer is not a widget! void *?
+	
+	GtkWidget *wgt_search = create_search_widget(tab);
 
 	gtk_container_add(GTK_CONTAINER(scrolled_window), GTK_WIDGET(text_view));
-	gtk_container_add(GTK_CONTAINER(tab), search_and_replace);
+	gtk_container_add(GTK_CONTAINER(tab), wgt_search);
 	gtk_container_add(GTK_CONTAINER(tab), scrolled_window);
-	//gtk_container_add(GTK_CONTAINER(tab), command_revealer);
-	//gtk_container_add(GTK_CONTAINER(tab), statusbar);
 	gtk_container_add(GTK_CONTAINER(tab), status_bar);
 
 	gtk_widget_show_all(GTK_WIDGET(tab));
@@ -1171,14 +1169,17 @@ void activate_handler(GtkApplication *app, gpointer data)
 
 	key_combinations[0][23] = handle_tab; // <tab>
 	key_combinations[SHIFT][23] = handle_tab; // <tab> + shift
-	//key_combinations[0][36] = handle_enter; // <enter>
 
+	key_combinations[0][36] = do_search; // <enter>
+
+/*
 	key_combinations[SHIFT][36] = replace_selected_text; // shift + <enter>
 	key_combinations[0][36] = on_enter_key_pressed; // <enter>
 	// on_enter_key_pressed() calls these handlers:
 		key_combination_handlers[0] = on_search_and_replace;
 		//key_combination_handlers[1] = execute_command;
 		key_combination_handlers[2] = NULL;
+*/
 
 	//@ cursors blink is off for move_cursor_left() & move_cursor_right()
 	// also comments & identifiers -- not very convenient
@@ -1220,7 +1221,7 @@ void activate_handler(GtkApplication *app, gpointer data)
 	key_combinations[CTRL][32] = do_open; // ctrl + o
 
 	key_combinations[CTRL][41] = toggle_search_entry; // ctrl + f
-	key_combinations[CTRL][27] = toggle_replace_entry; // ctrl + r
+	//key_combinations[CTRL][27] = toggle_replace_entry; // ctrl + r
 	key_combinations[CTRL][43] = toggle_openfile; // ctrl + h
 
 	key_combinations[CTRL][42] = less_fancy_toggle_sidebar; // ctrl + g

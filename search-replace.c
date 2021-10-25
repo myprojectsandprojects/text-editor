@@ -27,6 +27,18 @@ Undo and replacements? Undoing by a (language) token?
 extern GtkWidget *notebook;
 
 
+/*
+bounds = scope of the cursor position
+*/
+/* - bounds are not dependent on text buffer contents.. */
+/*@
+Currently these are shared by all tabs and that's a bug.
+We could either do our own bookkeeping or just use named marks.
+*/
+GtkTextMark *m_bounds_start, *m_bounds_end, *m_search_pointer;
+gboolean is_new_search = TRUE;
+
+
 gboolean toggle_search_entry(GdkEventKey *key_event)
 {
 	//LOG_MSG("toggle_search_entry()\n");
@@ -120,46 +132,8 @@ gboolean toggle_replace_entry(GdkEventKey *key_event)
 
 	return TRUE;
 }
-/*
-static void go_to_next_match(GtkTextView *view, const char *search_phrase)
-{
-	GtkTextBuffer *buffer;
-	GtkTextMark *mark;
-	GtkTextIter iter, match_start, match_end;
-	gboolean found;
 
-	buffer = gtk_text_view_get_buffer(view);
-	mark = gtk_text_buffer_get_mark(buffer, "search");
-	assert(mark != NULL);
-	gtk_text_buffer_get_iter_at_mark(buffer, &iter, mark);
 
-	DO_SEARCH:
-	found = gtk_text_iter_forward_search(&iter, search_phrase,
-		GTK_TEXT_SEARCH_CASE_INSENSITIVE,
-		&match_start, &match_end, NULL);
-
-	if (found == TRUE)
-	{
-		gtk_text_view_scroll_to_iter(view, &match_start, 0.0, FALSE, 0.0, 0.0);
-		gtk_text_buffer_select_range(buffer, &match_end, &match_start);
-		iter = match_end;
-		gtk_text_buffer_move_mark(buffer, mark, &iter);
-	}
-	else
-	{
-		if(gtk_text_iter_is_start(&iter) == FALSE)
-		{
-			printf("search: there were matches for \"%s\" -> back to the beginning\n", search_phrase);	
-			gtk_text_buffer_get_start_iter(buffer, &iter);
-			goto DO_SEARCH;
-		}
-		else
-		{
-			printf("search: there were no matches for \"%s\"\n", search_phrase);
-		}
-	}
-}
-*/
 /*
 	Let's try the following:
 
@@ -192,19 +166,7 @@ gboolean replace_selected_text(GdkEventKey *key_event)
 	return TRUE;
 }
 
-/*
-bounds = scope of the cursor position
-*/
 
-/* - bounds are not dependent on text buffer contents.. */
-GtkTextMark *m_bounds_start, *m_bounds_end, *m_search_pointer;
-gboolean is_new_search = TRUE;
-/*
-void search_and_highlight_next_match(GtkTextView *view)
-{
-	printf("search_and_highlight_next_match()\n");
-}
-*/
 static void determine_bounds(GtkTextView *view)
 {
 	printf("determine_bounds()\n");
@@ -263,34 +225,8 @@ static void determine_bounds(GtkTextView *view)
 	//char *text = gtk_text_buffer_get_text(buffer, &i_bounds_start, &i_bounds_end, FALSE);
 	//printf("determine_bounds(): text: \n%s\n\n", text);
 }
-/*
-void search_and_highlight_first_match(GtkTextView *view, char *search_phrase)
-{
-	GtkTextIter i_start, i_end;
-	char sp_buffer[100];
 
-	printf("search_and_highlight_first_match()\n");
 
-	is_new_search = FALSE;
-
-	if (search_phrase[0] == ':')
-	{
-		snprintf(sp_buffer, 100, "%s", &search_phrase[1]);
-
-		determine_bounds(view);
-	}
-	else
-	{
-		snprintf(sp_buffer, 100, "%s", &search_phrase[0]);
-
-		gtk_text_buffer_get_bounds(buffer, &i_start, &i_end);
-	}
-	//free(search_phrase);
-	search_phrase = sp_buffer;
-
-	search_and_highlight_next_match(view, sp_buffer);
-}
-*/
 /*
 This is where the action happens.
 When search-entry is focus we find and highlight the next match
@@ -434,129 +370,6 @@ gboolean on_search_and_replace(void)
 		gtk_text_buffer_delete_mark(buffer, m2);
 	}
 
-/*
-	GtkTextIter bounds_start, bounds_end;
-	gtk_text_buffer_get_bounds(buffer, &bounds_start, &bounds_end);
-
-	char sp_buffer[100];
-	{ // Figure out what the bounds of the search are:
-
-		GtkTextIter i, match_start, match_end;
-
-		if (search_phrase[0] == '{')
-		{
-			snprintf(sp_buffer, 100, "%s", &search_phrase[1]);
-	
-			GtkTextMark *m_cursor = gtk_text_buffer_get_mark(buffer, "insert");
-			gtk_text_buffer_get_iter_at_mark(buffer, &i, m_cursor);
-			gboolean found = gtk_text_iter_backward_search(&i, "{", GTK_TEXT_SEARCH_CASE_INSENSITIVE, &match_start, &match_end, NULL);
-			if (found)
-			{
-				bounds_start = match_start;
-				i = bounds_start;
-				// just the first closing-1 for now..:
-				found = gtk_text_iter_forward_search(&i, "}", GTK_TEXT_SEARCH_CASE_INSENSITIVE, &match_start, &match_end, NULL);
-				if (found)
-				{
-					//bounds_end = match_end;
-					bounds_end = match_start; // ?
-				}
-			}
-		}
-		else
-		{
-			snprintf(sp_buffer, 100, "%s", &search_phrase[0]);
-		}
-		//free(search_phrase);
-		search_phrase = sp_buffer;
-	}
-
-
-	if (gtk_widget_is_focus(search_entry)) 
-	{
-		GtkTextMark *mark;
-		GtkTextIter iter, match_start, match_end;
-		gboolean found;
-
-		//printf("on_search_and_replace(): should search\n");
-
-		mark = gtk_text_buffer_get_mark(buffer, "search");
-		assert(mark != NULL);
-		gtk_text_buffer_get_iter_at_mark(buffer, &iter, mark);
-
-		int o_search = gtk_text_iter_get_offset(&iter);
-		int o_bounds_start = gtk_text_iter_get_offset(&bounds_start);
-		int o_bounds_end = gtk_text_iter_get_offset(&bounds_end);
-		if (o_search < o_bounds_start || o_search > o_bounds_end)
-		{
-			iter = bounds_start;
-		}
-
-		DO_SEARCH:
-		found = gtk_text_iter_forward_search(&iter, search_phrase,
-			GTK_TEXT_SEARCH_CASE_INSENSITIVE,
-			&match_start, &match_end, &bounds_end);
-
-		if (found == TRUE)
-		{
-			gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(view), &match_start, 0.0, FALSE, 0.0, 0.0);
-			gtk_text_buffer_select_range(buffer, &match_end, &match_start);
-			iter = match_end;
-			gtk_text_buffer_move_mark(buffer, mark, &iter);
-		}
-		else
-		{
-			//if(gtk_text_iter_is_start(&iter) == FALSE)
-			int o_iter = gtk_text_iter_get_offset(&iter);
-			int o_bounds_start = gtk_text_iter_get_offset(&bounds_start);
-			if(o_iter != o_bounds_start)
-			{
-				printf("search: there were matches for \"%s\" -> back to the beginning\n", search_phrase);	
-				//gtk_text_buffer_get_start_iter(buffer, &iter);
-				iter = bounds_start;
-				goto DO_SEARCH;
-			}
-			else
-			{
-				printf("search: there were no matches for \"%s\"\n", search_phrase);
-			}
-		}
-
-		return TRUE;
-	}
-*/
-/*
-	else if (gtk_widget_is_focus(replace_entry))
-	{
-		//printf("on_search_and_replace(): should search & replace\n");
-		const char *replace_phrase = gtk_entry_get_text(GTK_ENTRY(replace_entry));
-		printf("on_search_and_replace(): replaceing \"%s\" with \"%s\"\n", search_phrase, replace_phrase);
-
-		GtkTextIter search, start, end;
-
-		//gtk_text_buffer_get_selection_bounds(text_buffer, &start, &end);
-		gtk_text_buffer_get_bounds(buffer, &start, &end);
-		search = start;
-		GtkTextMark *m1 = gtk_text_buffer_create_mark(buffer, NULL, &start, FALSE);
-		GtkTextMark *m2 = gtk_text_buffer_create_mark(buffer, NULL, &start, FALSE); // doesnt matter where they are in the beginning
-	
-		GtkTextIter match_start, match_end;
-		while (gtk_text_iter_forward_search(&search, search_phrase, GTK_TEXT_SEARCH_CASE_INSENSITIVE, &match_start, &match_end, &end)) {
-			gtk_text_buffer_move_mark(buffer, m1, &match_start);
-			gtk_text_buffer_move_mark(buffer, m2, &match_end);
-			gtk_text_buffer_delete(buffer, &match_start, &match_end);
-			gtk_text_buffer_get_iter_at_mark(buffer, &search, m1);
-			gtk_text_buffer_insert(buffer, &search, replace_phrase, -1);
-			gtk_text_buffer_get_iter_at_mark(buffer, &search, m2);
-			gtk_text_buffer_get_end_iter(buffer, &end);
-		}
-	
-		gtk_text_buffer_delete_mark(buffer, m1);
-		gtk_text_buffer_delete_mark(buffer, m2);
-
-		return TRUE;
-	}*/
-
 
 	return TRUE;
 }
@@ -625,19 +438,6 @@ GtkWidget *create_search_and_replace_widget(GtkWidget *tab)
 
 	g_signal_connect(G_OBJECT(search_entry), "changed",
 		G_CALLBACK(on_search_entry_changed), NULL);
-
-	// We could observe cursor-position property and be up-to-date in terms of scope at all times
-	// and then, when doing the search, just search in that scope.
-	// But we dont really know if the text-buffer is available for us at the time we are called
-	// and we dont want to set strict rules as to when exactly we are suppose to be called..
-	// Maybe it would be nice to have an event which is fired once the tab is fully created..
-	// Or maybe it doesnt matter at all if we enforce strict order in which things should be initialized?
-	// or maybe we should export an event handler?
-	// or maybe we should register our callback at the time when search-entry receives its 1st changed-signal?
-	/*
-	g_signal_connect(G_OBJECT(text_buffer), "notify::cursor-position",
-		G_CALLBACK(text_buffer_cursor_position_changed), line_nr_value);
-	*/
 
 	return container;
 }

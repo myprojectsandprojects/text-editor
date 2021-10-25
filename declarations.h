@@ -41,11 +41,18 @@ void set_root_dir(const char *path);
 void add_class(GtkWidget *widget, const char *class_name);
 
 /* search-replace.c */
+/*
 gboolean toggle_search_entry(GdkEventKey *key_event);
 gboolean toggle_replace_entry(GdkEventKey *key_event);
 GtkWidget *create_search_and_replace_widget(GtkWidget *tab);
 gboolean on_search_and_replace(void);
 gboolean replace_selected_text(GdkEventKey *key_event);
+*/
+
+/* search.c */
+GtkWidget *create_search_widget(GtkWidget *tab);
+gboolean toggle_search_entry(GdkEventKey *key_event);
+gboolean do_search(GdkEventKey *key_event);
 
 /* undo.c: */
 void init_undo(GtkWidget *tab);
