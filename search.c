@@ -2,6 +2,7 @@
 #include <gtk/gtk.h>
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "tab.h"
 #include "declarations.h"
@@ -112,6 +113,22 @@ gboolean do_search(GdkEventKey *key_event)
 
 	const char *text = gtk_entry_get_text(GTK_ENTRY(search_entry)); //@ free?
 	if (strlen(text) == 0) {
+		return TRUE;
+	}
+
+	if (text[0] == ':') {
+		printf("search phrase is a command...\n");
+
+		int line_number = atoi(&text[1]);
+		//@ Should check if valid line number maybe...
+		printf("atoi() returned: %d\n", line_number);
+
+		GtkTextIter iter;
+		gtk_text_buffer_get_iter_at_line(text_buffer, &iter, line_number - 1); // ...counting from 0 or 1
+		gtk_widget_grab_focus(GTK_WIDGET(text_view));
+		gtk_text_buffer_place_cursor(text_buffer, &iter);
+		gtk_text_view_scroll_to_iter(text_view, &iter, 0.0, FALSE, 0.0, 0.0);
+
 		return TRUE;
 	}
 

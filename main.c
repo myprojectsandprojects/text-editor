@@ -944,80 +944,6 @@ gboolean handle_tab(GdkEventKey *key_event)
 	return FALSE; // Otherwise, we dont know...
 }
 
-gboolean handle_enter(GdkEventKey *key_event)
-{
-	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
-	if(tab == NULL) {
-		printf("no tabs open -> doing nothing\n");
-		return FALSE;
-	}
-
-	//GtkWidget *search_entry = visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), SEARCH_ENTRY);
-	GtkWidget *search_entry = tab_retrieve_widget(tab, SEARCH_ENTRY);
-	if(gtk_widget_is_focus(search_entry) == TRUE) {
-//		do_search(tab);
-		return TRUE;
-	}
-
-	//GtkWidget *command_entry = visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), COMMAND_ENTRY);
-	GtkWidget *command_entry = tab_retrieve_widget(tab, COMMAND_ENTRY);
-	if(gtk_widget_is_focus(command_entry) == TRUE) {
-		const char *text = gtk_entry_get_text(GTK_ENTRY(command_entry)); //@ free?
-		if(strlen(text) == 0) {
-			return TRUE;
-		}
-		GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
-		GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
-		int line_number = atoi(text);
-		//@ Should check if valid line number maybe...
-		GtkTextIter iter;
-		gtk_text_buffer_get_iter_at_line(text_buffer, &iter, line_number - 1); // ...counting from 0 or 1
-		gtk_widget_grab_focus(GTK_WIDGET(text_view));
-		gtk_text_buffer_place_cursor(text_buffer, &iter);
-		gtk_text_view_scroll_to_iter(text_view, &iter, 0.0, FALSE, 0.0, 0.0);
-		return TRUE;
-	}
-
-	return FALSE;
-}
-
-/*
-gboolean execute_command(void)
-{
-	printf("execute_command()\n");
-
-	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
-	if(tab == NULL) {
-		printf("execute_command(): no tabs open -> doing nothing\n");
-		return FALSE;
-	}
-
-	GtkWidget *command_entry = tab_retrieve_widget(tab, COMMAND_ENTRY);
-	assert(command_entry);
-
-	if (gtk_widget_is_focus(command_entry) == TRUE)
-	{
-		const char *text = gtk_entry_get_text(GTK_ENTRY(command_entry)); //@ free?
-		if(strlen(text) == 0)
-		{
-			return TRUE;
-		}
-
-		GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
-		GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
-		int line_number = atoi(text);
-		//@ Should check if valid line number maybe...
-		GtkTextIter iter;
-		gtk_text_buffer_get_iter_at_line(text_buffer, &iter, line_number - 1); // ...counting from 0 or 1
-		gtk_widget_grab_focus(GTK_WIDGET(text_view));
-		gtk_text_buffer_place_cursor(text_buffer, &iter);
-		gtk_text_view_scroll_to_iter(text_view, &iter, 0.0, FALSE, 0.0, 0.0);
-		return TRUE;
-	}
-
-	return FALSE;
-}
-*/
 
 gboolean on_enter_key_pressed(GdkEventKey *key_event)
 {
@@ -1031,6 +957,7 @@ gboolean on_enter_key_pressed(GdkEventKey *key_event)
 	}
 	return FALSE;
 }
+
 
 gboolean undo_last_action(GdkEventKey *key_event)
 {
