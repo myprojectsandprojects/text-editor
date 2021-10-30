@@ -39,6 +39,7 @@ void refresh_application_title(GtkWidget *tab);
 GtkWidget *create_tab(const char *file_name);
 void set_root_dir(const char *path);
 void add_class(GtkWidget *widget, const char *class_name);
+void remove_class(GtkWidget *widget, const char *class_name);
 
 /* search-replace.c */
 /*

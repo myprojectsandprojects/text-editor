@@ -47,6 +47,12 @@ void add_class(GtkWidget *widget, const char *class_name)
 	gtk_style_context_add_class(style_context, class_name);
 }
 
+void remove_class(GtkWidget *widget, const char *class_name)
+{
+	GtkStyleContext *style_context = gtk_widget_get_style_context(widget);
+	gtk_style_context_remove_class(style_context, class_name);
+}
+
 void set_root_dir(const char *path)
 {
 	assert(path != NULL);
