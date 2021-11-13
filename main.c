@@ -1258,6 +1258,8 @@ we could also pass in a list of functions to app's key-press handler and then ca
 
 	gtk_widget_show_all(window);
 
+	gtk_widget_hide(sidebar_container); // let's make sidebar hidden at startup
+
 	create_tab(NULL); // re-factor: create_tab() could just create the tab widget, it doesnt have to depend on the notebook at all (?)
 
 	/*GtkWidget *popup_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
