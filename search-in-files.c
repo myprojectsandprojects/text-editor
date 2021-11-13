@@ -237,8 +237,8 @@ GtkWidget **create_search_result_widgets(char *contents)
 		if (!(i < MAX_RESULTS)) break;
 
 		#define MAX_LINE 100
-		char whole_line[MAX_LINE];
-		snprintf(whole_line, MAX_LINE, "%s", line);
+		char sample[MAX_LINE];
+		snprintf(sample, MAX_LINE, "%s", line);
 		//printf("create_search_result_widgets(): line: %s\n", line);
 
 		char *file_path = get_slice_by(&line, ':');
@@ -252,7 +252,7 @@ GtkWidget **create_search_result_widgets(char *contents)
 		assert(line);*/
 
 		if (!file_path || !line_number || !line) {
-			printf("create_search_result_widgets(): Unrecognized line format: %s\n", whole_line);
+			printf("create_search_result_widgets(): Unrecognized line format: %s\n", sample);
 			continue;
 		}
 
