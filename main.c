@@ -11,6 +11,7 @@
 #include "tab.h"
 
 GtkWidget *window;
+GtkWidget *nb_container;
 GtkWidget *notebook;
 GtkWidget *sidebar_container;
 GtkWidget *file_browser; // GtkTreeView
@@ -898,10 +899,14 @@ gboolean less_fancy_toggle_sidebar(GdkEventKey *key_event)
 
 gboolean less_fancy_toggle_notebook(GdkEventKey *key_event)
 {
-	if (gtk_widget_is_visible(notebook) == TRUE)
-		gtk_widget_hide(notebook);
-	else
-		gtk_widget_show(notebook);
+	if (gtk_widget_is_visible(notebook) == TRUE) {
+		//gtk_widget_hide(notebook);
+		gtk_widget_hide(nb_container);
+	}
+	else {
+		//gtk_widget_show(notebook);
+		gtk_widget_show(nb_container);
+	}
 
 	return TRUE;
 }
@@ -1218,7 +1223,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	
 	gtk_widget_set_hexpand(notebook, TRUE);
 
-	GtkWidget *nb_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	nb_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_container_add(GTK_CONTAINER(nb_container), notebook);
 
 
