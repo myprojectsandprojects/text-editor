@@ -222,20 +222,39 @@ GtkWidget **create_search_result_widgets(char *contents)
 {
 	printf("create_search_result_widgets()\n");
 
+	#define MAX_RESULTS 4299 // maximum number of results to display
+	//printf("sizeof(GtkWidget *): %lu\n", sizeof(GtkWidget *)); // 8
+	#define N_BYTES (MAX_RESULTS * sizeof(GtkWidget *))
+	//printf("N_BYTES: %lu\n", N_BYTES);
 	// we also have a global variable called search results..
 	GtkWidget **search_results;
-	search_results = malloc(1000000 + 1); // millionth is the last element //@ dynamic array?
+	search_results = malloc(N_BYTES + sizeof(GtkWidget *)); //@ dynamic array?
 
 	char *line;
 	int i = 0;
 	while ((line = get_slice_by(&contents, '\n')) != NULL) {
-		assert(i <= 1000000 - 1);
-		printf("create_search_result_widgets(): line: %s\n", line);
+		
+		if (!(i < MAX_RESULTS)) break;
+
+		#define MAX_LINE 100
+		char whole_line[MAX_LINE];
+		snprintf(whole_line, MAX_LINE, "%s", line);
+		//printf("create_search_result_widgets(): line: %s\n", line);
+
 		char *file_path = get_slice_by(&line, ':');
 		char *line_number = get_slice_by(&line, ':');
 		//printf("file path: %s\n", file_path);
 		//printf("line number: %s\n", line_number);
 		//printf("remainder: %s\n\n", line);
+
+		/*assert(file_path);
+		assert(line_number);
+		assert(line);*/
+
+		if (!file_path || !line_number || !line) {
+			printf("create_search_result_widgets(): Unrecognized line format: %s\n", whole_line);
+			continue;
+		}
 
 		GtkWidget *search_result = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
@@ -264,7 +283,8 @@ GtkWidget **create_search_result_widgets(char *contents)
 		//gtk_container_add(GTK_CONTAINER(search_result), line_number_label);
 		gtk_container_add(GTK_CONTAINER(search_result), line_text_label);
 
-		gtk_style_context_add_class (gtk_widget_get_style_context(file_path_label), "search-result");
+		//gtk_style_context_add_class (gtk_widget_get_style_context(file_path_label), "search-result");
+		add_class(file_path_label, "search-result");
 
 		search_results[i] = search_result;
 		i += 1;
