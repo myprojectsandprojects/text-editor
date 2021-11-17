@@ -26,10 +26,12 @@ GtkWidget *create_root_nav_widget()
 	gtk_button_set_image(GTK_BUTTON(home_button), home_image);*/
 	g_signal_connect(G_OBJECT(home_button), "clicked", G_CALLBACK(on_home_button_clicked), NULL);
 
-	GtkWidget *back_button = gtk_button_new_with_label("..");
-	//GtkWidget *back_button = gtk_button_new_with_label("←");
-	/*GtkWidget *back_image = gtk_image_new_from_file("icons/colors/back.png");
-	gtk_button_set_image(GTK_BUTTON(back_button), back_image);*/
+	//GtkWidget *back_button = gtk_button_new_with_label("..");
+	//GtkWidget *back_button = gtk_button_new_with_label("..");
+	GtkWidget *back_button = gtk_button_new();
+	//GtkWidget *back_image = gtk_image_new_from_file("icons/test/back.png");
+	GtkWidget *back_image = gtk_image_new_from_file("icons/test/home.png");
+	gtk_button_set_image(GTK_BUTTON(back_button), back_image);
 	g_signal_connect(G_OBJECT(back_button), "clicked", G_CALLBACK(on_back_button_clicked), NULL);
 
 	gtk_widget_set_size_request(home_button, 36, 36);

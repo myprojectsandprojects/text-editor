@@ -42,6 +42,17 @@ I dont really know how we might want to do this, but for now, if handler returns
 gboolean (*key_combination_handlers[10])(void);
 
 
+/* Settings: */
+
+//const char *line_highlight_color = "rgb(230, 230, 240)";
+//const char *line_highlight_color = "rgb(55, 55, 65)";
+//const int SETTING_VALUE_MAX = 100;
+
+
+struct Settings settings = {.left_margin = 1, .unknown_color = "cornflowerblue"};
+// ... other members are initialized to 0 (?)
+
+
 void add_class(GtkWidget *widget, const char *class_name)
 {
 	GtkStyleContext *style_context = gtk_widget_get_style_context(widget);
@@ -470,8 +481,8 @@ GtkWidget *create_tab(const char *file_name)
 	gtk_widget_set_vexpand(scrolled_window, TRUE);
 
 	GtkTextView *text_view = GTK_TEXT_VIEW(gtk_text_view_new());
-	gtk_text_view_set_pixels_above_lines(text_view, 3);
-	gtk_text_view_set_left_margin(text_view, 1);
+	gtk_text_view_set_pixels_above_lines(text_view, settings.pixels_above_lines);
+	gtk_text_view_set_left_margin(text_view, settings.left_margin);
 	gtk_text_view_set_wrap_mode(text_view, GTK_WRAP_WORD);
 	gint position = 30; // set_tab_stops_internal() in gtksourceview
 	PangoTabArray *tab_array = pango_tab_array_new(1, TRUE); //@ free?
@@ -576,7 +587,8 @@ GtkWidget *create_tab(const char *file_name)
 
 	//g_signal_connect(G_OBJECT(text_view), "populate-popup", G_CALLBACK(on_text_view_populate_popup), NULL);
 
-	gtk_text_buffer_create_tag(text_buffer, "line-highlight", "paragraph-background", "rgb(55, 55, 65)", NULL);
+	gtk_text_buffer_create_tag(text_buffer,
+		"line-highlight", "paragraph-background", settings.line_highlight_color, NULL);
 	text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, line_nr_value);
 	g_signal_connect(G_OBJECT(text_buffer), "notify::cursor-position", G_CALLBACK(text_buffer_cursor_position_changed), line_nr_value);
 
@@ -1101,6 +1113,58 @@ Calling apply_css_from_file() directly crashes the app when modifying the css-fi
 	}
 }
 
+void parse_settings_file(void)
+{
+	printf("parse_settings_file()\n");
+
+	char *contents = read_file("/home/eero/all/text-editor/themes/settings");
+	//printf("parse_settings_file(): contents:\n%s\n", contents);
+
+	#define SIZE 100
+	char *line, *name, *value, copy[SIZE];
+	while (line = get_slice_by(&contents, '\n')) {
+		//printf("line: %s\n", line);
+
+		snprintf(copy, SIZE, "%s", line);
+		name = get_slice_by(&line, ':');
+		value = get_slice_by(&line, ':');
+
+		if (!name || !value) {
+			printf("parse_settings_file(): unrecognized line format: \"%s\"\n", copy);
+			continue;
+		}
+		//printf("name: %s, value: %s\n", name, value);
+
+		if (strcmp(name, "line-highlight") == 0) {
+			snprintf(settings.line_highlight_color, SETTING_VALUE_MAX, "%s", value);
+		} else if (strcmp(name, "comment") == 0) {
+			snprintf(settings.comment_color, SETTING_VALUE_MAX, "%s", value);
+		} else if (strcmp(name, "string") == 0) {
+			snprintf(settings.string_color, SETTING_VALUE_MAX, "%s", value);
+		} else if (strcmp(name, "identifier") == 0) {
+			snprintf(settings.identifier_color, SETTING_VALUE_MAX, "%s", value);
+		} else if (strcmp(name, "number") == 0) {
+			snprintf(settings.number_color, SETTING_VALUE_MAX, "%s", value);
+		} else if (strcmp(name, "operator") == 0) {
+			snprintf(settings.operator_color, SETTING_VALUE_MAX, "%s", value);
+		} else if (strcmp(name, "keyword") == 0) {
+			snprintf(settings.keyword_color, SETTING_VALUE_MAX, "%s", value);
+		} else if (strcmp(name, "type") == 0) {
+			snprintf(settings.type_color, SETTING_VALUE_MAX, "%s", value);
+		} else if (strcmp(name, "preproccessor") == 0) {
+			snprintf(settings.preproccessor_color, SETTING_VALUE_MAX, "%s", value);
+		} else if (strcmp(name, "unknown") == 0) {
+			snprintf(settings.unknown_color, SETTING_VALUE_MAX, "%s", value);
+		} else if (strcmp(name, "pixels-above-lines") == 0) {
+			settings.pixels_above_lines = atoi(value);
+		} else if (strcmp(name, "left-margin") == 0) {
+			settings.left_margin = atoi(value);
+		} else {
+			printf("parse_settings_file(): unknown name: %s\n", name);
+		}
+	}
+}
+
 void activate_handler(GtkApplication *app, gpointer data)
 {
 	LOG_MSG("activate_handler() called\n");
@@ -1166,9 +1230,10 @@ void activate_handler(GtkApplication *app, gpointer data)
 	key_combinations[CTRL][44] = less_fancy_toggle_notebook; // ctrl + j
 
 
-	//char *css_file = "themes/css";
-	//char *css_file = "/home/eero/everything/git/text-editor/themes/css";
+	parse_settings_file();
+
 	char *css_file = "/home/eero/all/text-editor/themes/css";
+	//char *css_file = "/home/eero/all/text-editor/themes/test";
 	apply_css_from_file((void *) css_file);
 
 	pthread_t id;

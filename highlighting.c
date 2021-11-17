@@ -10,6 +10,9 @@ int global_length; // length of text inserted or 0 if deletion
 char *global_text;
 
 
+extern struct Settings settings;
+
+
 gunichar peek_next_character(GtkTextIter *iter)
 {
 	gunichar c;
@@ -242,30 +245,23 @@ void create_tags(GtkTextBuffer *text_buffer)
 	GtkTextTagTable *table = gtk_text_buffer_get_tag_table(text_buffer);
 	int size = gtk_text_tag_table_get_size(table);
 	if (size != 0) {
-		LOG_MSG("create_tags(): tags already created. no need to create them.\n");
+		//LOG_MSG("create_tags(): tags already created. no need to create them.\n");
+		printf("create_tags(): tags already created. no need to create them.\n");
 		return;
 	}
 
-	LOG_MSG("create_tags(): creating tags.\n");
+	//LOG_MSG("create_tags(): creating tags.\n");
+	printf("create_tags(): creating tags.\n");
 
-	/*gtk_text_buffer_create_tag(text_buffer, "comment", "style", PANGO_STYLE_ITALIC, "foreground", "green", NULL);
-	gtk_text_buffer_create_tag(text_buffer, "operator", "foreground", "red", NULL);
-	gtk_text_buffer_create_tag(text_buffer, "number", "foreground", "blue", NULL);
-	gtk_text_buffer_create_tag(text_buffer, "identifier", "foreground", "black", NULL);
-	gtk_text_buffer_create_tag(text_buffer, "keyword", "weight", "bold", "foreground", "black", NULL);
-	gtk_text_buffer_create_tag(text_buffer, "preprocessor-directive", "foreground", "purple", NULL);
-	gtk_text_buffer_create_tag(text_buffer, "unknown", "foreground", "orange", NULL);
-	gtk_text_buffer_create_tag(text_buffer, "string", "foreground", "gray", NULL);*/
-
-	gtk_text_buffer_create_tag(text_buffer, "identifier", "foreground", "rgb(165, 165, 175)", NULL);
-	gtk_text_buffer_create_tag(text_buffer, "keyword", "foreground", "rgb(200, 200, 210)", NULL);
-	gtk_text_buffer_create_tag(text_buffer, "type", "foreground", "rgb(165, 200, 175)", NULL);
-	gtk_text_buffer_create_tag(text_buffer, "operator", "foreground", "rgb(180, 165, 130)", NULL);
-	gtk_text_buffer_create_tag(text_buffer, "number", "foreground", "rgb(165, 165, 255)", NULL);
-	gtk_text_buffer_create_tag(text_buffer, "comment", "foreground", "rgb(115, 115, 125)", NULL);
-	gtk_text_buffer_create_tag(text_buffer, "preprocessor-directive", "foreground", "rgb(195, 165, 195)", NULL);
-	gtk_text_buffer_create_tag(text_buffer, "unknown", "foreground", "orange", NULL);
-	gtk_text_buffer_create_tag(text_buffer, "string", "foreground", "rgb(190, 190, 190)", NULL);
+	gtk_text_buffer_create_tag(text_buffer, "identifier", "foreground", settings.identifier_color, NULL);
+	gtk_text_buffer_create_tag(text_buffer, "keyword", "foreground", settings.keyword_color, NULL);
+	gtk_text_buffer_create_tag(text_buffer, "type", "foreground", settings.type_color, NULL);
+	gtk_text_buffer_create_tag(text_buffer, "operator", "foreground", settings.operator_color, NULL);
+	gtk_text_buffer_create_tag(text_buffer, "number", "foreground", settings.number_color, NULL);
+	gtk_text_buffer_create_tag(text_buffer, "comment", "foreground", settings.comment_color, NULL);
+	gtk_text_buffer_create_tag(text_buffer, "preprocessor-directive", "foreground", settings.preproccessor_color, NULL);
+	gtk_text_buffer_create_tag(text_buffer, "unknown", "foreground", settings.unknown_color, NULL);
+	gtk_text_buffer_create_tag(text_buffer, "string", "foreground", settings.string_color, NULL);
 }
 
 /* 
@@ -372,11 +368,15 @@ void init_highlighting(GtkTextBuffer *text_buffer)
 	gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
 	highlight(text_buffer, &start_buffer, &end_buffer);
 
+
 	unsigned long ids;
+
 	ids = g_signal_connect(text_buffer, "changed", G_CALLBACK(on_text_buffer_changed_for_highlighting), NULL);
 	g_object_set_data(G_OBJECT(text_buffer), "changed-handler-4-highlighting", (void *) ids);
+
 	ids = g_signal_connect(text_buffer, "insert-text", G_CALLBACK(on_text_buffer_insert_text_for_highlighting), NULL);
 	g_object_set_data(G_OBJECT(text_buffer), "insert-text-handler-4-highlighting", (void *) ids);
+
 	ids = g_signal_connect(text_buffer, "delete-range", G_CALLBACK(on_text_buffer_delete_range_for_highlighting), NULL);
 	g_object_set_data(G_OBJECT(text_buffer), "delete-range-handler-4-highlighting", (void *) ids);
 }
@@ -388,12 +388,16 @@ void remove_highlighting(GtkTextBuffer *text_buffer)
 	gtk_text_buffer_get_bounds(text_buffer, &range_start, &range_end);
 	gtk_text_buffer_remove_all_tags(text_buffer, &range_start, &range_end);
 
+
 	// remove signal handlers
 	unsigned long ids;
+
 	ids = (unsigned long) g_object_get_data(G_OBJECT(text_buffer), "changed-handler-4-highlighting");
 	g_signal_handler_disconnect(text_buffer, ids);
+
 	ids = (unsigned long) g_object_get_data(G_OBJECT(text_buffer), "insert-text-handler-4-highlighting");
 	g_signal_handler_disconnect(text_buffer, ids);
+
 	ids = (unsigned long) g_object_get_data(G_OBJECT(text_buffer), "delete-range-handler-4-highlighting");
 	g_signal_handler_disconnect(text_buffer, ids);
 }

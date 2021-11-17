@@ -1,0 +1,14 @@
+line-highlight:rgb(55, 55, 65)
+
+comment:rgb(115, 115, 125)
+string:rgb(190, 190, 190)
+identifier:rgb(165, 165, 175)
+type:rgb(165, 200, 175)
+number:rgb(165, 165, 255)
+operator:rgb(180, 165, 130)
+keyword:rgb(200, 200, 210)
+preproccessor:rgb(195, 165, 195)
+unknown:red
+
+pixels-above-lines:3
+left-margin:3

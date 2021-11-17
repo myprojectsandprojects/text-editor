@@ -31,7 +31,7 @@ gboolean change_line(GdkEventKey *key_event);
 
 /* fileio.c: */
 char *read_file(const char *filename);
-void write_file(const char *filename, const char *contents); // @ can fail
+void write_file(const char *filename, const char *contents);
 
 /* main.c: */
 char *get_base_name(const char *file_name);
@@ -94,3 +94,20 @@ gboolean toggle_openfile(GdkEventKey *key_event);
 #endif
 
 
+#define SETTING_VALUE_MAX 100
+
+struct Settings {
+	int pixels_above_lines;
+	int left_margin;
+
+	char line_highlight_color[SETTING_VALUE_MAX];
+	char comment_color[SETTING_VALUE_MAX];
+	char string_color[SETTING_VALUE_MAX];
+	char identifier_color[SETTING_VALUE_MAX];
+	char number_color[SETTING_VALUE_MAX];
+	char operator_color[SETTING_VALUE_MAX];
+	char keyword_color[SETTING_VALUE_MAX];
+	char type_color[SETTING_VALUE_MAX];
+	char preproccessor_color[SETTING_VALUE_MAX];
+	char unknown_color[SETTING_VALUE_MAX];
+};
