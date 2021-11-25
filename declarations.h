@@ -83,7 +83,7 @@ GtkWidget *create_root_nav_widget(void);
 
 /* open.c */
 GtkWidget *create_openfile_widget(void);
-gboolean toggle_openfile(GdkEventKey *key_event);
+gboolean display_openfile_dialog(GdkEventKey *key_event);
 
 //#define PRINT_LOG_MESSAGES
 #ifdef PRINT_LOG_MESSAGES

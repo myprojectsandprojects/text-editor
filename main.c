@@ -576,6 +576,7 @@ GtkWidget *create_tab(const char *file_name)
 	//gtk_menu_button_set_direction(GTK_MENU_BUTTON(hl_menu_button), GTK_ARROW_UP);
 
 	init_undo(tab);
+
 /*
 	init_autocomplete(GTK_APPLICATION_WINDOW(window),
 						GTK_TEXT_VIEW(text_view), GTK_TEXT_BUFFER(text_buffer));
@@ -1224,7 +1225,7 @@ void activate_handler(GtkApplication *app, gpointer data)
 
 	key_combinations[CTRL][41] = toggle_search_entry; // ctrl + f
 	//key_combinations[CTRL][27] = toggle_replace_entry; // ctrl + r
-	key_combinations[CTRL][43] = toggle_openfile; // ctrl + h
+	key_combinations[CTRL][43] = display_openfile_dialog; // ctrl + h
 
 	key_combinations[CTRL][42] = less_fancy_toggle_sidebar; // ctrl + g
 	key_combinations[CTRL][44] = less_fancy_toggle_notebook; // ctrl + j
@@ -1276,6 +1277,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 	gtk_widget_set_vexpand(sidebar_notebook, TRUE);
 	gtk_widget_set_hexpand(sidebar_notebook, TRUE);
+	gtk_widget_set_size_request(sidebar_container, 500, 100);
 
 	notebook = gtk_notebook_new();
 	gtk_notebook_set_scrollable(GTK_NOTEBOOK(notebook), TRUE);
