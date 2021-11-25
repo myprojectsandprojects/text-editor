@@ -142,7 +142,7 @@ void on_openfile_entry_changed(GtkEntry *search_entry, gpointer data)
 		select_filelist_item_at(0);
 		index_selected_item = 0;
 
-		if (num_items > 3) {
+		if (num_items > 22) {
 			printf("adding scrollbars to the list..\n");
 			scrollbars = gtk_scrolled_window_new(NULL, NULL);
 			gtk_widget_set_size_request(scrollbars,
