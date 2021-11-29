@@ -2,9 +2,14 @@
 
 #include "declarations.h"
 
+
 extern char root_dir[100];
 
+extern const char *home_icon_path;
+extern const char *parent_dir_icon_path;
+
 GtkWidget *root_dir_label;
+
 
 void on_home_button_clicked(GtkButton *button, gpointer user_data)
 {
@@ -21,16 +26,15 @@ GtkWidget *create_root_nav_widget()
 {
 	root_dir_label = gtk_label_new(root_dir);
 
-	GtkWidget *home_button = gtk_button_new_with_label("~");
-	/*GtkWidget *home_image = gtk_image_new_from_file("icons/colors/home.png");
-	gtk_button_set_image(GTK_BUTTON(home_button), home_image);*/
+	//GtkWidget *home_button = gtk_button_new_with_label("~");
+	GtkWidget *home_button = gtk_button_new();
+	GtkWidget *house_image = gtk_image_new_from_file(home_icon_path);
+	gtk_button_set_image(GTK_BUTTON(home_button), house_image);
 	g_signal_connect(G_OBJECT(home_button), "clicked", G_CALLBACK(on_home_button_clicked), NULL);
 
 	//GtkWidget *back_button = gtk_button_new_with_label("..");
-	//GtkWidget *back_button = gtk_button_new_with_label("..");
 	GtkWidget *back_button = gtk_button_new();
-	//GtkWidget *back_image = gtk_image_new_from_file("icons/test/back.png");
-	GtkWidget *back_image = gtk_image_new_from_file("icons/test/home.png");
+	GtkWidget *back_image = gtk_image_new_from_file(parent_dir_icon_path);
 	gtk_button_set_image(GTK_BUTTON(back_button), back_image);
 	g_signal_connect(G_OBJECT(back_button), "clicked", G_CALLBACK(on_back_button_clicked), NULL);
 

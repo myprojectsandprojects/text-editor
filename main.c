@@ -27,11 +27,13 @@ char root_dir[100]; // file-browser and find-in-files modules need access to it
 
 extern GtkWidget *root_dir_label;
 
-const char *filebrowser_icon_path = "/home/eero/all/text-editor/icons/colors/file-browser.png";
-const char *searchinfiles_icon_path = "/home/eero/all/text-editor/icons/colors/search-in-files.png";
-const char *unsaved_changes_icon_path = "/home/eero/all/text-editor/icons/exclamation-mark-small.png";
-const char *file_icon_path = "/home/eero/all/text-editor/icons/colors/file.png";
-const char *folder_icon_path = "/home/eero/all/text-editor/icons/colors/folder.png";
+const char *filebrowser_icon_path = "/home/eero/all/text-editor/icons/my-supercool-icons/is-filebrowser.png";
+const char *searchinfiles_icon_path = "/home/eero/all/text-editor/icons/my-supercool-icons/is-search.png";
+const char *unsaved_changes_icon_path = "/home/eero/all/text-editor/icons/my-supercool-icons/is-exclamation-mark-20.png";
+const char *file_icon_path = "/home/eero/all/text-editor/icons/my-supercool-icons/is-file-24.png";
+const char *folder_icon_path = "/home/eero/all/text-editor/icons/my-supercool-icons/is-folder-24.png";
+const char *home_icon_path = "/home/eero/all/text-editor/icons/my-supercool-icons/is-house-24.png";
+const char *parent_dir_icon_path = "/home/eero/all/text-editor/icons/my-supercool-icons/is-arrow-24.png";
 
 /*
 We are only using this, because key_combinations array doesnt store multiple handlers.
