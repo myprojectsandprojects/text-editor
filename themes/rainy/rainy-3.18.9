@@ -276,6 +276,8 @@
 .openfile-dialog
 {
 	background: rgb(255, 165, 0);
+	color: black;
+	font: Ubuntu Mono 12;
 }
 
 .openfile-entry
@@ -284,26 +286,26 @@
 	border-radius: 0;
 
 	background: rgb(255, 190, 25);
-	color: black;
 
+	color: black;
 	font: Ubuntu Mono Bold 13;
 }
 
-.openfile-dialog-label
+.openfile-file-list
 {
-	color: black;
-	font: Ubuntu Mono 11;
+	background: red;
+}
+
+.openfile-file-list > *
+{
+	background: rgb(255, 165, 0);
 	padding: 3px;
 }
 
-.openfile-dialog-label-selected
+.openfile-file-list > *:selected
 {
+	/*color: black;
+	font: Ubuntu Mono 13;*/
 	color: black;
-	font: Ubuntu Mono Bold 13;
-	padding: 3px;
+	background: rgb(255, 190, 25);
 }
-
-
-
-
-

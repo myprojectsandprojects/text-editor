@@ -27,13 +27,21 @@ char root_dir[100]; // file-browser and find-in-files modules need access to it
 
 extern GtkWidget *root_dir_label;
 
-const char *filebrowser_icon_path = "/home/eero/all/text-editor/icons/my-supercool-icons/is-filebrowser.png";
-const char *searchinfiles_icon_path = "/home/eero/all/text-editor/icons/my-supercool-icons/is-search.png";
-const char *unsaved_changes_icon_path = "/home/eero/all/text-editor/icons/my-supercool-icons/is-exclamation-mark-20.png";
-const char *file_icon_path = "/home/eero/all/text-editor/icons/my-supercool-icons/is-file-24.png";
-const char *folder_icon_path = "/home/eero/all/text-editor/icons/my-supercool-icons/is-folder-24.png";
-const char *home_icon_path = "/home/eero/all/text-editor/icons/my-supercool-icons/is-house-24.png";
-const char *parent_dir_icon_path = "/home/eero/all/text-editor/icons/my-supercool-icons/is-arrow-24.png";
+const char *filebrowser_icon_path = "/home/eero/all/text-editor/icons/for-light-theme/files-20.png";
+const char *searchinfiles_icon_path = "/home/eero/all/text-editor/icons/for-light-theme/search-20.png";
+//const char *unsaved_changes_icon_path = "/home/eero/all/text-editor/icons/my-supercool-icons/is-exclamation-mark-20.png";
+const char *unsaved_changes_icon_path = "/home/eero/all/text-editor/icons/my-supercool-icons/is-exclamation-mark-16.png";
+const char *file_icon_path = "/home/eero/all/text-editor/icons/for-light-theme/file-24.png";
+const char *folder_icon_path = "/home/eero/all/text-editor/icons/for-light-theme/folder-24.png";
+//const char *home_icon_path = "/home/eero/all/text-editor/icons/for-light-theme/house-20-tr.png";
+const char *home_icon_path = "/home/eero/all/text-editor/icons/for-light-theme/house-20.png";
+//const char *parent_dir_icon_path = "/home/eero/all/text-editor/icons/for-light-theme/arrow-20-tr.png";
+const char *parent_dir_icon_path = "/home/eero/all/text-editor/icons/for-light-theme/arrow-20.png";
+const char *search_icon_path = "/home/eero/all/text-editor/icons/for-light-theme/search-20.png";
+
+const char *settings_file_path = "/home/eero/all/text-editor/themes/settings";
+//char *css_file = "/home/eero/all/text-editor/themes/css";
+char *css_file_path = "/home/eero/all/text-editor/themes/css"; // cant be const because we pass it to pthread_create()
 
 /*
 We are only using this, because key_combinations array doesnt store multiple handlers.
@@ -61,11 +69,13 @@ void add_class(GtkWidget *widget, const char *class_name)
 	gtk_style_context_add_class(style_context, class_name);
 }
 
+
 void remove_class(GtkWidget *widget, const char *class_name)
 {
 	GtkStyleContext *style_context = gtk_widget_get_style_context(widget);
 	gtk_style_context_remove_class(style_context, class_name);
 }
+
 
 void set_root_dir(const char *path)
 {
@@ -79,126 +89,6 @@ void set_root_dir(const char *path)
 	gtk_tree_view_set_model(GTK_TREE_VIEW(file_browser), GTK_TREE_MODEL(create_store()));
 }
 
-/*void add_highlighting(GtkTextBuffer *text_buffer) {
-	g_print("add_highlighting()\n");
-	
-	GtkTextIter i, j;
-	gtk_text_buffer_get_start_iter(text_buffer, &i);
-	if(gtk_text_iter_is_end(&i) == TRUE) {
-		return;
-	}
-
-	GtkTextIter start, end;
-	gtk_text_buffer_get_bounds(text_buffer, &start, &end);
-
-	GtkTextTagTable *table = gtk_text_buffer_get_tag_table(text_buffer);
-	gint size = gtk_text_tag_table_get_size(table);
-	//g_print("add_highlighting: table size: %d\n", size);
-	if(size == 0) {
-		gtk_text_buffer_create_tag(text_buffer, "comment", "foreground", "forestgreen", "style", PANGO_STYLE_ITALIC, NULL);
-		//gtk_text_buffer_create_tag(text_buffer, "keyword", "weight", PANGO_WEIGHT_BOLD, NULL);
-		gtk_text_buffer_create_tag(text_buffer, "keyword", "foreground", "#d6c6ae", NULL);
-		gtk_text_buffer_create_tag(text_buffer, "string", "foreground", "gray", NULL);
-		gtk_text_buffer_create_tag(text_buffer, "number-literal", "foreground", "lightseagreen", NULL);
-	} else {
-		gtk_text_buffer_remove_all_tags(text_buffer, &start, &end); // Doesnt remove tags themselves, just the highlighting.
-	}
-
-	gboolean doing_something = FALSE;
-	gboolean doing_str = FALSE;
-	gboolean doing_comment = FALSE;
-
-	do {
-		gunichar c = gtk_text_iter_get_char(&i);
-		//g_print("character: %c (%d)\n", c, c);
-		if(c == '/') {
-			gtk_text_iter_forward_char(&i);
-			c = gtk_text_iter_get_char(&i);
-			if(c == '*') {
-				if(doing_something == FALSE) { // We want to begin a comment, but can we?
-					doing_comment = TRUE;
-					doing_something = TRUE;
-					j = i;
-					continue;
-				}
-			}
-			if(c == '/') { // -> comment out the rest of the line
-				if(doing_something == FALSE) {
-					j = i;
-					gtk_text_iter_forward_line(&i);
-					gtk_text_buffer_apply_tag_by_name(text_buffer, "comment", &j, &i);
-					gtk_text_iter_backward_char(&i);
-					continue;
-				}
-			}
-			gtk_text_iter_backward_char(&i);
-			c = gtk_text_iter_get_char(&i);
-		}
-		if(c == '*') {
-			gtk_text_iter_forward_char(&i);
-			c = gtk_text_iter_get_char(&i);
-			if(c == '/') {
-				if(doing_comment == TRUE) { // We want to end a comment, but is there a comment to end?
-					doing_comment = FALSE;
-					doing_something = FALSE;
-					gtk_text_buffer_apply_tag_by_name(text_buffer, "comment", &j, &i);
-					continue;
-				}
-			}
-		}
-		if(c == '\"') {
-			gtk_text_iter_backward_char(&i);
-			if(gtk_text_iter_get_char(&i) == '\\') {
-				gtk_text_iter_forward_char(&i);
-				continue;
-			}
-			gtk_text_iter_forward_char(&i);
-			if(doing_str == TRUE) {
-				doing_str = FALSE;
-				doing_something = FALSE;
-				gtk_text_buffer_apply_tag_by_name(text_buffer, "string", &j, &i);
-				continue;
-			} else if (doing_something == FALSE) {
-				j = i; doing_str = TRUE; doing_something = TRUE;
-			}
-		}
-		if(g_unichar_isdigit(c) == TRUE) { // Could be a number-literal.
-			if(doing_something == FALSE) { // Not inside a comment or a string.
-				j = i;
-				while(gtk_text_iter_forward_char(&i) == TRUE) {
-					c = gtk_text_iter_get_char(&i);
-					if(g_unichar_isdigit(c) == FALSE && c != '.' && c != 'x') break;
-				}
-				gtk_text_buffer_apply_tag_by_name(text_buffer, "number-literal", &j, &i);
-			}
-		}
-		if(g_unichar_isalpha(c) == TRUE || c == '_') { // Could be an identifier.
-			if(doing_something == FALSE) { // Not inside a comment or a string.
-				char *identifier; //@ free?
-				j = i;
-				while(gtk_text_iter_forward_char(&i) == TRUE) {
-					c = gtk_text_iter_get_char(&i);
-					if(g_unichar_isalnum(c) == FALSE && c != '_') break;
-				}
-				identifier = gtk_text_buffer_get_text(text_buffer, &j, &i, FALSE); //@ ...is kinda costly?
-				//g_print("add_highlighting: identifier: %s\n", identifier);
-
-				// Maybe our identifier is a keyword?
-				char *keywords[] = {"if", "else", "return", "for", "while", "break", "continue", NULL};
-				int k;
-				for(k = 0; keywords[k] != NULL; ++k) {
-					if(strcmp(identifier, keywords[k]) == 0) {
-						gtk_text_buffer_apply_tag_by_name(text_buffer, "keyword", &j, &i);
-						break;
-					}
-				}
-
-				gtk_text_iter_backward_char(&i);
-				free(identifier);
-			}
-		}
-	} while(gtk_text_iter_forward_char(&i) == TRUE);
-}*/
 
 void tab_set_unsaved_changes_to(GtkWidget *tab, gboolean unsaved_changes)
 {
@@ -224,6 +114,7 @@ void tab_set_unsaved_changes_to(GtkWidget *tab, gboolean unsaved_changes)
 	gtk_notebook_set_tab_label(GTK_NOTEBOOK(notebook), tab, title_widget);
 }
 
+
 void text_buffer_changed(GtkTextBuffer *text_buffer, gpointer user_data)
 {
 	LOG_MSG("text_buffer_changed()\n");
@@ -240,6 +131,7 @@ void text_buffer_changed(GtkTextBuffer *text_buffer, gpointer user_data)
 	if (tab_info->unsaved_changes == FALSE)
 		tab_set_unsaved_changes_to(tab, TRUE);
 }
+
 
 /* Could use retrieve_widget functions instead of passing in the pointer as an argument to get the label... */
 void text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
@@ -287,6 +179,7 @@ void text_view_copy_clipboard(GtkTextView *text_view, gpointer user_data)
 	g_signal_stop_emission_by_name(text_view, "copy-clipboard");
 }
 
+
 void text_view_cut_clipboard(GtkTextView *text_view, gpointer user_data)
 {
 	GtkTextIter start, end;
@@ -317,6 +210,7 @@ void text_view_paste_clipboard(GtkTextView *text_view, gpointer user_data)
 	
 	g_signal_stop_emission_by_name(text_view, "paste-clipboard");
 }
+
 
 void on_button_clicked(GtkButton *button, gpointer data)
 {
@@ -350,6 +244,7 @@ void on_button_clicked(GtkButton *button, gpointer data)
 	gtk_text_buffer_delete_mark(text_buffer, search_start);
 	gtk_text_buffer_delete_mark(text_buffer, selection_end);
 }
+
 
 /*
 void display_search_and_replace_dialog()
@@ -417,6 +312,7 @@ void on_scrolled_window_size_allocate(GtkWidget *scrolled_window, GdkRectangle *
 	gtk_widget_set_size_request(GTK_WIDGET(bottom_margin), allocation->width, allocation->height);
 }
 
+
 void on_highlighting_selected(GtkMenuItem *item, gpointer data)
 {
 	LOG_MSG("on_highlighting_selected()\n");
@@ -444,10 +340,12 @@ void on_highlighting_selected(GtkMenuItem *item, gpointer data)
 	}
 }
 
+
 void on_text_view_size_allocate(GtkWidget *textview, GdkRectangle *alloc, gpointer data) {
 	LOG_MSG("on_text_view_size_allocate()\n");
 	gtk_text_view_set_bottom_margin(GTK_TEXT_VIEW(textview), alloc->height);
 }
+
 
 GtkWidget *create_tab(const char *file_name)
 {
@@ -518,7 +416,7 @@ GtkWidget *create_tab(const char *file_name)
 
 	add_class(status_bar, "status-bar");
 	//add_class(line_nr_value, "line-number-value-label");
-	add_class(hl_menu_button, "xbutton");
+	add_class(hl_menu_button, "code-highlighting-menu-button");
 
 	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
 
@@ -600,6 +498,7 @@ GtkWidget *create_tab(const char *file_name)
 	return tab;
 }
 
+
 char *get_file_name_from_user(GtkFileChooserAction dialog_type)
 {
 	const char *open_label = "Open";
@@ -642,6 +541,7 @@ char *get_file_name_from_user(GtkFileChooserAction dialog_type)
 	return file_name;
 }
 
+
 char *get_base_name(const char *file_name)
 {
 	char file_name_copy[100];
@@ -659,6 +559,7 @@ char *get_base_name(const char *file_name)
 
 	return base_name;
 }
+
 
 #define CTRL	1 // 0001
 #define ALT	 	2 // 0010
@@ -817,12 +718,14 @@ void refresh_application_title(GtkWidget *tab)
 	}
 }
 
+
 void on_notebook_switch_page(GtkNotebook *notebook, GtkWidget *tab, guint page_num, gpointer data)
 {
 	LOG_MSG("on_notebook_switch_page()\n");
 
 	refresh_application_title(tab);
 }
+
 
 /* Another way to implement autocomplete would be to intercept later on when handling the buffers insert-text event. */
 gboolean autocomplete_character(GdkEventKey *key_event)
@@ -869,6 +772,7 @@ gboolean create_empty_tab(GdkEventKey *key_event)
 	return TRUE;
 }
 
+
 gboolean close_tab(GdkEventKey *key_event)
 {
 	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
@@ -880,6 +784,7 @@ gboolean close_tab(GdkEventKey *key_event)
 	gtk_widget_destroy(tab);
 	return TRUE;
 }
+
 
 gboolean switch_tab(GdkEventKey *key_event)
 {
@@ -902,6 +807,7 @@ gboolean switch_tab(GdkEventKey *key_event)
 	return TRUE;
 }
 
+
 gboolean less_fancy_toggle_sidebar(GdkEventKey *key_event)
 {
 	if (gtk_widget_is_visible(sidebar_container) == TRUE)
@@ -911,6 +817,7 @@ gboolean less_fancy_toggle_sidebar(GdkEventKey *key_event)
 
 	return TRUE;
 }
+
 
 gboolean less_fancy_toggle_notebook(GdkEventKey *key_event)
 {
@@ -1000,6 +907,7 @@ gboolean undo_last_action(GdkEventKey *key_event)
 	return TRUE;
 }
 
+
 gboolean do_save(GdkEventKey *key_event)
 {
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
@@ -1034,6 +942,7 @@ gboolean do_save(GdkEventKey *key_event)
 
 	return TRUE;
 }
+
 
 gboolean do_open(GdkEventKey *key_event)
 {
@@ -1073,6 +982,7 @@ gboolean apply_css_from_file(void *data)
 
 	return FALSE; // Dont call again
 }
+
 
 void *watch_for_changes(void *data)
 {
@@ -1116,11 +1026,12 @@ Calling apply_css_from_file() directly crashes the app when modifying the css-fi
 	}
 }
 
-void parse_settings_file(void)
+
+void parse_settings_file(const char *file_path)
 {
 	printf("parse_settings_file()\n");
 
-	char *contents = read_file("/home/eero/all/text-editor/themes/settings");
+	char *contents = read_file(file_path);
 	//printf("parse_settings_file(): contents:\n%s\n", contents);
 
 	#define SIZE 100
@@ -1167,6 +1078,7 @@ void parse_settings_file(void)
 		}
 	}
 }
+
 
 void activate_handler(GtkApplication *app, gpointer data)
 {
@@ -1233,14 +1145,12 @@ void activate_handler(GtkApplication *app, gpointer data)
 	key_combinations[CTRL][44] = less_fancy_toggle_notebook; // ctrl + j
 
 
-	parse_settings_file();
 
-	char *css_file = "/home/eero/all/text-editor/themes/css";
-	//char *css_file = "/home/eero/all/text-editor/themes/test";
-	apply_css_from_file((void *) css_file);
+	parse_settings_file(settings_file_path);
+	apply_css_from_file((void *) css_file_path);
 
 	pthread_t id;
-	int r = pthread_create(&id, NULL, watch_for_changes, css_file);
+	int r = pthread_create(&id, NULL, watch_for_changes, css_file_path);
 	if (r != 0) {
 		printf("pthread_create() error!\n");
 	}
@@ -1337,6 +1247,7 @@ we could also pass in a list of functions to app's key-press handler and then ca
 	gtk_window_set_transient_for(GTK_WINDOW(popup_window), GTK_WINDOW(window));
 	gtk_widget_show_all(popup_window);*/
 }
+
 
 int main() {
 

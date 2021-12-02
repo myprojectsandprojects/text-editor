@@ -254,12 +254,12 @@ void create_tags(GtkTextBuffer *text_buffer)
 	printf("create_tags(): creating tags.\n");
 
 	gtk_text_buffer_create_tag(text_buffer, "identifier", "foreground", settings.identifier_color, NULL);
-	gtk_text_buffer_create_tag(text_buffer, "keyword", "foreground", settings.keyword_color, NULL);
+	gtk_text_buffer_create_tag(text_buffer, "keyword", "foreground", settings.keyword_color, "weight", "bold", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "type", "foreground", settings.type_color, NULL);
 	gtk_text_buffer_create_tag(text_buffer, "operator", "foreground", settings.operator_color, NULL);
 	gtk_text_buffer_create_tag(text_buffer, "number", "foreground", settings.number_color, NULL);
 	gtk_text_buffer_create_tag(text_buffer, "comment", "foreground", settings.comment_color, NULL);
-	gtk_text_buffer_create_tag(text_buffer, "preprocessor-directive", "foreground", settings.preproccessor_color, NULL);
+	gtk_text_buffer_create_tag(text_buffer, "preprocessor-directive", "foreground", settings.preproccessor_color, "weight", "bold", NULL);
 	gtk_text_buffer_create_tag(text_buffer, "unknown", "foreground", settings.unknown_color, NULL);
 	gtk_text_buffer_create_tag(text_buffer, "string", "foreground", settings.string_color, NULL);
 }

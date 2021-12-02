@@ -37,8 +37,7 @@ GtkWidget *create_search_widget(GtkWidget *tab)
 	tab_add_widget_4_retrieval(tab, SEARCH_REVEALER, search_revealer);
 	tab_add_widget_4_retrieval(tab, SEARCH_ENTRY, search_entry);
 
-	gtk_widget_set_name(search_entry, "search-entry");
-	add_class(search_entry, "text-entry-deepskyblue");
+	add_class(search_entry, "search-entry");
 
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
 	assert(text_buffer); // I think tab_retrieve_widget() returns NULL if the widget has'nt been stored because it uses a global array of pointers to store these widgets and global arrays of pointers are initialized to NULL's in C. 

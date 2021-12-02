@@ -37,16 +37,16 @@ GtkWidget *create_root_nav_widget()
 	GtkWidget *back_image = gtk_image_new_from_file(parent_dir_icon_path);
 	gtk_button_set_image(GTK_BUTTON(back_button), back_image);
 	g_signal_connect(G_OBJECT(back_button), "clicked", G_CALLBACK(on_back_button_clicked), NULL);
-
+/*
 	gtk_widget_set_size_request(home_button, 36, 36);
 	gtk_widget_set_size_request(back_button, 36, 36);
-
+*/
 	gtk_widget_set_tooltip_text(home_button, "Home Directory");
 	gtk_widget_set_tooltip_text(back_button, "Parent Directory");
 
-	gtk_style_context_add_class(gtk_widget_get_style_context(home_button), "nav-button");
-	gtk_style_context_add_class(gtk_widget_get_style_context(back_button), "nav-button");
-	gtk_style_context_add_class(gtk_widget_get_style_context(root_dir_label), "root-dir-label");
+	add_class(home_button, "home-dir-button");
+	add_class(back_button, "parent-dir-button");
+	add_class(root_dir_label, "root-dir-label");
 
 	GtkWidget *buttons_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 3);
 	gtk_container_add(GTK_CONTAINER(buttons_container), back_button);

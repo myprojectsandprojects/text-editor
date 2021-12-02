@@ -166,7 +166,7 @@ void on_openfile_entry_changed(GtkEntry *search_entry, gpointer data)
 
 	// this is always 1 and 1. widget not realized yet?
 	GtkAllocation alloc;
-	gtk_widget_get_allocation(file_list, &alloc); 
+	gtk_widget_get_allocation(file_list, &alloc);
 	printf("list width: %d, list height: %d\n", alloc.width, alloc.height);
 }
 

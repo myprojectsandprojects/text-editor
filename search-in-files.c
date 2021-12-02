@@ -22,6 +22,8 @@ gboolean stop_search = FALSE;
 
 extern char 	root_dir[100];
 
+extern const char *search_icon_path;
+
 /* callback for g_timeout_add_seconds */
 gboolean tab_scroll_to(gpointer data)
 {
@@ -522,15 +524,19 @@ GtkWidget *create_search_in_files_widget()
 	search_phrase_entry = gtk_search_entry_new();
 	filename_filter_entry = gtk_entry_new();
 	hidden_files_check_button = gtk_check_button_new_with_label("ignore hidden");
+
 	search_button = gtk_button_new_with_label("Search");
+/*
+	search_button = gtk_button_new();
+	GtkWidget *search_image = gtk_image_new_from_file(search_icon_path);
+	gtk_button_set_image(GTK_BUTTON(search_button), search_image);
+*/
 
-	gtk_widget_set_name(search_phrase_entry, "search-phrase-entry");
-	gtk_widget_set_name(filename_filter_entry, "filename-patterns-entry");
+	add_class(search_phrase_entry, "search-in-files-phrase-entry");
+	add_class(filename_filter_entry, "search-in-files-pattern-entry");
+	add_class(search_button, "search-in-files-button");
+	//add_class(hidden_files_check_button, "search-in-files-check-button");
 
-	add_class(search_phrase_entry, "text-entry");
-	add_class(filename_filter_entry, "text-entry");
-	add_class(hidden_files_check_button, "check-button");
-	add_class(search_button, "xbutton");
 
 	//gtk_entry_set_text(GTK_ENTRY(filename_filter_entry), "*");
 	
@@ -571,7 +577,7 @@ GtkWidget *create_search_in_files_widget()
 
 	GtkWidget *background = gtk_frame_new(NULL);
 	gtk_container_add(GTK_CONTAINER(background), container_h);
-	add_class(background, "search-background");
+	add_class(background, "search-in-files");
 
 	GtkWidget *container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 3);
 	gtk_widget_set_hexpand(container, TRUE);
@@ -584,5 +590,3 @@ GtkWidget *create_search_in_files_widget()
 
 	return container;
 }
-
-

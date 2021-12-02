@@ -255,13 +255,13 @@ and just stick to classes.
 {
 	font-weight: bold;
 }
-
+/*
 .suggestions-popup
 {
 	/*color: rgb(190, 190, 190);*/
 	/*font: Free Mono Bold 11;*/
 }
-
+*/
 .openfile-dialog
 {
 	background: rgb(255, 165, 0);
