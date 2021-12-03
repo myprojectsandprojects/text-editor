@@ -37,7 +37,8 @@ const int scrolled_window_height = 500;
 void select_filelist_item_at(int index)
 {
 	assert(file_list);
-	GtkListBoxRow *row = gtk_list_box_get_row_at_index(GTK_LIST_BOX(file_list), index);
+	GtkListBoxRow *row =
+		gtk_list_box_get_row_at_index(GTK_LIST_BOX(file_list), index);
 	assert(row);
 	gtk_list_box_select_row(GTK_LIST_BOX(file_list), row);
 }
@@ -83,7 +84,7 @@ void on_openfile_entry_changed(GtkEntry *search_entry, gpointer data)
 		return;
 	}
 
-	printf("on_openfile_entry_changed(): %s\n", text);
+	printf("\t-> %s\n", text);
 
 	char command[100];
 	//snprintf(command, 100, "locate -b %s | grep ^/home/eero/all/text-editor", text);
@@ -125,6 +126,7 @@ void on_openfile_entry_changed(GtkEntry *search_entry, gpointer data)
 	int lines = 0;
 
 	while ((line = get_slice_by(&p, '\n')) != NULL) {
+		/* @should we get rid of this "if" here for performance reasons? */
 		if (!file_list) {
 			file_list = gtk_list_box_new();
 			add_class(file_list, "openfile-file-list");
@@ -164,6 +166,8 @@ void on_openfile_entry_changed(GtkEntry *search_entry, gpointer data)
 	//gtk_widget_set_size_request(open_window, openfile_dialog_width, 1);
 	gtk_window_resize(GTK_WINDOW(open_window), openfile_dialog_width, 1);
 	gtk_widget_show_all(open_window);
+
+	return;
 
 	// this is always 1 and 1. widget not realized yet?
 	GtkAllocation alloc;
@@ -205,7 +209,7 @@ gboolean on_open_window_keypress_event(GtkWidget *open_window,
 		GtkWidget *label = gtk_bin_get_child(GTK_BIN(row));
 		const char *label_text = gtk_label_get_label(GTK_LABEL(label));
 
-		printf("on_open_window_keypress_event(): selected item: %s\n", label_text);
+		printf("\t-> selected item: %s\n", label_text);
 
 		struct stat file_info;
 		if (lstat(label_text, &file_info) == -1) {
@@ -232,27 +236,23 @@ gboolean on_open_window_keypress_event(GtkWidget *open_window,
 		return TRUE;
 	}
 	/* We may want to overwrite the default handlers provided by the ListBox widget for up and down keys... */
-	else if (keycode == UP) {
-		printf("on_open_window_keypress_event(): up-key pressed..\n");
+	else if (keycode == UP || keycode == DOWN) {
+		//printf("on_open_window_keypress_event(): up-key pressed..\n");
 
 		if (num_items == 0) return TRUE;
 
-		index_selected_item -= 1;
+		if (keycode == UP) {
+			index_selected_item -= 1;
+		} else {
+			index_selected_item += 1;
+		}
+
 		if (index_selected_item < 0) {
 			index_selected_item = num_items - 1;
-		}
-		select_filelist_item_at(index_selected_item);
-		//printf("on_open_window_keypress_event(): index: %d\n", index_selected_item);
-		return TRUE; // dont call the default handler
-	} else if (keycode == DOWN) {
-		printf("on_open_window_keypress_event(): down-key pressed..\n");
-
-		if (num_items == 0) return TRUE;
-
-		index_selected_item += 1;
-		if (index_selected_item > num_items - 1) {
+		} else if (index_selected_item > num_items - 1) {
 			index_selected_item = 0;
 		}
+
 		select_filelist_item_at(index_selected_item);
 		//printf("on_open_window_keypress_event(): index: %d\n", index_selected_item);
 
@@ -295,6 +295,7 @@ gboolean on_open_window_keypress_event(GtkWidget *open_window,
 		}
 
 		return TRUE; // dont call the default handler
+
 	}
 
 	return FALSE;
