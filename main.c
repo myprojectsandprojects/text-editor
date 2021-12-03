@@ -23,7 +23,7 @@ GtkWidget *file_browser; // GtkTreeView
 /*
 This is like a root directory of our project (or workspace or)
 */
-char root_dir[100]; // file-browser and find-in-files modules need access to it
+char root_dir[100] = "/home/eero/all";
 
 extern GtkWidget *root_dir_label;
 
@@ -86,7 +86,9 @@ void set_root_dir(const char *path)
 	strcpy(root_dir, path);
 	
 	gtk_label_set_text(GTK_LABEL(root_dir_label), root_dir);
-	gtk_tree_view_set_model(GTK_TREE_VIEW(file_browser), GTK_TREE_MODEL(create_store()));
+	refresh_application_title();
+	gtk_tree_view_set_model(GTK_TREE_VIEW(file_browser),
+		GTK_TREE_MODEL(create_store()));
 }
 
 
@@ -544,7 +546,7 @@ char *get_file_name_from_user(GtkFileChooserAction dialog_type)
 
 char *get_base_name(const char *file_name)
 {
-	char file_name_copy[100];
+	char file_name_copy[100]; //@ buffer bounds
 	char *base_name;
 	char *curr_token, *prev_token;
 
@@ -554,7 +556,7 @@ char *get_base_name(const char *file_name)
 		prev_token = curr_token;
 		curr_token = strtok(NULL, "/");
 	}
-	base_name = malloc(100); //@ What if base name is longer than 99 characters?
+	base_name = malloc(100); //@  buffer bounds
 	sprintf(base_name, "%s", prev_token);
 
 	return base_name;
@@ -562,7 +564,7 @@ char *get_base_name(const char *file_name)
 
 
 #define CTRL	1 // 0001
-#define ALT	 	2 // 0010
+#define ALT	2 // 0010
 #define SHIFT	4 // 0100
 #define ALTGR	8 // 1000
 
@@ -706,24 +708,40 @@ Setting margins and paddings in css has no effect whatsoever, not even error mes
 }*/
 
 
-void refresh_application_title(GtkWidget *tab)
+void refresh_application_title(void)
 {
+	printf("refresh_application_title()\n");
+
+	char app_title[100]; //@ buffer bounds
+
+	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
+	if (!tab) {
+		printf("\t-> no visible tab\n");
+		return;
+	}
+
 	gpointer data = g_object_get_data(G_OBJECT(tab), "tab-info");
 	assert(data != NULL);
 	struct TabInfo *tab_info = (struct TabInfo *) data;
 	if(tab_info->file_name != NULL) {
-		gtk_window_set_title(GTK_WINDOW(window), tab_info->file_name); //@
+		//gtk_window_set_title(GTK_WINDOW(window), tab_info->file_name);
+		snprintf(app_title, 100,
+			"Root Directory: %s\tCurrent File: %s", root_dir, tab_info->file_name);
 	} else {
-		gtk_window_set_title(GTK_WINDOW(window), tab_info->title);
+		//gtk_window_set_title(GTK_WINDOW(window), tab_info->title);
+		snprintf(app_title, 100,
+			"Root Directory: %s\tCurrent File: %s", root_dir, tab_info->title);
 	}
+	gtk_window_set_title(GTK_WINDOW(window), app_title);
 }
 
 
 void on_notebook_switch_page(GtkNotebook *notebook, GtkWidget *tab, guint page_num, gpointer data)
 {
-	LOG_MSG("on_notebook_switch_page()\n");
+	//LOG_MSG("on_notebook_switch_page()\n");
+	printf("on_notebook_switch_page()\n");
 
-	refresh_application_title(tab);
+	refresh_application_title();
 }
 
 
@@ -933,7 +951,7 @@ gboolean do_save(GdkEventKey *key_event)
 		if(file_name == NULL) return TRUE; // User didnt give us a file name.
 		tab_info->file_name = file_name;
 		tab_info->title = get_base_name(file_name);
-		refresh_application_title(tab);
+		refresh_application_title();
 	}
 
 	write_file(tab_info->file_name, contents); //@ error handling
@@ -1163,7 +1181,7 @@ void activate_handler(GtkApplication *app, gpointer data)
 Cant call set_root_dir() here because it expects file-browser and root-navigation to be already created.
 If we used some kind of event/signal-thing, which allows abstractions to register callbacks to be executed in response to events like "root-directory-change" we wouldnt have to worry about that. Because then the code that individual-abstractions need to run would be provided by them in the form of callbacks and wouldnt be hardcoded into set_root_dir function.
 */
-	strcpy(root_dir, "/home/eero"); 
+	//strcpy(root_dir, "/home/eero"); 
 
 	GtkWidget *sidebar_notebook = gtk_notebook_new();
 	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(sidebar_notebook), GTK_POS_BOTTOM);
@@ -1195,7 +1213,9 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	gtk_notebook_set_scrollable(GTK_NOTEBOOK(notebook), TRUE);
 	// Generally we would like to keep the focus on the text-view widget.
 	// I tested this and the only conclusion I arrived at is that its best not to touch the focus at all.
-	g_signal_connect(notebook, "switch-page", G_CALLBACK(on_notebook_switch_page), NULL);
+	//g_signal_connect(notebook, "switch-page", G_CALLBACK(on_notebook_switch_page), NULL);
+	g_signal_connect_after(notebook, "switch-page",
+		G_CALLBACK(on_notebook_switch_page), NULL);
 	//g_signal_connect(notebook, "focus-in-event", G_CALLBACK(on_notebook_focus_in_event), NULL);
 	//g_signal_connect(notebook, "page-added", G_CALLBACK(on_notebook_page_added), NULL);
 	add_class(notebook, "main-notebook");
@@ -1210,11 +1230,8 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	//gtk_window_set_title(GTK_WINDOW(window), "Hello world!");
 	gtk_window_set_default_size(GTK_WINDOW(window), 1000, 600);
 
-	gtk_style_context_add_class (
-		gtk_widget_get_style_context(window),
-		"app-window"); // No effect
-
-	gtk_widget_set_name(window, "app-window");
+	add_class(window, "app-window");
+	//gtk_widget_set_name(window, "app-window");
 
 /*
 autocomplete's key-press handler needs to run before application's key-press handler.

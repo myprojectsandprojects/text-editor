@@ -35,7 +35,7 @@ void write_file(const char *filename, const char *contents);
 
 /* main.c: */
 char *get_base_name(const char *file_name);
-void refresh_application_title(GtkWidget *tab);
+void refresh_application_title(void);
 GtkWidget *create_tab(const char *file_name);
 void set_root_dir(const char *path);
 void add_class(GtkWidget *widget, const char *class_name);
