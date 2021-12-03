@@ -148,8 +148,3 @@ void init_autocomplete(GtkApplicationWindow *app_window,
 							G_CALLBACK(on_popup_window_key_press_event), NULL);
 */
 }
-
-
-
-
-

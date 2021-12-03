@@ -54,7 +54,6 @@ on_app_window_key_press(): hardware keycode: 46
 *** Error in `./a.out': free(): invalid pointer: 0x00007f3b43104d00 ***
 buildandrun.sh: line 1: 22801 Aborted                 (core dumped) ./a.out
 
-* root directory should be visible at all times
-* open-file-dialog: files and directories should be differentiable or maybe we'll drop directories entirely...
 * open-file-dialog: up arrow
+* open-file-dialog: files and directories should be differentiable or maybe we'll drop directories entirely...
 * search-in-files button icons

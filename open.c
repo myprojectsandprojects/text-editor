@@ -11,6 +11,7 @@ We need to run "sudo updatedb" to keep "locate" up-to-date
 
 
 extern char root_dir[100];
+extern GtkWidget *app_window;
 
 GtkWidget *open_window;
 GtkWidget *container;
@@ -310,8 +311,14 @@ gboolean display_openfile_dialog(GdkEventKey *key_event)
 	gtk_window_set_decorated(GTK_WINDOW(open_window), FALSE);
 	gtk_window_set_default_size(GTK_WINDOW(open_window),
 		openfile_dialog_width, 1);
-	gtk_window_move(GTK_WINDOW(open_window), 100, 100);
 	add_class(open_window, "openfile-dialog");
+
+	/* Position relative to app window: */
+	gint x, y;
+	GdkWindow *gdk_app_window = gtk_widget_get_window(app_window);
+	gdk_window_get_origin(gdk_app_window, &x, &y);
+	//printf("\t-> x: %d, y: %d\n", x, y);
+	gtk_window_move(GTK_WINDOW(open_window), x + 100, y + 100);
 
 	/*
 	On a keypress event only active window's handler will be called,

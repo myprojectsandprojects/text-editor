@@ -10,7 +10,7 @@
 #include "declarations.h"
 #include "tab.h"
 
-GtkWidget *window;
+GtkWidget *app_window;
 GtkWidget *nb_container;
 GtkWidget *notebook;
 GtkWidget *sidebar_container;
@@ -525,7 +525,7 @@ char *get_file_name_from_user(GtkFileChooserAction dialog_type)
 
 	dialog = gtk_file_chooser_dialog_new(
 		dialog_title,
-		GTK_WINDOW(window),
+		GTK_WINDOW(app_window),
 		dialog_type,
 		"Cancel",
 		GTK_RESPONSE_CANCEL,
@@ -732,7 +732,7 @@ void refresh_application_title(void)
 		snprintf(app_title, 100,
 			"Root Directory: %s\tCurrent File: %s", root_dir, tab_info->title);
 	}
-	gtk_window_set_title(GTK_WINDOW(window), app_title);
+	gtk_window_set_title(GTK_WINDOW(app_window), app_title);
 }
 
 
@@ -1226,11 +1226,11 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	gtk_container_add(GTK_CONTAINER(nb_container), notebook);
 
 
-	window = gtk_application_window_new(app);
+	app_window = gtk_application_window_new(app);
 	//gtk_window_set_title(GTK_WINDOW(window), "Hello world!");
-	gtk_window_set_default_size(GTK_WINDOW(window), 1000, 600);
+	gtk_window_set_default_size(GTK_WINDOW(app_window), 1000, 600);
 
-	add_class(window, "app-window");
+	add_class(app_window, "app-window");
 	//gtk_widget_set_name(window, "app-window");
 
 /*
@@ -1243,16 +1243,16 @@ we could also pass in a list of functions to app's key-press handler and then ca
 	g_signal_connect(window, "key-press-event",
 						G_CALLBACK(autocomplete_on_window_key_press), NULL);
 */
-	g_signal_connect(window, "key-press-event",
+	g_signal_connect(app_window, "key-press-event",
 						G_CALLBACK(on_app_window_key_press), NULL);
 
 	GtkWidget *paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
 	gtk_paned_add1(GTK_PANED(paned), sidebar_container);
 	//gtk_paned_add2(GTK_PANED(paned), notebook);
 	gtk_paned_add2(GTK_PANED(paned), nb_container);
-	gtk_container_add(GTK_CONTAINER(window), paned);
+	gtk_container_add(GTK_CONTAINER(app_window), paned);
 
-	gtk_widget_show_all(window);
+	gtk_widget_show_all(app_window);
 
 	gtk_widget_hide(sidebar_container); // let's make sidebar hidden at startup
 
