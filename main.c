@@ -738,10 +738,13 @@ void refresh_application_title(void)
 
 void on_notebook_switch_page(GtkNotebook *notebook, GtkWidget *tab, guint page_num, gpointer data)
 {
-	//LOG_MSG("on_notebook_switch_page()\n");
-	printf("on_notebook_switch_page()\n");
+	LOG_MSG("on_notebook_switch_page()\n");
 
 	refresh_application_title();
+
+	GtkWidget *text_view = (GtkWidget *) tab_retrieve_widget(tab, TEXT_VIEW);
+	assert(text_view);
+	gtk_widget_grab_focus(text_view);
 }
 
 
@@ -1211,15 +1214,9 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 	notebook = gtk_notebook_new();
 	gtk_notebook_set_scrollable(GTK_NOTEBOOK(notebook), TRUE);
-	// Generally we would like to keep the focus on the text-view widget.
-	// I tested this and the only conclusion I arrived at is that its best not to touch the focus at all.
-	//g_signal_connect(notebook, "switch-page", G_CALLBACK(on_notebook_switch_page), NULL);
-	g_signal_connect_after(notebook, "switch-page",
-		G_CALLBACK(on_notebook_switch_page), NULL);
-	//g_signal_connect(notebook, "focus-in-event", G_CALLBACK(on_notebook_focus_in_event), NULL);
-	//g_signal_connect(notebook, "page-added", G_CALLBACK(on_notebook_page_added), NULL);
+	g_signal_connect_after(notebook,
+		"switch-page", G_CALLBACK(on_notebook_switch_page), NULL);
 	add_class(notebook, "main-notebook");
-	
 	gtk_widget_set_hexpand(notebook, TRUE);
 
 	nb_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
