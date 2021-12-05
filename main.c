@@ -23,7 +23,8 @@ GtkWidget *file_browser; // GtkTreeView
 /*
 This is like a root directory of our project (or workspace or)
 */
-char root_dir[100] = "/home/eero/all";
+#define ROOT_DIR_SIZE 100
+char root_dir[ROOT_DIR_SIZE];
 
 extern GtkWidget *root_dir_label;
 
@@ -80,10 +81,10 @@ void remove_class(GtkWidget *widget, const char *class_name)
 void set_root_dir(const char *path)
 {
 	assert(path != NULL);
-	assert(strlen(path) < 100);
+	assert(strlen(path) < ROOT_DIR_SIZE);
 	assert(strlen(path) > 0);
 
-	strcpy(root_dir, path);
+	snprintf(root_dir, ROOT_DIR_SIZE, "%s", path);
 	
 	gtk_label_set_text(GTK_LABEL(root_dir_label), root_dir);
 	refresh_application_title();
@@ -1104,6 +1105,11 @@ void parse_settings_file(const char *file_path)
 void activate_handler(GtkApplication *app, gpointer data)
 {
 	LOG_MSG("activate_handler() called\n");
+
+	char *home_dir = getenv("HOME");
+	assert(home_dir);
+	//printf("home directory: %s\n", home_dir);
+	snprintf(root_dir, ROOT_DIR_SIZE, "%s", home_dir);
 
 	key_combinations[0][23] = handle_tab; // <tab>
 	key_combinations[SHIFT][23] = handle_tab; // <tab> + shift

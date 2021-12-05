@@ -1,4 +1,5 @@
 #include <gtk/gtk.h>
+#include <stdlib.h>
 
 #include "declarations.h"
 
@@ -13,7 +14,7 @@ GtkWidget *root_dir_label;
 
 void on_home_button_clicked(GtkButton *button, gpointer user_data)
 {
-	set_root_dir("/home/eero");
+	set_root_dir(getenv("HOME"));
 }
 
 void on_back_button_clicked(GtkButton *button, gpointer user_data)
