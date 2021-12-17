@@ -1106,10 +1106,16 @@ void activate_handler(GtkApplication *app, gpointer data)
 {
 	LOG_MSG("activate_handler() called\n");
 
+/*
+Cant call set_root_dir() here because it expects file-browser and root-navigation to be already created.
+If we used some kind of event/signal-thing, which allows abstractions to register callbacks to be executed in response to events like "root-directory-change" we wouldnt have to worry about that. Because then the code that individual-abstractions need to run would be provided by them in the form of callbacks and wouldnt be hardcoded into set_root_dir function.
+*/
+
 	char *home_dir = getenv("HOME");
 	assert(home_dir);
 	//printf("home directory: %s\n", home_dir);
 	snprintf(root_dir, ROOT_DIR_SIZE, "%s", home_dir);
+
 
 	key_combinations[0][23] = handle_tab; // <tab>
 	key_combinations[SHIFT][23] = handle_tab; // <tab> + shift
@@ -1186,11 +1192,6 @@ void activate_handler(GtkApplication *app, gpointer data)
 	uid_t effective_uid = geteuid();
 	printf("real uid: %d, effective uid: %d\n", real_uid, effective_uid);*/
 
-/*
-Cant call set_root_dir() here because it expects file-browser and root-navigation to be already created.
-If we used some kind of event/signal-thing, which allows abstractions to register callbacks to be executed in response to events like "root-directory-change" we wouldnt have to worry about that. Because then the code that individual-abstractions need to run would be provided by them in the form of callbacks and wouldnt be hardcoded into set_root_dir function.
-*/
-	//strcpy(root_dir, "/home/eero"); 
 
 	GtkWidget *sidebar_notebook = gtk_notebook_new();
 	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(sidebar_notebook), GTK_POS_BOTTOM);

@@ -54,7 +54,15 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
-	font: Source Code Pro Regular 12;
+	/*
+	font: Source Code Pro Regular 11;
+	font: Source Code Pro SemiBold 11;
+	font: Source Code Pro ExtraBold 11;
+	font: Source Code Pro Bold 11;
+	font: Bpmono Bold 14;
+	*/
+	font: Bpmono 13;
+	font: Courier 10 Pitch Bold 13;
 }
 
 /*

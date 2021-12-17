@@ -1,5 +1,6 @@
 #include <gtk/gtk.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -44,9 +45,8 @@ void select_filelist_item_at(int index)
 }
 
 
-/*@ It might very well be that reading the pipe is not the most sensible way to do this
-from the point of view of performance. */
-void on_openfile_entry_changed(GtkEntry *search_entry, gpointer data)
+void on_openfile_entry_changed
+	(GtkEntry *search_entry, gpointer data)
 {
 	printf("on_openfile_entry_changed()\n");
 
@@ -77,20 +77,36 @@ void on_openfile_entry_changed(GtkEntry *search_entry, gpointer data)
 */
 
 	const char *text = gtk_entry_get_text(search_entry);
-
+/*
 	if (strlen(text) < 3) {
 		gtk_window_resize(GTK_WINDOW(open_window), openfile_dialog_width, 1);
 		//gtk_widget_show_all(open_window);
 		return;
 	}
+*/
+	if (strlen(text) < 1) {
+		gtk_window_resize(GTK_WINDOW(open_window), openfile_dialog_width, 1);
+		//gtk_widget_show_all(open_window);
+		return;
+	}
 
-	printf("\t-> %s\n", text);
+	struct timeval start, end;
+	gettimeofday(&start, NULL);
 
-	char command[100];
+	char command[1000];
 	//snprintf(command, 100, "locate -b %s | grep ^/home/eero/all/text-editor", text);
 	//snprintf(command, 100, "locate -b %s | grep ^/home/eero/all", text);
-	snprintf(command, 100, "locate -b %s | grep ^%s/", text, root_dir);
+	//snprintf(command, 100, "locate -b %s | grep ^%s/", text, root_dir);
+/*
+	snprintf(command, 100,
+		"grep \"^%s\" /home/eero/all/find-utils/install/bin/textdb | grep \"/%s[^/]*$\"",
+		root_dir, text);
+*/
 
+	char *escaped_text = str_replace(text, ".", "\\.");
+	snprintf(command, 1000,
+		"grep \"^%s\" /home/eero/all/textdb | grep \"/[^/]*%s[^/]*$\"",
+		root_dir, escaped_text);
 
 	//#define MAX_RESULTS 10000
 	#define MAX_RESULTS 1000000
@@ -119,6 +135,10 @@ void on_openfile_entry_changed(GtkEntry *search_entry, gpointer data)
 
 	//printf("results: %s\n", results);
 
+	gettimeofday(&end, NULL);
+	printf("It took %ld milliseconds\n",
+		1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec));
+
 
 	char *p = results;
 	char *line;
@@ -127,6 +147,7 @@ void on_openfile_entry_changed(GtkEntry *search_entry, gpointer data)
 
 	while ((line = get_slice_by(&p, '\n')) != NULL) {
 		/* @should we get rid of this "if" here for performance reasons? */
+
 		if (!file_list) {
 			file_list = gtk_list_box_new();
 			add_class(file_list, "openfile-file-list");

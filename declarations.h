@@ -3,6 +3,8 @@
 
 /* If a declaration for a function which expects 0 arguments has () instead of (void), compiler will happily compile any combination of arguments. (?) */
 
+#include <gtk/gtk.h>
+
 /* file-browser.c: */
 GtkWidget *create_filebrowser_widget(void);
 GtkTreeStore *create_store(void);
@@ -67,6 +69,8 @@ void remove_highlighting(GtkTextBuffer *text_buffer);
 char *get_slice_by(char **p_s, char ch);
 char **slice_by(const char *s, char c);
 char *get_parent_path(const char *path);
+int is_beginning_of(const char *needle, const char *haystack);
+char *str_replace(const char *h, const char *n, const char *r);
 
 void test_get_parent_path(void);
 
