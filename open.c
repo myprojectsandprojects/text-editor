@@ -104,9 +104,13 @@ void on_openfile_entry_changed
 */
 
 	char *escaped_text = str_replace(text, ".", "\\.");
+	char *home_dir = getenv("HOME");
+	char dbfile_path[100];
+	snprintf(dbfile_path, 100, "%s/textdb", home_dir);
+	printf("*** database file path: %s\n", dbfile_path);
 	snprintf(command, 1000,
-		"grep \"^%s\" /home/eero/all/textdb | grep \"/[^/]*%s[^/]*$\"",
-		root_dir, escaped_text);
+		"grep \"^%s\" %s | grep \"/[^/]*%s[^/]*$\"",
+		root_dir, dbfile_path, escaped_text);
 
 	//#define MAX_RESULTS 10000
 	#define MAX_RESULTS 1000000

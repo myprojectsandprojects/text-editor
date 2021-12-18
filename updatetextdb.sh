@@ -1,0 +1,1 @@
+sudo updatedb && locate / > $HOME/textdb
