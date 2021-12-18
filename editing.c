@@ -648,6 +648,39 @@ gboolean change_line(GdkEventKey *key_event)
 	return TRUE;
 }
 
+gboolean delete_end_of_line(GdkEventKey *key_event)
+{
+	printf("delete_end_of_line()\n");
+
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
+
+	GtkTextIter i, i1, i2;
+
+	get_cursor_position(buffer, NULL, &i, NULL);
+/*
+	while (1) {
+		gunichar c = gtk_text_iter_get_char(&i);
+		if (c == ' ' || c == '\t')
+			gtk_text_iter_forward_char(&i);
+		else
+			break;
+	}
+*/
+	i1 = i;
+	gtk_text_iter_forward_line(&i);
+	if (!gtk_text_iter_is_end(&i))
+		gtk_text_iter_backward_char(&i);
+	i2 = i;
+	gtk_text_buffer_delete(buffer, &i1, &i2);
+
+	return TRUE;
+}
+
 
 gboolean move_cursor_start_line(GdkEventKey *key_event)
 {

@@ -1153,6 +1153,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	key_combinations[ALT][40] = duplicate_line; // alt + d
 	key_combinations[ALT][119] = delete_line; // alt + <delete>
 	key_combinations[ALT][34] = change_line; // alt + ü
+	key_combinations[ALT][33] = delete_end_of_line; // alt + p
 
 	// Auto-close(/-complete):
 	key_combinations[0][51] = autocomplete_character; // 51 -> '

@@ -30,6 +30,7 @@ gboolean move_lines_down(GdkEventKey *key_event);
 gboolean move_token_left(GdkEventKey *key_event);
 gboolean move_token_right(GdkEventKey *key_event);
 gboolean change_line(GdkEventKey *key_event);
+gboolean delete_end_of_line(GdkEventKey *key_event);
 
 /* fileio.c: */
 char *read_file(const char *filename);
