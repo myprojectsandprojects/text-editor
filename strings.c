@@ -36,7 +36,7 @@ int copy_string(
 	int dst_i, -> index into the destination buffer
 	int n); -> number of bytes to copy
 */
-int copy_bytes(
+void copy_bytes(
 	const char *src,
 	char *dst,
 	int src_i,
@@ -72,12 +72,11 @@ char *str_replace(const char *h, const char *n, const char *r)
 				j = 0;
 
 				//strncpy(&result_buffer[m], &h[k], l - k);
-				int copied = copy_bytes(h, result_buffer, k, m, l - k);
-				//m += l - k;
-				m += copied;
+				copy_bytes(h, result_buffer, k, m, l - k);
+				m += l - k;
 				//strncpy(&result_buffer[m], r, r_len);
-				copied = copy_bytes(r, result_buffer, 0, m, r_len);
-				m += copied;
+				copy_bytes(r, result_buffer, 0, m, r_len);
+				m += r_len;
 				k = l = i;
 
 			} else if (n[j] != h[i]) {
@@ -92,29 +91,31 @@ char *str_replace(const char *h, const char *n, const char *r)
 		
 		if (h[i] == n[j]) {
 			matching = 1;
-			continue;
+			//continue;
 		} else {
 			++l;
 		}
 	}
 
 	if (matching && n[++j] == 0) {
-		strncpy(&result_buffer[m], &h[k], l - k);
+		//strncpy(&result_buffer[m], &h[k], l - k);
+		copy_bytes(h, result_buffer, k, l, l - k);
 		m += l - k;
-		/*
-		
-
-		copied = copy_bytes(h, result_buffer, m, k, l);
-		m += copied;
-		*/
-		strncpy(&result_buffer[m], r, r_len);
+		//strncpy(&result_buffer[m], r, r_len);
+		copy_bytes(r, result_buffer, 0, m, r_len);
 		result_buffer[m + r_len] = 0;
 	} else {
+		/*
 		strcpy(&result_buffer[m], &h[k]);
 		result_buffer[m + strlen(&h[k])] = 0;
+		*/
+		//printf("*** in else block ***\n");
+		//copy_bytes(h, result_buffer, k, m, l - k); 
+		//m += l - k;
+		int copied = copy_string(h, result_buffer, k, m, 9999); //@ we want to copy from k till the 0-character but its a terrible hack
+		m += copied;
+		result_buffer[m] = 0;
 	}
-	// zero terminate!
-	//strncpy(&result_buffer[m], &h[k], l - k);
 
 	return result_buffer;
 }
@@ -151,6 +152,7 @@ void test_str_replace(void)
 	test_str_replace_for(".one.two..three...", ".", "\\.", "\\.one\\.two\\.\\.three\\.\\.\\.");
 	test_str_replace_for("abc", "abc", "x", "x");
 	test_str_replace_for("abc", "abcd", "x", "abc");
+	test_str_replace_for("Hello world! Hello world!", " world", "", "Hello! Hello!");
 	//test_str_replace_for("", "", "not empty", "not empty");
 
 	//test_str_replace_for("", "", "", ""); // assertion failure

@@ -1133,11 +1133,12 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 	//@ cursors blink is off for move_cursor_left() & move_cursor_right()
 	// also comments & identifiers -- not very convenient
+/*
 	key_combinations[CTRL][113] = move_cursor_left; // ctrl + <left arrow>
 	key_combinations[CTRL][114] = move_cursor_right; // ctrl + <right arrow>
 	key_combinations[SHIFT|CTRL][113] = move_cursor_left;
 	key_combinations[SHIFT|CTRL][114] = move_cursor_right;
-
+*/
 	key_combinations[CTRL][111] = move_cursor_up; // ctrl + <up>
 	key_combinations[CTRL][116] = move_cursor_down; // ctrl + <down>
 
@@ -1275,6 +1276,8 @@ int main() {
 
 	int status;
 	GtkApplication *app;
+
+	//test_str_replace();
 
 	guint major = gtk_get_major_version();
 	guint minor = gtk_get_minor_version();

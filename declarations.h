@@ -74,6 +74,7 @@ int is_beginning_of(const char *needle, const char *haystack);
 char *str_replace(const char *h, const char *n, const char *r);
 
 void test_get_parent_path(void);
+void test_str_replace(void);
 
 /* autocomplete.c */
 void init_autocomplete(GtkApplicationWindow *app_window,
