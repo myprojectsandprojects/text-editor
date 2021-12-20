@@ -12,6 +12,7 @@
 	int dst_i, -> index into the destination buffer
 	int n); -> maximum number of bytes to copy (size of the destination buffer)
 */
+/*@ make indexes etc optional */
 int copy_string(
 	const char *src,
 	char *dst,

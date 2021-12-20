@@ -442,35 +442,6 @@ gboolean insert_line_after(GdkEventKey *key_event)
 	return TRUE;
 }
 
-
-char autocomplete_map[128];
-
-void actually_autocomplete_character(GtkTextBuffer *text_buffer, char character)
-{
-	//@ this is nonsense:
-	autocomplete_map['\"'] = '\"';
-	autocomplete_map['\''] = '\'';
-	autocomplete_map['('] = ')';
-	autocomplete_map['{'] = '}';
-	autocomplete_map['['] = ']';
-
-	GtkTextIter iter;
-
-	GtkTextMark *cursor = gtk_text_buffer_get_mark(text_buffer, "insert");
-	gtk_text_buffer_get_iter_at_mark(text_buffer, &iter, cursor);
-
-	char *buffer = malloc(3);
-	sprintf(buffer, "%c%c", character, autocomplete_map[character]);
-	//sprintf(buffer, "%c%c", character, character);
-	gtk_text_buffer_insert(text_buffer, &iter, buffer, -1);
-
-	gtk_text_iter_backward_char(&iter);
-	gtk_text_buffer_place_cursor(text_buffer, &iter);
-
-	free(buffer);
-}
-
-
 gboolean move_lines_up(GdkEventKey *key_event)
 {
 	LOG_MSG("move_lines_up()\n");

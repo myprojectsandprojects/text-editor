@@ -91,12 +91,14 @@ struct ActionsStack *tab_actions[100];
 
 gboolean ignore = FALSE;
 
-void on_text_buffer_delete_range(
+void on_text_buffer_delete_range_4undo(
 	GtkTextBuffer *text_buffer,
 	GtkTextIter *start,
 	GtkTextIter *end,
 	gpointer data)
 {
+	LOG_MSG("on_text_buffer_delete_range_4undo()\n");
+
 	if(ignore == TRUE) {
 		ignore = FALSE;
 		return;
@@ -166,18 +168,19 @@ void on_text_buffer_delete_range(
 	}*/
 }
 
-void on_text_buffer_insert_text(
+void on_text_buffer_insert_text_4undo(
 	GtkTextBuffer *text_buffer,
 	GtkTextIter *location,
 	char *inserted_text,
 	int length,
 	gpointer data)
 {
+	LOG_MSG("on_text_buffer_insert_text_4undo()\n");
+
 	if(ignore == TRUE) {
 		ignore = FALSE;
 		return;
 	}
-	//g_print("[%s: %d] text-buffer: insert-text signal!\n", __FILE__, __LINE__);
 
 	gint location_offset;
 	location_offset = gtk_text_iter_get_offset(location);
@@ -235,8 +238,8 @@ void init_undo(GtkWidget *tab)
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
 
 	/* @ Could just pass in tab-id directly? Performance? */
-	g_signal_connect(G_OBJECT(text_buffer), "insert-text", G_CALLBACK(on_text_buffer_insert_text), tab);
-	g_signal_connect(G_OBJECT(text_buffer), "delete-range", G_CALLBACK(on_text_buffer_delete_range), tab);
+	g_signal_connect(G_OBJECT(text_buffer), "insert-text", G_CALLBACK(on_text_buffer_insert_text_4undo), tab);
+	g_signal_connect(G_OBJECT(text_buffer), "delete-range", G_CALLBACK(on_text_buffer_delete_range_4undo), tab);
 }
 
 void actually_undo_last_action(GtkWidget *tab)

@@ -31,6 +31,7 @@ gboolean move_token_left(GdkEventKey *key_event);
 gboolean move_token_right(GdkEventKey *key_event);
 gboolean change_line(GdkEventKey *key_event);
 gboolean delete_end_of_line(GdkEventKey *key_event);
+void get_cursor_position(GtkTextBuffer *buffer, GtkTextMark **pm, GtkTextIter *pi, gint *po);
 
 /* fileio.c: */
 char *read_file(const char *filename);
@@ -72,6 +73,7 @@ char **slice_by(const char *s, char c);
 char *get_parent_path(const char *path);
 int is_beginning_of(const char *needle, const char *haystack);
 char *str_replace(const char *h, const char *n, const char *r);
+int copy_string(const char *src, char *dst, int src_i, int dst_i, int n);
 
 void test_get_parent_path(void);
 void test_str_replace(void);
@@ -91,7 +93,11 @@ GtkWidget *create_root_nav_widget(void);
 GtkWidget *create_openfile_widget(void);
 gboolean display_openfile_dialog(GdkEventKey *key_event);
 
-//#define PRINT_LOG_MESSAGES
+/* autocomplete-character.c */
+void init_autocomplete_character(GtkTextBuffer *text_buffer);
+
+
+#define PRINT_LOG_MESSAGES
 #ifdef PRINT_LOG_MESSAGES
 	//#define LOG_MSG(...) printf(__VA_ARGS__)
 	#define LOG_MSG(format, ...) printf("[%s:%d] " format, __FILE__, __LINE__, ##__VA_ARGS__)

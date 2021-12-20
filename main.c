@@ -139,6 +139,8 @@ void text_buffer_changed(GtkTextBuffer *text_buffer, gpointer user_data)
 /* Could use retrieve_widget functions instead of passing in the pointer as an argument to get the label... */
 void text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
 {
+	LOG_MSG("text_buffer_cursor_position_changed()\n");
+
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
 	int position, line_number;
 	g_object_get(G_OBJECT(text_buffer), "cursor-position", &position, NULL);
@@ -200,7 +202,7 @@ void text_view_cut_clipboard(GtkTextView *text_view, gpointer user_data)
 //@ should replace selected 
 void text_view_paste_clipboard(GtkTextView *text_view, gpointer user_data)
 {
-	g_print("paste-clipboard!!!\n");
+	printf("paste-clipboard!!!\n");
 
 	GtkTextIter start, end;
 	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
@@ -365,7 +367,7 @@ GtkWidget *create_tab(const char *file_name)
 
 	struct TabInfo *tab_info;
 	tab_info = malloc(sizeof(struct TabInfo)); //@ free?
-	if(file_name == NULL) {
+	if (file_name == NULL) {
 		tab_info->file_name = NULL;
 
 		tab_title = malloc(100); //@ free?
@@ -448,6 +450,10 @@ GtkWidget *create_tab(const char *file_name)
 	int page = gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, NULL);
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page);
 
+	/* We want autocomplete-character's handler for "insert-text"-signal to be the first handler called.  
+	(code-highlighting and undo also register callbacks for this signal.) */
+	init_autocomplete_character(text_buffer);
+
 	tab_set_unsaved_changes_to(tab, FALSE);
 
 	/* we create the menu here (after we set buffer contents) because we want to do the initial highlighting while creating the menu */
@@ -494,9 +500,11 @@ GtkWidget *create_tab(const char *file_name)
 	gtk_text_buffer_create_tag(text_buffer,
 		"line-highlight", "paragraph-background", settings.line_highlight_color, NULL);
 	text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, line_nr_value);
-	g_signal_connect(G_OBJECT(text_buffer), "notify::cursor-position", G_CALLBACK(text_buffer_cursor_position_changed), line_nr_value);
+	g_signal_connect(G_OBJECT(text_buffer),
+		"notify::cursor-position", G_CALLBACK(text_buffer_cursor_position_changed), line_nr_value);
 
 	g_signal_connect(G_OBJECT(text_buffer), "changed", G_CALLBACK(text_buffer_changed), NULL);
+	//g_signal_connect_after(G_OBJECT(text_buffer), "changed", G_CALLBACK(text_buffer_changed_after), NULL);
 
 	return tab;
 }
@@ -750,6 +758,7 @@ void on_notebook_switch_page(GtkNotebook *notebook, GtkWidget *tab, guint page_n
 
 
 /* Another way to implement autocomplete would be to intercept later on when handling the buffers insert-text event. */
+/*
 gboolean autocomplete_character(GdkEventKey *key_event)
 {
 	GtkWidget *text_view = GTK_WIDGET(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
@@ -763,7 +772,7 @@ gboolean autocomplete_character(GdkEventKey *key_event)
 
 	return TRUE;
 }
-
+*/
 /*
 gboolean open_line_before(GdkEventKey *key_event)
 {
@@ -1155,14 +1164,6 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	key_combinations[ALT][119] = delete_line; // alt + <delete>
 	key_combinations[ALT][34] = change_line; // alt + ü
 	key_combinations[ALT][33] = delete_end_of_line; // alt + p
-
-	// Auto-close(/-complete):
-	key_combinations[0][51] = autocomplete_character; // 51 -> '
-	key_combinations[SHIFT][11] = autocomplete_character; // shift + 11 -> "
-	key_combinations[SHIFT][17] = autocomplete_character; // shift + 17 -> (
-	key_combinations[ALTGR][16] = autocomplete_character; // altgr + 16 -> {
-	key_combinations[ALTGR][17] = autocomplete_character; // altgr + 17 -> [
-
 	key_combinations[CTRL][52] = undo_last_action; // ctrl + z
 
 	key_combinations[CTRL][57] = create_empty_tab; // ctrl + n
