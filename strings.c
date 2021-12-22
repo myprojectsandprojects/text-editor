@@ -13,6 +13,7 @@
 	int n); -> maximum number of bytes to copy (size of the destination buffer)
 */
 /*@ make indexes etc optional */
+/*@ if we want to copy n characters we have to say n+1 because last character is overwritten by 0 */
 int copy_string(
 	const char *src,
 	char *dst,
@@ -21,6 +22,7 @@ int copy_string(
 	int n)
 {
 	for (int i = 0; i < n; ++i) {
+		printf("copying %c\n", src[src_i + i]);
 		dst[dst_i + i] = src[src_i + i];
 		if (dst[dst_i + i] == 0) return i + 1;
 	}

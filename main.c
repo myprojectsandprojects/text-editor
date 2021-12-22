@@ -757,46 +757,6 @@ void on_notebook_switch_page(GtkNotebook *notebook, GtkWidget *tab, guint page_n
 }
 
 
-/* Another way to implement autocomplete would be to intercept later on when handling the buffers insert-text event. */
-/*
-gboolean autocomplete_character(GdkEventKey *key_event)
-{
-	GtkWidget *text_view = GTK_WIDGET(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
-	if (GTK_IS_TEXT_VIEW(text_view) == FALSE || gtk_widget_is_focus(text_view) == FALSE) {
-		printf("autocomplete_character(): early-out...\n");
-		return FALSE;
-	}
-
-	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
-	actually_autocomplete_character(text_buffer, (char) key_event->keyval);
-
-	return TRUE;
-}
-*/
-/*
-gboolean open_line_before(GdkEventKey *key_event)
-{
-	GtkTextBuffer *text_buffer;
-	if ((text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER)) == NULL) {
-		printf("No tabs open! Nothing to do...\n");
-		return FALSE;
-	}
-
-	actually_open_line_before(text_buffer);
-}
-
-gboolean open_line_after(GdkEventKey *key_event)
-{
-	GtkTextBuffer *text_buffer;
-	if ((text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER)) == NULL) {
-		printf("No tabs open! Nothing to do...\n");
-		return FALSE;
-	}
-
-	actually_open_line_after(text_buffer);
-}
-*/
-
 gboolean create_empty_tab(GdkEventKey *key_event)
 {
 	create_tab(NULL);
@@ -1286,7 +1246,8 @@ int main() {
 	printf("GTK version: %u.%u.%u\n", major, minor, micro);
 
 	app = gtk_application_new(NULL, G_APPLICATION_FLAGS_NONE);
-	g_signal_connect(app, "activate", G_CALLBACK(activate_handler), NULL);
+	g_signal_connect(app,
+		"activate", G_CALLBACK(activate_handler), NULL);
 
 	status = g_application_run(G_APPLICATION(app), 0, NULL);
 

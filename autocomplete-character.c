@@ -1,7 +1,24 @@
 #include <stdio.h>
+#include <string.h>
 #include <gtk/gtk.h>
 #include "declarations.h"
 
+
+/*
+gboolean autocomplete_character(GdkEventKey *key_event)
+{
+	GtkWidget *text_view = GTK_WIDGET(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
+	if (GTK_IS_TEXT_VIEW(text_view) == FALSE || gtk_widget_is_focus(text_view) == FALSE) {
+		printf("autocomplete_character(): early-out...\n");
+		return FALSE;
+	}
+
+	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
+	actually_autocomplete_character(text_buffer, (char) key_event->keyval);
+
+	return TRUE;
+}
+*/
 
 /*
 char autocomplete_map[128];
