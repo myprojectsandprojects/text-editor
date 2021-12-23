@@ -1238,7 +1238,7 @@ int main() {
 	int status;
 	GtkApplication *app;
 
-	//test_str_replace();
+	test_str_replace();
 
 	guint major = gtk_get_major_version();
 	guint minor = gtk_get_minor_version();

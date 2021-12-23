@@ -22,11 +22,11 @@ int copy_string(
 	int n)
 {
 	for (int i = 0; i < n; ++i) {
-		printf("copying %c\n", src[src_i + i]);
 		dst[dst_i + i] = src[src_i + i];
 		if (dst[dst_i + i] == 0) return i + 1;
 	}
-	dst[n - 1] = 0; // just overwrite the last character we copied
+	dst[dst_i + n - 1] = 0; // just overwrite the last character we copied
+	//dst[n - 1] = 0;
 	return n;
 }
 
@@ -102,7 +102,7 @@ char *str_replace(const char *h, const char *n, const char *r)
 
 	if (matching && n[++j] == 0) {
 		//strncpy(&result_buffer[m], &h[k], l - k);
-		copy_bytes(h, result_buffer, k, l, l - k);
+		copy_bytes(h, result_buffer, k, m, l - k);
 		m += l - k;
 		//strncpy(&result_buffer[m], r, r_len);
 		copy_bytes(r, result_buffer, 0, m, r_len);
@@ -115,7 +115,7 @@ char *str_replace(const char *h, const char *n, const char *r)
 		//printf("*** in else block ***\n");
 		//copy_bytes(h, result_buffer, k, m, l - k); 
 		//m += l - k;
-		int copied = copy_string(h, result_buffer, k, m, 9999); //@ we want to copy from k till the 0-character but its a terrible hack
+		int copied = copy_string(h, result_buffer, k, m, 9999); //@ we want to copy from k until the 0-character but its a terrible hack
 		m += copied;
 		result_buffer[m] = 0;
 	}
@@ -156,6 +156,7 @@ void test_str_replace(void)
 	test_str_replace_for("abc", "abc", "x", "x");
 	test_str_replace_for("abc", "abcd", "x", "abc");
 	test_str_replace_for("Hello world! Hello world!", " world", "", "Hello! Hello!");
+	test_str_replace_for("tab.", ".", "\\.", "tab\\.");
 	//test_str_replace_for("", "", "not empty", "not empty");
 
 	//test_str_replace_for("", "", "", ""); // assertion failure
