@@ -47,6 +47,13 @@ of names and classes, but then I thought that we should keep it simple
 and just stick to classes.
 */
 
+/* For some reason we have to target :focus before :selected. */
+.search-entry:focus
+{
+	background: rgb(231, 111, 81);
+	border: none;
+}
+
 /* We'll use this font for all widgets that take text input: */
 .text-view,
 .search-entry,
@@ -54,20 +61,17 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
+	font: Source Code Pro SemiBold 13;
 	/*
-	font: Source Code Pro Regular 11;
-	font: Source Code Pro SemiBold 11;
-	font: Source Code Pro ExtraBold 11;
 	font: Source Code Pro Bold 11;
+	font: Source Code Pro ExtraBold 11;
+	font: Source Code Pro Regular 13;
 	font: Bpmono Bold 14;
-	*/
 	font: Bpmono 13;
 	font: Courier 10 Pitch Bold 13;
+	*/
 }
 
-/*
-:focus pseudoclass conflicts with :selected pseudoclass (?)
-*/
 .text-view:selected,
 .search-entry:selected,
 .search-in-files-phrase-entry:selected,
@@ -117,58 +121,65 @@ and just stick to classes.
 
 .code-highlighting-menu-button
 {
-	background: rgb(41, 87, 116);
+	/*background: rgb(41, 87, 116);*/
+	background: rgb(58, 90, 103);
 	color: white;
+	font-weight: bold;
 }
 
 .code-highlighting-menu-button:hover
 {
-	background: rgb(51, 97, 126);
+	background: rgb(241, 121, 91);
 }
 
 
 .app-window
 {
-	background: white;
+	background: rgb(255, 255, 200);
 	color: black;
 	font: Roboto 10;
 }
 
 .main-notebook
 {
-	background: white;
-	/*color: black;*/
-	border: solid 1px black;
+	background: rgb(58, 90, 103);  /* main-notebook's background color */
+	color: white;
+	border: solid 0 black;
 }
 
 .main-notebook tab
 {
 	padding: 10px 16px;
+	background: rgb(58, 90, 103);
 }
 
 .main-notebook tab:active
 {
+	background:rgb(38, 70, 83);
 }
 
 .search-entry
 {
+	background: rgb(244, 162, 97);
+	border: none;
 }
 
 .text-view
 {
-	background: white;
-	color: #000000;
+	background: rgb(38, 70, 83);
+	color: rgb(233, 196, 106);
 }
 
 .status-bar {
-	background: rgb(21, 67, 96);
+	background: rgb(58, 90, 103);
 	color: white;
+	font-weight: bold;
 	/*	padding: 10px 10px 10px 10px;*/ /* no effect */
 }
 
 /* No effect in GTK 3.18.9 */
 /*GtkPaned {background: background: rgb(85, 85, 95);}*/
-
+/*
 .home-dir-button
 {
 	background: rgb(246, 121, 82);
@@ -188,7 +199,7 @@ and just stick to classes.
 {
 	background: rgb(35, 223, 109);
 }
-
+*/
 .root-dir-label
 {
 	color: black;

@@ -1195,7 +1195,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 	app_window = gtk_application_window_new(app);
 	//gtk_window_set_title(GTK_WINDOW(window), "Hello world!");
-	gtk_window_set_default_size(GTK_WINDOW(app_window), 1000, 600);
+	gtk_window_set_default_size(GTK_WINDOW(app_window), 1300, 600);
 
 	add_class(app_window, "app-window");
 	//gtk_widget_set_name(window, "app-window");
