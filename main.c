@@ -142,14 +142,15 @@ void text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpo
 	LOG_MSG("text_buffer_cursor_position_changed()\n");
 
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
-	int position, line_number;
+	int position, line_number, char_offset;
 	g_object_get(G_OBJECT(text_buffer), "cursor-position", &position, NULL);
 	GtkTextIter i;
 	gtk_text_buffer_get_iter_at_offset(GTK_TEXT_BUFFER(text_buffer), &i, position);
 	line_number = gtk_text_iter_get_line(&i);
+	char_offset = gtk_text_iter_get_line_offset(&i);
 
 	char buffer[100];
-	sprintf(buffer, "%d", line_number + 1);
+	sprintf(buffer, "%d, %d", line_number + 1, char_offset + 1);
 	GtkLabel *label = (GtkLabel *) user_data;
 	gtk_label_set_text(label, buffer);
 
@@ -374,7 +375,7 @@ GtkWidget *create_tab(const char *file_name)
 		snprintf(tab_title, 100, "%s %d", "Untitled", count);
 		tab_info->title = tab_title;
 	} else {
-		tab_info->file_name = file_name;
+		tab_info->file_name = file_name; //@ shouldnt we malloc a new buffer?
 		tab_info->title = get_base_name(file_name);
 	}
 	tab_info->id = count;
@@ -398,11 +399,22 @@ GtkWidget *create_tab(const char *file_name)
 	g_signal_connect(G_OBJECT(text_view), "size-allocate", G_CALLBACK(on_text_view_size_allocate), NULL);
 
 
-	GtkWidget *line_nr_label = gtk_label_new("Line");
-	GtkWidget *line_nr_value = gtk_label_new(NULL);
-	GtkWidget *line_nr_label_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
-	gtk_container_add(GTK_CONTAINER(line_nr_label_container), line_nr_label);
-	gtk_container_add(GTK_CONTAINER(line_nr_label_container), line_nr_value);
+	//printf("*** file-name: %s, title: %s\n", tab_info->file_name, tab_info->title);
+	GtkWidget *file_path_label = gtk_label_new(NULL);
+	GtkWidget *line_number_label = gtk_label_new(NULL);
+	GtkWidget *separator_label = gtk_label_new(":");
+
+	if (tab_info->file_name) {
+		gtk_label_set_text(GTK_LABEL(file_path_label), tab_info->file_name);
+	} else {
+		gtk_label_set_text(GTK_LABEL(file_path_label), tab_info->title);
+	}
+
+	GtkWidget *statusbar_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+	gtk_container_add(GTK_CONTAINER(statusbar_container), file_path_label);
+	gtk_container_add(GTK_CONTAINER(statusbar_container), separator_label);
+	gtk_container_add(GTK_CONTAINER(statusbar_container), line_number_label);
+
 
 	GtkWidget *hl_label = gtk_label_new(NULL);
 	GtkWidget *hl_menu_button = gtk_menu_button_new();
@@ -415,7 +427,7 @@ GtkWidget *create_tab(const char *file_name)
 	GtkWidget *space = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	gtk_widget_set_hexpand(space, TRUE);
 	gtk_grid_attach(GTK_GRID(status_bar), margin, 0, 0, 1, 1);
-	gtk_grid_attach(GTK_GRID(status_bar), line_nr_label_container, 1, 0, 1, 1);
+	gtk_grid_attach(GTK_GRID(status_bar), statusbar_container, 1, 0, 1, 1);
 	gtk_grid_attach(GTK_GRID(status_bar), space, 2, 0, 1, 1);
 	gtk_grid_attach(GTK_GRID(status_bar), hl_menu_button, 3, 0, 1, 1);
 
@@ -436,7 +448,8 @@ GtkWidget *create_tab(const char *file_name)
 	tab_add_widget_4_retrieval(tab, COMMAND_ENTRY, command_entry);
 	*/
 	tab_add_widget_4_retrieval(tab, TEXT_VIEW, text_view);
-	tab_add_widget_4_retrieval(tab, TEXT_BUFFER, text_buffer); //@ haa text-buffer is not a widget! void *?
+	tab_add_widget_4_retrieval(tab, TEXT_BUFFER, text_buffer);
+	tab_add_widget_4_retrieval(tab, FILEPATH_LABEL, file_path_label);
 	
 	GtkWidget *wgt_search = create_search_widget(tab);
 
@@ -499,9 +512,9 @@ GtkWidget *create_tab(const char *file_name)
 
 	gtk_text_buffer_create_tag(text_buffer,
 		"line-highlight", "paragraph-background", settings.line_highlight_color, NULL);
-	text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, line_nr_value);
+	text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, line_number_label);
 	g_signal_connect(G_OBJECT(text_buffer),
-		"notify::cursor-position", G_CALLBACK(text_buffer_cursor_position_changed), line_nr_value);
+		"notify::cursor-position", G_CALLBACK(text_buffer_cursor_position_changed), line_number_label);
 
 	g_signal_connect(G_OBJECT(text_buffer), "changed", G_CALLBACK(text_buffer_changed), NULL);
 	//g_signal_connect_after(G_OBJECT(text_buffer), "changed", G_CALLBACK(text_buffer_changed_after), NULL);
@@ -728,7 +741,7 @@ void refresh_application_title(void)
 		printf("\t-> no visible tab\n");
 		return;
 	}
-
+/*
 	gpointer data = g_object_get_data(G_OBJECT(tab), "tab-info");
 	assert(data != NULL);
 	struct TabInfo *tab_info = (struct TabInfo *) data;
@@ -741,6 +754,8 @@ void refresh_application_title(void)
 		snprintf(app_title, 100,
 			"Root Directory: %s\tCurrent File: %s", root_dir, tab_info->title);
 	}
+*/
+	snprintf(app_title, 100, "Root Directory: %s", root_dir);
 	gtk_window_set_title(GTK_WINDOW(app_window), app_title);
 }
 
@@ -924,7 +939,10 @@ gboolean do_save(GdkEventKey *key_event)
 		if(file_name == NULL) return TRUE; // User didnt give us a file name.
 		tab_info->file_name = file_name;
 		tab_info->title = get_base_name(file_name);
-		refresh_application_title();
+
+		//refresh_application_title();
+		GtkLabel *filepath_label = tab_retrieve_widget(tab, FILEPATH_LABEL);
+		gtk_label_set_text(filepath_label, file_name);
 	}
 
 	write_file(tab_info->file_name, contents); //@ error handling
@@ -1150,6 +1168,8 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	if (r != 0) {
 		printf("pthread_create() error!\n");
 	}
+
+	//register_hotloader_callback("/home/eero/all/hotloading-test", when_testfile_changed);
 
 	/*uid_t real_uid = getuid();
 	uid_t effective_uid = geteuid();
