@@ -63,8 +63,8 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
-	font: Source Code Pro SemiBold 11;
 	/*
+	font: Source Code Pro SemiBold 11;
 	font: Source Code Pro Bold 11;
 	font: Source Code Pro ExtraBold 11;
 	font: Source Code Pro Regular 13;

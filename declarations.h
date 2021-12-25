@@ -5,6 +5,10 @@
 
 #include <gtk/gtk.h>
 
+/* hotloader.c */
+/* gboolean (*GSourceFunc) (gpointer data); */
+void hotloader_register_callback(const char *filepath, GSourceFunc when_changed);
+
 /* file-browser.c: */
 GtkWidget *create_filebrowser_widget(void);
 GtkTreeStore *create_store(void);

@@ -966,8 +966,9 @@ gboolean do_open(GdkEventKey *key_event)
 /* signature is such because we need register it as a callback */
 gboolean apply_css_from_file(void *data)
 {
-	LOG_MSG("apply_css_from_file()\n");
-	const char *file_name = (const char *) data;
+	printf("apply_css_from_file()\n");
+	//const char *file_name = (const char *) data;
+	const char *file_name = css_file_path;
 
 	//printf("applying css from \"%s\"..\n", file_name);
 	LOG_MSG("apply_css_from_file(): applying css from \"%s\"..\n", file_name);
@@ -1012,6 +1013,7 @@ void *watch_for_changes(void *data)
 		return NULL;
 	}
 
+	//@ Probably should allocate more memory...
 	char buffer[(sizeof(struct inotify_event) + NAME_MAX + 1)];
 
 	while (1) {
@@ -1089,6 +1091,13 @@ void parse_settings_file(const char *file_path)
 }
 
 
+gboolean when_settingsfile_changes(gpointer data)
+{
+	printf("when_settingsfile_changes()\n");
+	return FALSE; // we are a timer callback, so: dont call again.
+}
+
+
 void activate_handler(GtkApplication *app, gpointer data)
 {
 	LOG_MSG("activate_handler() called\n");
@@ -1162,14 +1171,16 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 	parse_settings_file(settings_file_path);
 	apply_css_from_file((void *) css_file_path);
-
+/*
 	pthread_t id;
 	int r = pthread_create(&id, NULL, watch_for_changes, css_file_path);
 	if (r != 0) {
 		printf("pthread_create() error!\n");
 	}
+*/
 
-	//register_hotloader_callback("/home/eero/all/hotloading-test", when_testfile_changed);
+	hotloader_register_callback(css_file_path, apply_css_from_file);
+	hotloader_register_callback(settings_file_path, when_settingsfile_changes);
 
 	/*uid_t real_uid = getuid();
 	uid_t effective_uid = geteuid();
@@ -1258,7 +1269,7 @@ int main() {
 	int status;
 	GtkApplication *app;
 
-	test_str_replace();
+	//test_str_replace();
 
 	guint major = gtk_get_major_version();
 	guint minor = gtk_get_minor_version();

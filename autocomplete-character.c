@@ -89,7 +89,6 @@ void on_text_buffer_insert_text_4_autocomplete_character(GtkTextBuffer *text_buf
 	GtkTextIter start, end;
 	gtk_text_buffer_get_bounds(text_buffer, &start, &end);
 	char *contents = gtk_text_buffer_get_text(text_buffer, &start, &end, FALSE);
-	printf("...buffer contents: %s\n", contents);
 
 	gboolean is_selection = gtk_text_buffer_get_selection_bounds(text_buffer, &start, &end); // gboolean
 	if (is_selection) {

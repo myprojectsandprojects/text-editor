@@ -1,3 +1,3 @@
 #gcc -g main.c fileio.c tab.c search.c undo.c editing.c highlighting.c strings.c file-browser.c search-in-files.c autocomplete.c root-navigation.c open.c locate/locate.c locate/human.c locate/xmalloc.c locate/xalloc-die.c locate/argmatch.c locate/quotearg.c locate/splitstring.c locate/progname.c locate/printquoted.c locate/word_io.c locate/basename-lgpl.c locate/mbsstr.c $(pkg-config --cflags gtk+-3.0) $(pkg-config --libs gtk+-3.0) && ./a.out
 
-gcc -g main.c fileio.c tab.c search-replace.c undo.c editing.c highlighting.c strings.c file-browser.c search-in-files.c autocomplete.c root-navigation.c open.c autocomplete-character.c $(pkg-config --cflags gtk+-3.0) $(pkg-config --libs gtk+-3.0) && ./a.out
+gcc -g main.c fileio.c tab.c search-replace.c undo.c editing.c highlighting.c strings.c file-browser.c search-in-files.c autocomplete.c root-navigation.c open.c autocomplete-character.c hotloader.c $(pkg-config --cflags gtk+-3.0) $(pkg-config --libs gtk+-3.0) && ./a.out
