@@ -448,7 +448,7 @@ GtkWidget *create_tab(const char *file_name)
 	tab_add_widget_4_retrieval(tab, COMMAND_ENTRY, command_entry);
 	*/
 	tab_add_widget_4_retrieval(tab, TEXT_VIEW, text_view);
-	tab_add_widget_4_retrieval(tab, TEXT_BUFFER, text_buffer);
+	tab_add_widget_4_retrieval(tab, TEXT_BUFFER, text_buffer); //@ haa text-buffer is not a widget! void *?
 	tab_add_widget_4_retrieval(tab, FILEPATH_LABEL, file_path_label);
 	
 	GtkWidget *wgt_search = create_search_widget(tab);
@@ -499,10 +499,7 @@ GtkWidget *create_tab(const char *file_name)
 
 	init_undo(tab);
 
-/*
-	init_autocomplete(GTK_APPLICATION_WINDOW(window),
-						GTK_TEXT_VIEW(text_view), GTK_TEXT_BUFFER(text_buffer));
-*/
+	init_autocomplete(GTK_APPLICATION_WINDOW(app_window), tab);
 
 	g_signal_connect(G_OBJECT(text_view), "copy-clipboard", G_CALLBACK(text_view_copy_clipboard), NULL);
 	g_signal_connect(G_OBJECT(text_view), "cut-clipboard", G_CALLBACK(text_view_cut_clipboard), NULL);
@@ -1038,11 +1035,13 @@ Calling apply_css_from_file() directly crashes the app when modifying the css-fi
 }
 
 
-void parse_settings_file(const char *file_path)
+//void parse_settings_file(const char *file_path)
+gboolean parse_settings_file(void *data)
 {
 	printf("parse_settings_file()\n");
 
-	char *contents = read_file(file_path);
+	//char *contents = read_file(file_path);
+	char *contents = read_file(settings_file_path);
 	//printf("parse_settings_file(): contents:\n%s\n", contents);
 
 	#define SIZE 100
@@ -1088,6 +1087,8 @@ void parse_settings_file(const char *file_path)
 			printf("parse_settings_file(): unknown name: %s\n", name);
 		}
 	}
+
+	return FALSE;
 }
 
 
@@ -1116,16 +1117,20 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	key_combinations[0][23] = handle_tab; // <tab>
 	key_combinations[SHIFT][23] = handle_tab; // <tab> + shift
 
-	key_combinations[0][36] = do_search; // <enter>
+	//key_combinations[0][36] = do_search; // <enter>
+	key_combinations[0][9] = autocomplete_close_popup; // <escape>
 
-/*
-	key_combinations[SHIFT][36] = replace_selected_text; // shift + <enter>
+	key_combinations[0][111] = autocomplete_upkey; // <up>
+	key_combinations[0][116] = autocomplete_downkey; // <down>
+
+
+	//key_combinations[SHIFT][36] = replace_selected_text; // shift + <enter>
 	key_combinations[0][36] = on_enter_key_pressed; // <enter>
 	// on_enter_key_pressed() calls these handlers:
-		key_combination_handlers[0] = on_search_and_replace;
-		//key_combination_handlers[1] = execute_command;
+		key_combination_handlers[0] = do_autocomplete;
+		key_combination_handlers[1] = do_search;
 		key_combination_handlers[2] = NULL;
-*/
+
 
 	//@ cursors blink is off for move_cursor_left() & move_cursor_right()
 	// also comments & identifiers -- not very convenient
@@ -1169,7 +1174,8 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 
 
-	parse_settings_file(settings_file_path);
+	//parse_settings_file(settings_file_path);
+	parse_settings_file(NULL);
 	apply_css_from_file((void *) css_file_path);
 /*
 	pthread_t id;
@@ -1180,7 +1186,8 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 */
 
 	hotloader_register_callback(css_file_path, apply_css_from_file);
-	hotloader_register_callback(settings_file_path, when_settingsfile_changes);
+	//hotloader_register_callback(settings_file_path, when_settingsfile_changes);
+	hotloader_register_callback(settings_file_path, parse_settings_file);
 
 	/*uid_t real_uid = getuid();
 	uid_t effective_uid = geteuid();
@@ -1231,18 +1238,13 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_class(app_window, "app-window");
 	//gtk_widget_set_name(window, "app-window");
 
-/*
-autocomplete's key-press handler needs to run before application's key-press handler.
-it kinda sucks to connect it here, but the alternative I could come up with involves disconnecting all already connected handlers, then connecting autocomplete's handler and finally re-connecting previously disconnected handlers in init_autocomplete(), so that autocomplete's handler would be called before anything else.
-in documentation I couldn't find any way to specify order in which handlers are invoked other than registering them in this order.
-we could also pass in a list of functions to app's key-press handler and then call them there I quess..
-*/
-/*
-	g_signal_connect(window, "key-press-event",
-						G_CALLBACK(autocomplete_on_window_key_press), NULL);
-*/
 	g_signal_connect(app_window, "key-press-event",
 						G_CALLBACK(on_app_window_key_press), NULL);
+/*
+	// thats a double-click:
+	g_signal_connect(app_window, "button-press-event",
+		G_CALLBACK(autocomplete_on_appwindow_button_pressed), NULL);
+*/
 
 	GtkWidget *paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
 	gtk_paned_add1(GTK_PANED(paned), sidebar_container);

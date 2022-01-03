@@ -286,7 +286,7 @@ and just stick to classes.
 .suggestions-popup
 {
 	/*color: rgb(190, 190, 190);*/
-	/*font: Free Mono Bold 11;*/
+	font: Odudo Mono SemiBold 12;
 }
 
 .openfile-dialog

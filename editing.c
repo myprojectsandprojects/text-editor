@@ -46,7 +46,7 @@ void get_cursor_position(GtkTextBuffer *buffer,
 	GtkTextIter i;
 	gint o;
 
-	assert(buffer);
+	//assert(buffer);
 	m = gtk_text_buffer_get_mark(buffer, "insert");
 	assert(m);
 	gtk_text_buffer_get_iter_at_mark(buffer, &i, m);
