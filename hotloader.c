@@ -4,6 +4,8 @@
 #include <sys/inotify.h>
 #include <assert.h>
 
+#include "declarations.h"
+
 
 struct Args {
 	const char *filepath;
@@ -42,14 +44,10 @@ static void print_event(struct inotify_event *event)
 
 static void *monitor_changes_and_call(void *args)
 {
-	printf("monitor_changes_and_call()\n");
+	LOG_MSG("monitor_changes_and_call()\n");
 
 	const char *filepath = ((struct Args *) args)->filepath;
 	GSourceFunc when_changed = ((struct Args *) args)->when_changed;
-/*
-	printf("*** filepath: %s\n", filepath);
-	when_changed(NULL);
-*/
 
 	int in_desc = inotify_init();
 
@@ -58,7 +56,7 @@ static void *monitor_changes_and_call(void *args)
 	//int w_desc = inotify_add_watch(in_desc, filepath, IN_MODIFY);
 	int w_desc = inotify_add_watch(in_desc, filepath, IN_CLOSE_WRITE);
 	if (w_desc == -1) {
-		printf("*** inotify_add_watch() error!\n");
+		printf("monitor_changes_and_call(): inotify_add_watch() error!\n");
 		return NULL;
 	}
 
@@ -69,10 +67,9 @@ static void *monitor_changes_and_call(void *args)
 	for (;;) {
 		ssize_t n_bytes = read(in_desc, event_buffer, EVENT_BUFFER_SIZE);
 		if (n_bytes < 1) {
-			printf("*** read() returned less than 1..\n");
+			printf("monitor_changes_and_call(): read() returned less than 1..\n");
 			break;
 		}
-		//printf("watch_for_fs_changes(): read() returned: %ld\n", n_bytes);
 		
 		for (p = event_buffer; p < event_buffer + n_bytes;) {
 			struct inotify_event *event = (struct inotify_event *) p;
@@ -84,7 +81,7 @@ static void *monitor_changes_and_call(void *args)
 				int w_desc = inotify_add_watch(in_desc, filepath, IN_CLOSE_WRITE);
 				if (w_desc == -1) {
 					/* ... file was deleted*/
-					printf("*** inotify_add_watch() error!\n");
+					printf("monitor_changes_and_call(): inotify_add_watch() error!\n");
 					return NULL;
 				}
 			} else {
@@ -103,7 +100,7 @@ static void *monitor_changes_and_call(void *args)
 /* gboolean (*GSourceFunc) (gpointer data); */
 void hotloader_register_callback(const char *filepath, GSourceFunc when_changed)
 {
-	printf("hotloader_register_callback()\n");
+	LOG_MSG("hotloader_register_callback()\n");
 
 	/* I think we want to make our own copy, because we pass it to a separate thread. */
 	char *copy_filepath = malloc(strlen(filepath) + 1);
@@ -117,6 +114,6 @@ void hotloader_register_callback(const char *filepath, GSourceFunc when_changed)
 	pthread_t id;
 	int r = pthread_create(&id, NULL, monitor_changes_and_call, (void *) args);
 	if (r != 0) {
-		printf("pthread_create() error!\n");
+		printf("hotloader_register_callback(): pthread_create() error!\n");
 	}
 }

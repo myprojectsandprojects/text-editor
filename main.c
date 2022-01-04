@@ -460,7 +460,9 @@ GtkWidget *create_tab(const char *file_name)
 
 	gtk_widget_show_all(GTK_WIDGET(tab));
 
+	printf("*** before append\n");
 	int page = gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, NULL);
+	printf("*** after append\n");
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page);
 
 	/* We want autocomplete-character's handler for "insert-text"-signal to be the first handler called.  
@@ -498,8 +500,6 @@ GtkWidget *create_tab(const char *file_name)
 	//gtk_menu_button_set_direction(GTK_MENU_BUTTON(hl_menu_button), GTK_ARROW_UP);
 
 	init_undo(tab);
-
-	init_autocomplete(GTK_APPLICATION_WINDOW(app_window), tab);
 
 	g_signal_connect(G_OBJECT(text_view), "copy-clipboard", G_CALLBACK(text_view_copy_clipboard), NULL);
 	g_signal_connect(G_OBJECT(text_view), "cut-clipboard", G_CALLBACK(text_view_cut_clipboard), NULL);
@@ -963,20 +963,20 @@ gboolean do_open(GdkEventKey *key_event)
 /* signature is such because we need register it as a callback */
 gboolean apply_css_from_file(void *data)
 {
-	printf("apply_css_from_file()\n");
+	LOG_MSG("apply_css_from_file()\n");
 	//const char *file_name = (const char *) data;
 	const char *file_name = css_file_path;
 
 	//printf("applying css from \"%s\"..\n", file_name);
-	LOG_MSG("apply_css_from_file(): applying css from \"%s\"..\n", file_name);
+	LOG_MSG("\tapplying css from \"%s\"..\n", file_name);
 	// Apply css from file:
 	static GtkCssProvider *provider = NULL;
 	GdkScreen *screen = gdk_screen_get_default();
 	if (provider != NULL) {
-		LOG_MSG("apply_css_from_file(): removing an old provider...\n");
+		LOG_MSG("\tremoving an old provider...\n");
 		gtk_style_context_remove_provider_for_screen(screen, GTK_STYLE_PROVIDER(provider));
 	}
-	LOG_MSG("apply_css_from_file(): creating a new provider...\n");
+	LOG_MSG("\tcreating a new provider...\n");
 	provider = gtk_css_provider_new();
 	GFile *css_file = g_file_new_for_path(file_name);
 	gtk_css_provider_load_from_file(provider, css_file, NULL);
@@ -1038,7 +1038,7 @@ Calling apply_css_from_file() directly crashes the app when modifying the css-fi
 //void parse_settings_file(const char *file_path)
 gboolean parse_settings_file(void *data)
 {
-	printf("parse_settings_file()\n");
+	LOG_MSG("parse_settings_file()\n");
 
 	//char *contents = read_file(file_path);
 	char *contents = read_file(settings_file_path);
@@ -1092,13 +1092,6 @@ gboolean parse_settings_file(void *data)
 }
 
 
-gboolean when_settingsfile_changes(gpointer data)
-{
-	printf("when_settingsfile_changes()\n");
-	return FALSE; // we are a timer callback, so: dont call again.
-}
-
-
 void activate_handler(GtkApplication *app, gpointer data)
 {
 	LOG_MSG("activate_handler() called\n");
@@ -1118,11 +1111,10 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	key_combinations[SHIFT][23] = handle_tab; // <tab> + shift
 
 	//key_combinations[0][36] = do_search; // <enter>
-	key_combinations[0][9] = autocomplete_close_popup; // <escape>
 
+	key_combinations[0][9] = autocomplete_close_popup; // <escape>
 	key_combinations[0][111] = autocomplete_upkey; // <up>
 	key_combinations[0][116] = autocomplete_downkey; // <down>
-
 
 	//key_combinations[SHIFT][36] = replace_selected_text; // shift + <enter>
 	key_combinations[0][36] = on_enter_key_pressed; // <enter>
@@ -1186,7 +1178,6 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 */
 
 	hotloader_register_callback(css_file_path, apply_css_from_file);
-	//hotloader_register_callback(settings_file_path, when_settingsfile_changes);
 	hotloader_register_callback(settings_file_path, parse_settings_file);
 
 	/*uid_t real_uid = getuid();
@@ -1220,6 +1211,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	gtk_widget_set_hexpand(sidebar_notebook, TRUE);
 	gtk_widget_set_size_request(sidebar_container, 500, 100);
 
+
 	notebook = gtk_notebook_new();
 	gtk_notebook_set_scrollable(GTK_NOTEBOOK(notebook), TRUE);
 	g_signal_connect_after(notebook,
@@ -1245,6 +1237,8 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	g_signal_connect(app_window, "button-press-event",
 		G_CALLBACK(autocomplete_on_appwindow_button_pressed), NULL);
 */
+
+	autocomplete_init(GTK_NOTEBOOK(notebook), GTK_APPLICATION_WINDOW(app_window));
 
 	GtkWidget *paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
 	gtk_paned_add1(GTK_PANED(paned), sidebar_container);

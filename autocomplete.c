@@ -41,7 +41,9 @@ GtkTextIter _start_ident, _end_ident;
 GtkTextBuffer *_text_buffer;
 GtkListBox *_suggestions_list;
 int deleting_while_autocompleting = 0;
-int _num_list_items = 0;
+
+// we'll initialize these when creating the completions-window:
+int _num_list_items;
 int _index;
 
 struct StrList* create_strlist(void)
@@ -156,7 +158,6 @@ void display_suggestions_window(
 	if (_suggestions_window != NULL) {
 		gtk_widget_destroy(_suggestions_window);
 		_suggestions_window = NULL;
-		_num_list_items = 0;
 	}
 
 	GdkRectangle rect;
@@ -187,6 +188,9 @@ void display_suggestions_window(
 
 	gtk_window_set_default_size(GTK_WINDOW(_suggestions_window), 1, 200);
 
+	_num_list_items = 0;
+	_index = 0;
+
 	GtkWidget *suggestions = gtk_list_box_new();
 	for (int i = 0; i < completions->strs_i; ++i) {
 		char n[100];
@@ -199,7 +203,6 @@ void display_suggestions_window(
 		gtk_list_box_insert(GTK_LIST_BOX(suggestions), c, -1);
 		_num_list_items += 1;
 	}
-	_index = 0;
 	GtkWidget *scrollbars = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrollbars), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
 
@@ -233,7 +236,6 @@ autocomplete_on_text_buffer_insert_text(
 	if (_suggestions_window != NULL) {
 		gtk_widget_destroy(_suggestions_window);
 		_suggestions_window = NULL;
-		_num_list_items = 0;
 	}
 
 	GtkWidget *tab = (GtkWidget *) user_data;
@@ -299,8 +301,6 @@ autocomplete_on_text_buffer_insert_text(
 					*/
 					struct StrList *words = (struct StrList *) tab_retrieve_widget(tab, AUTOCOMPLETE_WORDS);
 					struct StrList *possible_completions = get_strs(words, text);
-					printf("******\n");
-					print_strs(possible_completions);
 					if (possible_completions->strs_i != 0) {
 						display_suggestions_window(text_view, location, possible_completions);
 						_text_buffer = text_buffer;
@@ -426,27 +426,6 @@ gboolean do_autocomplete(GdkEventKey *key_event)
 }
 
 
-gboolean autocomplete_close_popup(GdkEventKey *key_event)
-{
-	if (_suggestions_window) {
-		gtk_widget_destroy(_suggestions_window);
-		_suggestions_window = NULL;
-		_num_list_items = 0;
-		return TRUE;
-	}
-	return FALSE;
-}
-
-/*
-gboolean autocomplete_on_appwindow_button_pressed(
-	GtkWidget *x,
-	GdkEvent *event,
-	gpointer data)
-{
-	printf("*** autocomplete: button pressed\n");
-	return FALSE;
-}
-*/
 void autocomplete_on_text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
 {
 	if (_suggestions_window) {
@@ -454,7 +433,6 @@ void autocomplete_on_text_buffer_cursor_position_changed(GObject *object, GParam
 			printf("deleting tha window\n");
 			gtk_widget_destroy(_suggestions_window);
 			_suggestions_window = NULL;
-			_num_list_items = 0;
 		} else {
 			deleting_while_autocompleting = 0;
 		}
@@ -462,13 +440,9 @@ void autocomplete_on_text_buffer_cursor_position_changed(GObject *object, GParam
 }
 
 
-void init_autocomplete(
-	GtkApplicationWindow *app_window,
-	GtkWidget *tab)
+void autocomplete_init_tab(GtkWidget *tab)
 {
-	printf("init_autocomplete()\n");
-
-	_app_window = app_window;
+	printf("autocomplete_init_4tab()\n");
 
 	GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
 	//GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
@@ -477,8 +451,8 @@ void init_autocomplete(
 	g_signal_connect_after(G_OBJECT(text_buffer), "insert-text",
 		G_CALLBACK(autocomplete_on_text_buffer_insert_text), (gpointer) tab);
 
-	g_signal_connect(G_OBJECT(text_buffer),
-		"notify::cursor-position", G_CALLBACK(autocomplete_on_text_buffer_cursor_position_changed), NULL);
+	g_signal_connect(G_OBJECT(text_buffer), "notify::cursor-position",
+		G_CALLBACK(autocomplete_on_text_buffer_cursor_position_changed), NULL);
 
 	// create the list of words
 	{
@@ -529,4 +503,77 @@ void init_autocomplete(
 
 		tab_add_widget_4_retrieval(tab, AUTOCOMPLETE_WORDS, (void *) words);
 	}
+}
+
+
+gboolean autocomplete_close_popup(GdkEventKey *key_event)
+{
+	if (_suggestions_window) {
+		gtk_widget_destroy(_suggestions_window);
+		_suggestions_window = NULL;
+		
+		return TRUE;
+	}
+	return FALSE;
+}
+
+
+void autocomplete_on_notebook_page_removed(
+	GtkNotebook* self,
+	GtkWidget* child,
+	guint page_num,
+	gpointer user_data)
+{
+	printf("autocomplete_on_notebook_page_removed()\n");
+
+	if (_suggestions_window) {
+		gtk_widget_destroy(_suggestions_window);
+		_suggestions_window = NULL;
+	}
+}
+
+
+void autocomplete_on_notebook_switch_page(
+	GtkNotebook* self,
+	GtkWidget* child,
+	guint page_num,
+	gpointer user_data)
+{
+	printf("autocomplete_on_notebook_switch_page()\n");
+
+	if (_suggestions_window) {
+		gtk_widget_destroy(_suggestions_window);
+		_suggestions_window = NULL;
+	}
+}
+
+
+void autocomplete_on_notebook_page_added(
+	GtkNotebook* self,
+	GtkWidget* child,
+	guint page_num,
+	gpointer user_data)
+{
+	printf("*** autocomplete_on_notebook_page_added()\n");
+
+	autocomplete_init_tab(child);
+}
+
+
+void autocomplete_init(GtkNotebook *notebook, GtkApplicationWindow* app_window)
+{
+	printf("autocomplete_init()\n");
+
+	_app_window = app_window;
+
+	/* the only reason we want page-removed is to delete the window when the last page/tab is closed. 
+	all other page-remove's always trigger switch-page also.*/
+	g_signal_connect_after(G_OBJECT(notebook), "page-removed",
+		G_CALLBACK(autocomplete_on_notebook_page_removed), NULL);
+
+	g_signal_connect_after(G_OBJECT(notebook), "switch-page",
+		G_CALLBACK(autocomplete_on_notebook_switch_page), NULL);
+
+	g_signal_connect_after(G_OBJECT(notebook), "page-added",
+		G_CALLBACK(autocomplete_on_notebook_page_added), NULL);
 }

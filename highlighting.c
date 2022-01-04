@@ -35,6 +35,8 @@ gunichar get_next_character(GtkTextIter *iter)
 
 void highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end)
 {
+	LOG_MSG("highlight()");
+
 	//char *text = gtk_text_buffer_get_text(text_buffer, start, end, FALSE);
 	//LOG_MSG("highlighting: \"%s\"\n", text);
 	//free(text);
@@ -246,12 +248,11 @@ void create_tags(GtkTextBuffer *text_buffer)
 	int size = gtk_text_tag_table_get_size(table);
 	if (size != 0) {
 		//LOG_MSG("create_tags(): tags already created. no need to create them.\n");
-		printf("create_tags(): tags already created. no need to create them.\n");
+		LOG_MSG("\ttags already created. no need to create them.\n");
 		return;
 	}
 
-	//LOG_MSG("create_tags(): creating tags.\n");
-	printf("create_tags(): creating tags.\n");
+	LOG_MSG("\tcreating tags.\n");
 
 	gtk_text_buffer_create_tag(text_buffer, "identifier", "foreground", settings.identifier_color, NULL);
 /*

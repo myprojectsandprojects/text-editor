@@ -149,7 +149,7 @@ void on_search_entry_changed(GtkEditable *search_entry, gpointer data)
 
 GtkWidget *create_search_widget(GtkWidget *tab)
 {
-	printf("create_search_widget()\n");
+	LOG_MSG("create_search_widget()\n");
 
 	GtkWidget *search_entry = gtk_search_entry_new();
 	GtkWidget *search_revealer = gtk_revealer_new();
@@ -178,8 +178,7 @@ GtkWidget *create_search_widget(GtkWidget *tab)
 
 gboolean toggle_search_entry(GdkEventKey *key_event)
 {
-	//LOG_MSG("toggle_search_entry()\n");
-	printf("toggle_search_entry()\n");
+	LOG_MSG("toggle_search_entry()\n");
 
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
 
@@ -216,7 +215,7 @@ gboolean toggle_search_entry(GdkEventKey *key_event)
 
 gboolean do_search(GdkEventKey *key_event)
 {
-	printf("do_search()\n");
+	LOG_MSG("do_search()\n");
 
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
 	if (tab == NULL) return FALSE;
@@ -229,7 +228,7 @@ gboolean do_search(GdkEventKey *key_event)
 
 	if (!gtk_widget_is_focus(search_entry)) 
 	{
-		printf("do_search(): widget not (in?) focus.. exiting..\n");
+		LOG_MSG("\twidget not (in?) focus.. exiting..\n");
 		return FALSE; // we didnt deal with the event that triggered us..
 	}
 
@@ -244,20 +243,7 @@ gboolean do_search(GdkEventKey *key_event)
 	int action_2_take = parse_search_str(text,
 		&line, &search_str, &replace_str, &replace_with_str);
 
-	printf("...action_2_take: ");
 	if (action_2_take == SEARCH) {
-		printf("SEARCH for \"%s\"", search_str);
-	} else if (action_2_take == REPLACE) {
-		printf("REPLACE \"%s\" with \"%s\"", replace_str, replace_with_str);
-	} else if (action_2_take == GO_TO_LINE) {
-		printf("GO_TO_LINE %d", line);
-	} else if (action_2_take == DO_NOTHING) {
-		printf("DO_NOTHING");
-	}
-	printf("\n");
-
-	if (action_2_take == SEARCH) {
-		printf("...todo: should search\n");
 		GtkTextIter search_iter, match_start, match_end;
 
 		GtkTextMark *search_mark = gtk_text_buffer_get_mark(text_buffer, "search-mark");
@@ -276,11 +262,11 @@ gboolean do_search(GdkEventKey *key_event)
 			gtk_text_buffer_move_mark(text_buffer, search_mark, &search_iter);
 		} else {
 			if (gtk_text_iter_is_start(&search_iter) == FALSE) {
-				printf("search: there were matches for \"%s\" -> back to the beginning\n", text);	
+				LOG_MSG("\tthere were matches for \"%s\" -> back to the beginning\n", text);	
 				gtk_text_buffer_get_start_iter(text_buffer, &search_iter);
 				goto DO_SEARCH;
 			} else {
-				printf("search: there were no matches for \"%s\"\n", text);
+				LOG_MSG("\tthere were no matches for \"%s\"\n", text);
 			}
 		}
 	} else if (action_2_take == REPLACE) {
@@ -289,7 +275,6 @@ gboolean do_search(GdkEventKey *key_event)
 	
 		gboolean selection_exists = gtk_text_buffer_get_selection_bounds(text_buffer, &iter, &end); // gboolean
 		if (!selection_exists) {
-			printf("...no selection\n");
 			return TRUE;
 		}
 
@@ -314,7 +299,6 @@ gboolean do_search(GdkEventKey *key_event)
 		gtk_text_buffer_delete_mark(text_buffer, m2);
 
 	} else if (action_2_take == GO_TO_LINE) {
-		printf("...todo: should go to line\n");
 		GtkTextIter iter;
 		gtk_text_buffer_get_iter_at_line(text_buffer, &iter, line - 1); // ...counting from 0 or 1
 		gtk_widget_grab_focus(GTK_WIDGET(text_view));

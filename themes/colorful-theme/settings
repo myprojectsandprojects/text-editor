@@ -1,13 +1,13 @@
 line-highlight:rgb(48, 80, 93)
 
 comment:rgb(42, 157, 143)
-string:rgb(231, 111, 81)
+string:rgb(41, 175, 94)
+operator:rgb(223, 223, 136)
 identifier:rgb(233, 196, 106)
 type:rgb(244, 162, 97)
 number:rgb(231, 111, 81)
-operator:rgb(233, 196, 106)
-keyword:white
-preproccessor:rgb(41, 175, 94)
+keyword:rgb(223, 223, 136)
+preproccessor:rgb(152, 147, 173)
 unknown:red
 
 pixels-above-lines:0
