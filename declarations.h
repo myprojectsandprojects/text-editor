@@ -48,6 +48,8 @@ GtkWidget *create_tab(const char *file_name);
 void set_root_dir(const char *path);
 void add_class(GtkWidget *widget, const char *class_name);
 void remove_class(GtkWidget *widget, const char *class_name);
+void add_keycombination_handler(
+	int modifiers, int keycode, gboolean (*handler)(GdkEventKey *key_event));
 
 /* search-replace.c */
 /*

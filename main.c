@@ -44,21 +44,6 @@ const char *settings_file_path = "/home/eero/all/text-editor/themes/settings";
 //char *css_file = "/home/eero/all/text-editor/themes/css";
 char *css_file_path = "/home/eero/all/text-editor/themes/css"; // cant be const because we pass it to pthread_create()
 
-/*
-We are only using this, because key_combinations array doesnt store multiple handlers.
-on_enter_key_pressed() calls handlers in this array.
-We could just blindly execute them all, in order, or a handler might wish to prevent other handlers from executing..
-I dont really know how we might want to do this, but for now, if handler returns TRUE, we'll take it to mean that the handler dealt with the key-combination and doesnt want other handlers to be called..
-*/
-gboolean (*key_combination_handlers[10])(void);
-
-
-/* Settings: */
-
-//const char *line_highlight_color = "rgb(230, 230, 240)";
-//const char *line_highlight_color = "rgb(55, 55, 65)";
-//const int SETTING_VALUE_MAX = 100;
-
 
 struct Settings settings = {.left_margin = 1, .unknown_color = "cornflowerblue"};
 // ... other members are initialized to 0 (?)
@@ -589,7 +574,23 @@ char *get_base_name(const char *file_name)
 
 #define SIZE_KEYCODES 	65536 	// number of different values (2**16 (key_event->hardware_keycode is a 16-bit variable))
 #define SIZE_MODIFIERS 	16			// CTRL + ALT + SHIFT + ALTGR + 1
-gboolean (*key_combinations[SIZE_MODIFIERS][SIZE_KEYCODES])(GdkEventKey *key_event); // global arrays should be initialized to defaults (NULL) (?)
+//gboolean (*key_combinations[SIZE_MODIFIERS][SIZE_KEYCODES])(GdkEventKey *key_event); // global arrays should be initialized to defaults (NULL) (?)
+#define MAX_HANDLERS 9 // maximally, how many handlers for a keycombination
+/* these should be initialized to 0's by default: */
+gboolean (*key_combinations[SIZE_MODIFIERS][SIZE_KEYCODES][MAX_HANDLERS])(GdkEventKey *key_event);
+
+void add_keycombination_handler(
+	int modifiers, int keycode, gboolean (*handler)(GdkEventKey *key_event))
+{
+	printf("add_keycombination_handler(): modifiers: %d, keycode: %d\n",
+		modifiers, keycode);
+	int i = 0;
+	while (key_combinations[modifiers][keycode][i] != NULL) {
+		i += 1;
+	}
+	assert(i < MAX_HANDLERS);
+	key_combinations[modifiers][keycode][i] = handler;
+}
 
 
 gboolean on_app_window_key_press(GtkWidget *window, GdkEvent *event, gpointer user_data)
@@ -612,9 +613,16 @@ gboolean on_app_window_key_press(GtkWidget *window, GdkEvent *event, gpointer us
 	if(key_event->state & GDK_MOD5_MASK) {
 		modifiers |= ALTGR;
 	}
-
+/*
 	if(key_combinations[modifiers][key_event->hardware_keycode] != NULL) {
 		if((*key_combinations[modifiers][key_event->hardware_keycode])(key_event)) {
+			return TRUE; // We have dealt with the key-press and nothing else should happen!
+		}
+	}
+*/
+	if (key_combinations[modifiers][key_event->hardware_keycode][0] != NULL) {
+		for (int i = 0; key_combinations[modifiers][key_event->hardware_keycode][i] != NULL; ++i)
+		if((*key_combinations[modifiers][key_event->hardware_keycode][i])(key_event)) {
 			return TRUE; // We have dealt with the key-press and nothing else should happen!
 		}
 	}
@@ -1091,6 +1099,30 @@ gboolean parse_settings_file(void *data)
 	return FALSE;
 }
 
+gboolean handler1(GdkEventKey *key_event)
+{
+	printf("handler1 called!\n");
+	return FALSE;
+}
+
+gboolean handler2(GdkEventKey *key_event)
+{
+	printf("handler2 called!\n");
+	return TRUE;
+}
+
+gboolean handler3(GdkEventKey *key_event)
+{
+	printf("handler3 called!\n");
+	return FALSE;
+}
+
+gboolean handler4(GdkEventKey *key_event)
+{
+	printf("handler4 called!\n");
+	return FALSE;
+}
+
 
 void activate_handler(GtkApplication *app, gpointer data)
 {
@@ -1106,23 +1138,18 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	//printf("home directory: %s\n", home_dir);
 	snprintf(root_dir, ROOT_DIR_SIZE, "%s", home_dir);
 
+	/*
+	add_keycombination_handler(CTRL | ALT, 42, handler1);
+	add_keycombination_handler(CTRL | ALT, 42, handler2);
+	add_keycombination_handler(CTRL | ALT, 42, handler3);
+	add_keycombination_handler(CTRL | ALT, 42, handler4);
+	*/
 
-	key_combinations[0][23] = handle_tab; // <tab>
-	key_combinations[SHIFT][23] = handle_tab; // <tab> + shift
-
-	//key_combinations[0][36] = do_search; // <enter>
-
-	key_combinations[0][9] = autocomplete_close_popup; // <escape>
-	key_combinations[0][111] = autocomplete_upkey; // <up>
-	key_combinations[0][116] = autocomplete_downkey; // <down>
-
-	//key_combinations[SHIFT][36] = replace_selected_text; // shift + <enter>
-	key_combinations[0][36] = on_enter_key_pressed; // <enter>
-	// on_enter_key_pressed() calls these handlers:
-		key_combination_handlers[0] = do_autocomplete;
-		key_combination_handlers[1] = do_search;
-		key_combination_handlers[2] = NULL;
-
+	//key_combinations[0][23] = handle_tab; // <tab>
+	add_keycombination_handler(0, 23, handle_tab);
+	//key_combinations[SHIFT][23] = handle_tab; // <tab> + shift
+	add_keycombination_handler(SHIFT, 23, handle_tab);
+	add_keycombination_handler(0, 36, do_search);// <enter>
 
 	//@ cursors blink is off for move_cursor_left() & move_cursor_right()
 	// also comments & identifiers -- not very convenient
@@ -1132,37 +1159,63 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	key_combinations[SHIFT|CTRL][113] = move_cursor_left;
 	key_combinations[SHIFT|CTRL][114] = move_cursor_right;
 */
-	key_combinations[CTRL][111] = move_cursor_up; // ctrl + <up>
-	key_combinations[CTRL][116] = move_cursor_down; // ctrl + <down>
 
-	key_combinations[CTRL][47] = move_cursor_start_line; // ctrl + ö
-	key_combinations[CTRL][48] = move_cursor_end_line; // ctrl + ä
+	//key_combinations[CTRL][111] = move_cursor_up; // ctrl + <up>
+	add_keycombination_handler(CTRL, 111, move_cursor_up);
+	//key_combinations[CTRL][116] = move_cursor_down; // ctrl + <down>
+	add_keycombination_handler(CTRL, 116, move_cursor_down);
 
-	key_combinations[ALT][111] = move_lines_up; // alt + <up arrow>
-	key_combinations[ALT][116] = move_lines_down; // alt + <down arrow>
-	key_combinations[ALT][113] = move_token_left; // alt + <left arrow>
-	key_combinations[ALT][114] = move_token_right; // alt + <right arrow>
-	key_combinations[ALT][35] = insert_line_before; // alt + õ (35)
-	key_combinations[ALT][51] = insert_line_after; // alt + ' (51)
-	key_combinations[ALT][40] = duplicate_line; // alt + d
-	key_combinations[ALT][119] = delete_line; // alt + <delete>
-	key_combinations[ALT][34] = change_line; // alt + ü
-	key_combinations[ALT][33] = delete_end_of_line; // alt + p
-	key_combinations[CTRL][52] = undo_last_action; // ctrl + z
+	//key_combinations[CTRL][47] = move_cursor_start_line; // ctrl + ö
+	add_keycombination_handler(CTRL, 47, move_cursor_start_line);
+	//key_combinations[CTRL][48] = move_cursor_end_line; // ctrl + ä
+	add_keycombination_handler(CTRL, 48, move_cursor_end_line);
 
-	key_combinations[CTRL][57] = create_empty_tab; // ctrl + n
-	key_combinations[CTRL][58] = close_tab; // ctrl + m
-	key_combinations[CTRL][45] = switch_tab; // ctrl + k
+	//key_combinations[ALT][111] = move_lines_up; // alt + <up arrow>
+	add_keycombination_handler(ALT, 111, move_lines_up);
+	//key_combinations[ALT][116] = move_lines_down; // alt + <down arrow>
+	add_keycombination_handler(ALT, 116, move_lines_down);
+	//key_combinations[ALT][113] = move_token_left; // alt + <left arrow>
+	add_keycombination_handler(ALT, 113, move_token_left);
+	//key_combinations[ALT][114] = move_token_right; // alt + <right arrow>
+	add_keycombination_handler(ALT, 114, move_token_right);
+	//key_combinations[ALT][35] = insert_line_before; // alt + õ (35)
+	add_keycombination_handler(ALT, 35, insert_line_before);
+	//key_combinations[ALT][51] = insert_line_after; // alt + ' (51)
+	add_keycombination_handler(ALT, 51, insert_line_after);
+	//key_combinations[ALT][40] = duplicate_line; // alt + d
+	add_keycombination_handler(ALT, 40, duplicate_line);
+	//key_combinations[ALT][119] = delete_line; // alt + <delete>
+	add_keycombination_handler(ALT, 119, delete_line);
+	//key_combinations[ALT][34] = change_line; // alt + ü
+	add_keycombination_handler(ALT, 34, change_line);
+	//key_combinations[ALT][33] = delete_end_of_line; // alt + p
+	add_keycombination_handler(ALT, 33, delete_end_of_line);
 
-	key_combinations[CTRL][39] = do_save; // ctrl + s
-	key_combinations[CTRL][32] = do_open; // ctrl + o
+	//key_combinations[CTRL][52] = undo_last_action; // ctrl + z
+	add_keycombination_handler(CTRL, 52, undo_last_action);
 
-	key_combinations[CTRL][41] = toggle_search_entry; // ctrl + f
+	//key_combinations[CTRL][57] = create_empty_tab; // ctrl + n
+	add_keycombination_handler(CTRL, 57, create_empty_tab);
+	//key_combinations[CTRL][58] = close_tab; // ctrl + m
+	add_keycombination_handler(CTRL, 58, close_tab);
+	//key_combinations[CTRL][45] = switch_tab; // ctrl + k
+	add_keycombination_handler(CTRL, 45, switch_tab);
+
+	//key_combinations[CTRL][39] = do_save; // ctrl + s
+	add_keycombination_handler(CTRL, 39, do_save);
+	//key_combinations[CTRL][32] = do_open; // ctrl + o
+	add_keycombination_handler(CTRL, 32, do_open);
+
+	//key_combinations[CTRL][41] = toggle_search_entry; // ctrl + f
+	add_keycombination_handler(CTRL, 41, toggle_search_entry);
 	//key_combinations[CTRL][27] = toggle_replace_entry; // ctrl + r
-	key_combinations[CTRL][43] = display_openfile_dialog; // ctrl + h
+	//key_combinations[CTRL][43] = display_openfile_dialog; // ctrl + h
+	add_keycombination_handler(CTRL, 43, display_openfile_dialog);
 
-	key_combinations[CTRL][42] = less_fancy_toggle_sidebar; // ctrl + g
-	key_combinations[CTRL][44] = less_fancy_toggle_notebook; // ctrl + j
+	//key_combinations[CTRL][42] = less_fancy_toggle_sidebar; // ctrl + g
+	add_keycombination_handler(CTRL, 42, less_fancy_toggle_sidebar);
+	//key_combinations[CTRL][44] = less_fancy_toggle_notebook; // ctrl + j
+	add_keycombination_handler(CTRL, 44, less_fancy_toggle_notebook);
 
 
 

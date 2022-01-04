@@ -8,6 +8,7 @@ autocomplete.c
 #include <ctype.h>
 #include <assert.h>
 #include <gtk/gtk.h>
+
 #include "tab.h"
 #include "declarations.h"
 /*
@@ -576,4 +577,9 @@ void autocomplete_init(GtkNotebook *notebook, GtkApplicationWindow* app_window)
 
 	g_signal_connect_after(G_OBJECT(notebook), "page-added",
 		G_CALLBACK(autocomplete_on_notebook_page_added), NULL);
+
+	add_keycombination_handler(0, 9, autocomplete_close_popup); // escape
+	add_keycombination_handler(0, 111, autocomplete_upkey); // up
+	add_keycombination_handler(0, 116, autocomplete_downkey); // down
+	add_keycombination_handler(0, 36, do_autocomplete); // enter
 }
