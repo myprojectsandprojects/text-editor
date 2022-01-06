@@ -445,9 +445,7 @@ GtkWidget *create_tab(const char *file_name)
 
 	gtk_widget_show_all(GTK_WIDGET(tab));
 
-	printf("*** before append\n");
 	int page = gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, NULL);
-	printf("*** after append\n");
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page);
 
 	/* We want autocomplete-character's handler for "insert-text"-signal to be the first handler called.  
@@ -582,7 +580,7 @@ gboolean (*key_combinations[SIZE_MODIFIERS][SIZE_KEYCODES][MAX_HANDLERS])(GdkEve
 void add_keycombination_handler(
 	int modifiers, int keycode, gboolean (*handler)(GdkEventKey *key_event))
 {
-	printf("add_keycombination_handler(): modifiers: %d, keycode: %d\n",
+	LOG_MSG("add_keycombination_handler(): modifiers: %d, keycode: %d\n",
 		modifiers, keycode);
 	int i = 0;
 	while (key_combinations[modifiers][keycode][i] != NULL) {
@@ -621,9 +619,10 @@ gboolean on_app_window_key_press(GtkWidget *window, GdkEvent *event, gpointer us
 	}
 */
 	if (key_combinations[modifiers][key_event->hardware_keycode][0] != NULL) {
-		for (int i = 0; key_combinations[modifiers][key_event->hardware_keycode][i] != NULL; ++i)
-		if((*key_combinations[modifiers][key_event->hardware_keycode][i])(key_event)) {
-			return TRUE; // We have dealt with the key-press and nothing else should happen!
+		for (int i = 0; key_combinations[modifiers][key_event->hardware_keycode][i] != NULL; ++i) {
+			if((*key_combinations[modifiers][key_event->hardware_keycode][i])(key_event)) {
+				return TRUE; // We have dealt with the key-press and nothing else should happen!
+			}
 		}
 	}
 
@@ -739,14 +738,17 @@ void refresh_application_title(void)
 {
 	printf("refresh_application_title()\n");
 
-	char app_title[100]; //@ buffer bounds
+	#define BUFFER_SIZE 100
+	char app_title[BUFFER_SIZE];
+	snprintf(app_title, BUFFER_SIZE, "Root Directory: %s", root_dir);
+	gtk_window_set_title(GTK_WINDOW(app_window), app_title);
 
+/*
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
 	if (!tab) {
 		printf("\t-> no visible tab\n");
 		return;
 	}
-/*
 	gpointer data = g_object_get_data(G_OBJECT(tab), "tab-info");
 	assert(data != NULL);
 	struct TabInfo *tab_info = (struct TabInfo *) data;
@@ -760,16 +762,12 @@ void refresh_application_title(void)
 			"Root Directory: %s\tCurrent File: %s", root_dir, tab_info->title);
 	}
 */
-	snprintf(app_title, 100, "Root Directory: %s", root_dir);
-	gtk_window_set_title(GTK_WINDOW(app_window), app_title);
 }
 
 
 void on_notebook_switch_page(GtkNotebook *notebook, GtkWidget *tab, guint page_num, gpointer data)
 {
 	LOG_MSG("on_notebook_switch_page()\n");
-
-	refresh_application_title();
 
 	GtkWidget *text_view = (GtkWidget *) tab_retrieve_widget(tab, TEXT_VIEW);
 	assert(text_view);
@@ -889,20 +887,6 @@ gboolean handle_tab(GdkEventKey *key_event)
 }
 
 
-gboolean on_enter_key_pressed(GdkEventKey *key_event)
-{
-	printf("on_enter_key_pressed(): \n");
-
-	for (int i = 0; key_combination_handlers[i] != NULL; ++i) {
-		gboolean rv = key_combination_handlers[i]();
-		if (rv == TRUE) {
-			return TRUE;
-		}
-	}
-	return FALSE;
-}
-
-
 gboolean undo_last_action(GdkEventKey *key_event)
 {
 	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
@@ -945,7 +929,6 @@ gboolean do_save(GdkEventKey *key_event)
 		tab_info->file_name = file_name;
 		tab_info->title = get_base_name(file_name);
 
-		//refresh_application_title();
 		GtkLabel *filepath_label = tab_retrieve_widget(tab, FILEPATH_LABEL);
 		gtk_label_set_text(filepath_label, file_name);
 	}
@@ -953,6 +936,12 @@ gboolean do_save(GdkEventKey *key_event)
 	write_file(tab_info->file_name, contents); //@ error handling
 
 	tab_set_unsaved_changes_to(tab, FALSE);
+
+	/* autocomplete: we'll update the list of words for each save-op to be more up-to-date */
+	struct StrList *words = autocomplete_create_and_store_words(text_buffer);
+	void *old_words = tab_retrieve_widget(tab, AUTOCOMPLETE_WORDS);
+	free(old_words);
+	tab_add_widget_4_retrieval(tab, AUTOCOMPLETE_WORDS, (void *) words);
 
 	return TRUE;
 }

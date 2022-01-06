@@ -42,6 +42,13 @@
 	/*font: Office Code Pro Bold 12;*/
 	/*font: Liberation Mono Regular 12;*/
 
+/* colors: 
+	rgb(65, 50, 40) darker brownish
+	rgb(85, 70, 60) lighter brownish
+	rgb(38, 70, 83) darker blueish
+	rgb(58, 90, 103); lighter blueish
+*/
+
 /*
 At first I was thinking about using different levels of specificity by means
 of names and classes, but then I thought that we should keep it simple
@@ -77,6 +84,7 @@ and just stick to classes.
 	font: Odudo Mono Regular 12;
 	*/
 	font: Odudo Mono SemiBold 12;
+	font: Liberation Mono SemiBold 12;
 }
 
 .text-view:selected,
@@ -128,8 +136,8 @@ and just stick to classes.
 
 .code-highlighting-menu-button
 {
-	/*background: rgb(41, 87, 116);*/
-	background: rgb(58, 90, 103);
+	/*background: rgb(58, 90, 103);*/ /* lighter blueish */
+	background: rgb(85, 70, 60); /* lighter brownish */
 	color: white;
 	font-weight: bold;
 }
@@ -149,7 +157,8 @@ and just stick to classes.
 
 .main-notebook
 {
-	background: rgb(58, 90, 103);  /* main-notebook's background color */
+	/*background: rgb(58, 90, 103);*/  /* main-notebook's background color */
+	background: rgb(85, 70, 60);  /* main-notebook's background color */
 	color: white;
 	border: solid 0 black;
 }
@@ -157,12 +166,14 @@ and just stick to classes.
 .main-notebook tab
 {
 	padding: 10px 16px;
-	background: rgb(58, 90, 103);
+	/*background: rgb(58, 90, 103);*/ /* lighter blueish*/
+	background: rgb(85, 70, 60); /* lighter brownish */
 }
 
 .main-notebook tab:active
 {
-	background:rgb(38, 70, 83);
+	/*background:rgb(38, 70, 83);*/ /* darker blueish */
+	background:rgb(65, 50, 40); /* darker brownish */
 }
 
 .search-entry
@@ -173,12 +184,14 @@ and just stick to classes.
 
 .text-view
 {
-	background: rgb(38, 70, 83);
+	/*background: rgb(38, 70, 83);*/ /* darker blueish */
+	background: rgb(65, 50, 40); /* darker brownish */
 	color: rgb(233, 196, 106);
 }
 
 .status-bar {
-	background: rgb(58, 90, 103);
+	/*background: rgb(58, 90, 103);*/ /* lighter blueish */
+	background: rgb(85, 70, 60); /* lighter brownish */
 	color: white;
 	/*font: Roboto 11;*/
 	/*font-weight: bold;*/

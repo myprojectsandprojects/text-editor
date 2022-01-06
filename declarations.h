@@ -85,18 +85,16 @@ void test_get_parent_path(void);
 void test_str_replace(void);
 
 /* autocomplete.c */
+// why does it work without struct StrList being declared here???
+#define MAX_STRS 1000
+struct StrList {
+	const char *strs[MAX_STRS];
+	unsigned int counts[MAX_STRS];
+	unsigned int strs_i;
+};
 void autocomplete_init(GtkNotebook *notebook, GtkApplicationWindow* app_window);
-//void autocomplete_init_4tab(GtkWidget *tab);
-gboolean autocomplete_close_popup(GdkEventKey *key_event);
-gboolean do_autocomplete(GdkEventKey *key_event);
-gboolean autocomplete_upkey(GdkEventKey *key_event);
-gboolean autocomplete_downkey(GdkEventKey *key_event);
-//gboolean autocomplete_on_appwindow_button_pressed(GtkWidget *x, GdkEvent *event, gpointer data);
-/*
-gboolean autocomplete_on_window_key_press(GtkWidget *window,
-													GdkEvent *event,
-													gpointer user_data);
-*/
+struct StrList *autocomplete_create_and_store_words(GtkTextBuffer *text_buffer);
+
 /* root-navigation.c */
 GtkWidget *create_root_nav_widget(void);
 

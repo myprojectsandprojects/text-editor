@@ -30,14 +30,6 @@ char *words[100] = {
 GtkWidget					*_suggestions_window;
 GtkApplicationWindow		*_app_window;
 
-
-#define MAX_STRS 1000
-struct StrList {
-	const char *strs[MAX_STRS];
-	unsigned int counts[MAX_STRS];
-	unsigned int strs_i;
-};
-
 GtkTextIter _start_ident, _end_ident;
 GtkTextBuffer *_text_buffer;
 GtkListBox *_suggestions_list;
@@ -123,37 +115,7 @@ struct StrList *get_strs(struct StrList *str_list, const char *begins)
 }
 
 
-gboolean autocomplete_on_window_key_press(GtkWidget *window, GdkEvent *event, gpointer user_data)
-{
-	assert(_suggestions_window != NULL);
-
-	#define ESCAPE 9
-	#define UP 111
-	#define DOWN 116
-	#define ENTER 36
-
-	GdkEventKey *key_event = (GdkEventKey *) event;
-	guint16 keycode = key_event->hardware_keycode;
-	LOG_MSG("autocomplete_on_window_key_press(): keycode: %d\n", keycode);
-/*
-	if (_suggestions_window != NULL) {
-		printf("We have a suggestions window!\n");
-		if (keycode == ESCAPE) {
-			gtk_widget_destroy(_suggestions_window);
-			_suggestions_window = NULL;
-		}
-	} else {
-		printf("No suggestions window!\n");
-	}
-*/
-
-	if (keycode == ESCAPE) {
-		printf("escape!!!!!!!!!!!!!!!!!!!!!!!!!1\n");
-	}
-	return FALSE;
-}
-
-void display_suggestions_window(
+static void display_suggestions_window(
 	GtkTextView *text_view, GtkTextIter *location, struct StrList *completions)
 {
 	if (_suggestions_window != NULL) {
@@ -220,8 +182,8 @@ void display_suggestions_window(
 	gtk_widget_show_all(_suggestions_window);
 }
 
-void
-autocomplete_on_text_buffer_insert_text(
+
+static void autocomplete_on_text_buffer_insert_text(
 	GtkTextBuffer *text_buffer,
 	GtkTextIter *location,
 	char *text,
@@ -232,7 +194,7 @@ autocomplete_on_text_buffer_insert_text(
 	//printf("text_buffer_insert_text_4_autocomplete(): %s\n", text);
 
 	// there is a whole lot of cases when we want to do this
-	// user deletes a character, user placec the cursor, hits escape ...
+	// user deletes a character, user places the cursor, hits escape ...
 	// maybe some of it should be configurable
 	if (_suggestions_window != NULL) {
 		gtk_widget_destroy(_suggestions_window);
@@ -346,7 +308,7 @@ autocomplete_on_text_buffer_insert_text(
 }
 
 
-gboolean autocomplete_upkey(GdkEventKey *key_event)
+static gboolean autocomplete_upkey(GdkEventKey *key_event)
 {
 	printf("autocomplete_upkey()\n");
 
@@ -362,7 +324,7 @@ gboolean autocomplete_upkey(GdkEventKey *key_event)
 }
 
 
-gboolean autocomplete_downkey(GdkEventKey *key_event)
+static gboolean autocomplete_downkey(GdkEventKey *key_event)
 {
 	printf("autocomplete_downkey()\n");
 
@@ -379,7 +341,7 @@ gboolean autocomplete_downkey(GdkEventKey *key_event)
 }
 
 
-gboolean do_autocomplete(GdkEventKey *key_event)
+static gboolean do_autocomplete(GdkEventKey *key_event)
 {
 	if (_suggestions_window) {
 		printf("*** should do autocomplete ***\n");
@@ -427,7 +389,7 @@ gboolean do_autocomplete(GdkEventKey *key_event)
 }
 
 
-void autocomplete_on_text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
+static void autocomplete_on_text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
 {
 	if (_suggestions_window) {
 		if (!deleting_while_autocompleting) {
@@ -441,73 +403,7 @@ void autocomplete_on_text_buffer_cursor_position_changed(GObject *object, GParam
 }
 
 
-void autocomplete_init_tab(GtkWidget *tab)
-{
-	printf("autocomplete_init_4tab()\n");
-
-	GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
-	//GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
-	assert(text_buffer);
-
-	g_signal_connect_after(G_OBJECT(text_buffer), "insert-text",
-		G_CALLBACK(autocomplete_on_text_buffer_insert_text), (gpointer) tab);
-
-	g_signal_connect(G_OBJECT(text_buffer), "notify::cursor-position",
-		G_CALLBACK(autocomplete_on_text_buffer_cursor_position_changed), NULL);
-
-	// create the list of words
-	{
-		/*
-		#define NUM_WORDS 1000
-		const char **words = malloc(NUM_WORDS * sizeof(const char *));
-		int j = 0;
-		*/
-
-		struct StrList *words = create_strlist();
-		GtkTextIter i;
-/*
-		gtk_text_buffer_get_start_iter(text_buffer, &i);
-		gunichar c = gtk_text_iter_get_char(&i);
-		printf("1st character: %c\n", c);
-*/
-		int n = 0;
-		for (gtk_text_buffer_get_start_iter(text_buffer, &i); !gtk_text_iter_is_end(&i); gtk_text_iter_forward_char(&i)) {
-			gunichar c = gtk_text_iter_get_char(&i);
-			//printf("character: %c (%d)\n", c, c);
-			if (g_unichar_isalpha(c) || c == '_') {
-				GtkTextIter ident_start = i;
-				while (gtk_text_iter_forward_char(&i)) {
-					c = gtk_text_iter_get_char(&i);
-					if (!g_unichar_isalnum(c) && c != '_') break;
-				}
-				char *ident = gtk_text_buffer_get_text(text_buffer, &ident_start, &i, FALSE);
-				if (strlen(ident) > 1) {
-					printf("identifier: %s\n", ident);
-					/*
-					words[j] = ident;
-					++j;
-					*/
-					// if no room for new strings then break
-					if (!add_str(words, ident)) {
-						break;
-					}
-					++n;
-					/*
-					if (j - 1 == NUM_WORDS - 1) {
-						break;
-					}
-					*/
-				}
-			}
-		}
-		printf("identifiers read: %d\n", n); // we only actually store unique strings
-
-		tab_add_widget_4_retrieval(tab, AUTOCOMPLETE_WORDS, (void *) words);
-	}
-}
-
-
-gboolean autocomplete_close_popup(GdkEventKey *key_event)
+static gboolean autocomplete_close_popup(GdkEventKey *key_event)
 {
 	if (_suggestions_window) {
 		gtk_widget_destroy(_suggestions_window);
@@ -519,7 +415,7 @@ gboolean autocomplete_close_popup(GdkEventKey *key_event)
 }
 
 
-void autocomplete_on_notebook_page_removed(
+static void autocomplete_on_notebook_page_removed(
 	GtkNotebook* self,
 	GtkWidget* child,
 	guint page_num,
@@ -534,7 +430,7 @@ void autocomplete_on_notebook_page_removed(
 }
 
 
-void autocomplete_on_notebook_switch_page(
+static void autocomplete_on_notebook_switch_page(
 	GtkNotebook* self,
 	GtkWidget* child,
 	guint page_num,
@@ -549,7 +445,74 @@ void autocomplete_on_notebook_switch_page(
 }
 
 
-void autocomplete_on_notebook_page_added(
+// create the list of words
+	/*@ right now, for example: "0x123abc", which is a number literal, gives us "x123abc"
+	and we store it as a word. if thats not what we want, we could also look for number-literals
+	so that we can ignore those characters.. */
+struct StrList *autocomplete_create_and_store_words(GtkTextBuffer *text_buffer)
+{
+	printf("*** autocomplete_create_and_store_words()\n");
+
+	struct StrList *words = create_strlist();
+	GtkTextIter i;
+
+	int n = 0;
+	for (gtk_text_buffer_get_start_iter(text_buffer, &i);
+		!gtk_text_iter_is_end(&i); gtk_text_iter_forward_char(&i)) {
+		gunichar c = gtk_text_iter_get_char(&i);
+		//printf("character: %c (%d)\n", c, c);
+		if (g_unichar_isalpha(c) || c == '_') {
+			GtkTextIter ident_start = i;
+			while (gtk_text_iter_forward_char(&i)) {
+				c = gtk_text_iter_get_char(&i);
+				if (!g_unichar_isalnum(c) && c != '_') break;
+			}
+			char *ident = gtk_text_buffer_get_text(text_buffer, &ident_start, &i, FALSE);
+			if (strlen(ident) > 1) {
+				//printf("identifier: %s\n", ident);
+				/*
+				words[j] = ident;
+				++j;
+				*/
+				// if no room for new strings then break
+				if (!add_str(words, ident)) {
+					break;
+				}
+				++n;
+				/*
+				if (j - 1 == NUM_WORDS - 1) {
+					break;
+				}
+				*/
+			}
+		}
+	}
+	printf("identifiers read: %d\n", n); // we only actually store unique strings
+
+	return words;
+}
+
+
+static void autocomplete_init_tab(GtkWidget *tab)
+{
+	printf("autocomplete_init_tab()\n");
+
+	GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
+	//GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
+	assert(text_buffer);
+
+	g_signal_connect_after(G_OBJECT(text_buffer), "insert-text",
+		G_CALLBACK(autocomplete_on_text_buffer_insert_text), (gpointer) tab);
+
+	g_signal_connect(G_OBJECT(text_buffer), "notify::cursor-position",
+		G_CALLBACK(autocomplete_on_text_buffer_cursor_position_changed), NULL);
+
+	struct StrList *words = autocomplete_create_and_store_words(text_buffer);
+	tab_add_widget_4_retrieval(tab, AUTOCOMPLETE_WORDS, (void *) words);
+}
+
+
+static void autocomplete_on_notebook_page_added(
 	GtkNotebook* self,
 	GtkWidget* child,
 	guint page_num,
