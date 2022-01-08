@@ -35,7 +35,7 @@ gunichar get_next_character(GtkTextIter *iter)
 
 void highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end)
 {
-	LOG_MSG("highlight()");
+	LOG_MSG("highlight()\n");
 
 	//char *text = gtk_text_buffer_get_text(text_buffer, start, end, FALSE);
 	//LOG_MSG("highlighting: \"%s\"\n", text);
