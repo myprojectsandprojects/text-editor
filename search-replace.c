@@ -12,12 +12,117 @@
 extern GtkWidget *notebook;
 
 
-#define SEARCH 0
-#define REPLACE 1
-#define GO_TO_LINE 2
-#define DO_NOTHING 3
+const char *print_action2take(int action2take)
+{
+	const char *action2take_strs[] = {
+		"SEARCH", "REPLACE", "GO_TO_LINE", "DO_NOTHING"};
+	return action2take_strs[action2take];
+}
 
-int parse_search_str(
+
+int parse_str(const char *str2parse,
+	int *line_num, char **search_str, char **replace_with_str)
+{
+	LOG_MSG("parse_str()\n");
+
+	//#define BUFFER_SIZE 100 // how much text can user type into the entry?
+	//char buffer[BUFFER_SIZE];
+	int i1, i2, j;
+	
+	*line_num = -1;
+	*search_str = *replace_with_str = NULL;
+	int action2take = DO_NOTHING;
+	i1 = i2 = j = 0;
+
+	/* should check for validity? */
+	if (str2parse[0] == ':') {
+		*line_num = atoi(&str2parse[1]);
+		return GO_TO_LINE;
+	}
+
+	*search_str = malloc(strlen(str2parse));
+	char *current_buffer = *search_str;
+	action2take = SEARCH;
+
+	for (;;) {
+		if (str2parse[i2] == '\0') {
+			int n = i2 - i1 + 1; // '+ 1' to also copy the '\0'
+			strncpy(&current_buffer[j], &str2parse[i1], n);
+			break;
+		}
+		if (str2parse[i2] == '\\') {
+			int i = i2 + 1;
+			if (str2parse[i] == '\\') {
+				int n = i2 - i1;
+				strncpy(&current_buffer[j], &str2parse[i1], n);
+				j += n;
+				current_buffer[j] = '\\';
+				j += 1;
+				i1 = i2 = i2 + 2;
+			} else if (str2parse[i] == 't') {
+				int n = i2 - i1;
+				strncpy(&current_buffer[j], &str2parse[i1], n);
+				j += n;
+				current_buffer[j] = '\t';
+				j += 1;
+				i1 = i2 = i2 + 2;
+			} else if (str2parse[i] == 'n') {
+				int n = i2 - i1;
+				strncpy(&current_buffer[j], &str2parse[i1], n);
+				j += n;
+				current_buffer[j] = '\n';
+				j += 1;
+				i1 = i2 = i2 + 2;
+			} else if (str2parse[i] == '/') {
+				int n = i2 - i1;
+				strncpy(&current_buffer[j], &str2parse[i1], n);
+				j += n;
+				current_buffer[j] = '/';
+				j += 1;
+				i1 = i2 = i2 + 2;
+			} else {
+				// unknown escape sequence
+				action2take = DO_NOTHING;
+				break;
+			}
+		} else if (str2parse[i2] == '/') {
+			if (i2 == 0) {
+				action2take = DO_NOTHING;
+				break;
+			}
+			if (action2take == REPLACE) {
+				i2 += 1;
+				continue;
+			}
+			/* we should do replace instead of search */
+			action2take = REPLACE;
+			int n = i2 - i1;
+			strncpy(&current_buffer[j], &str2parse[i1], n);
+			current_buffer[j + n] = 0;
+			i1 = i2 = i2 + 1;
+			*replace_with_str = malloc(strlen(str2parse));
+			current_buffer = *replace_with_str;
+			j = 0;
+		} else {
+			i2 += 1;
+		}
+	}
+
+	return action2take;
+}
+
+
+/*@
+cant for example replace "/" with "abc", because how would we say that?
+also there is no way to refer to a special characters like "\n"
+if we used "\" "to escape special characters", we would say: "\//abc" to replace "/" with "abc"
+and: "\t/\n" to replace tabs with newlines
+anything followed by \ would be interpreted in an unconventional way
+so \/ would be literal forwardslash as / has a special meaning
+and \n would be a special newline character as n has no special meaning
+\\ would be literal backslash and \\\ would open a gateway to another dimension
+*/
+int not_used_parse_search_str(
 	const char *str_2_parse,
 	int *line_num,
 	char **search,
@@ -30,8 +135,9 @@ int parse_search_str(
 
 	action_2_take = SEARCH;
 	*replace = *with = *search = NULL;
-	i1 = i2 = j = 0;
 	*line_num = -1;
+
+	i1 = i2 = j = 0;
 
 	// to see if we are actually 0-terminating our string:
 	//memset((void *) parsed, 'z', sizeof(parsed));
@@ -125,12 +231,6 @@ int parse_search_str(
 	}
 
 	return action_2_take;
-}
-
-
-void test_parse_search_str(void)
-{
-	// todo
 }
 
 
@@ -232,18 +332,31 @@ gboolean do_search(GdkEventKey *key_event)
 		return FALSE; // we didnt deal with the event that triggered us..
 	}
 
-	const char *text = gtk_entry_get_text(GTK_ENTRY(search_entry)); //@ free?
+	const char *text = gtk_entry_get_text(GTK_ENTRY(search_entry)); // "... must not be freed, modified or stored."
 	if (strlen(text) == 0) {
 		return TRUE;
 	}
 
-	/* these will be initialized in parse_search_str(): */
-	int line;
-	char *search_str, *replace_str, *replace_with_str;
-	int action_2_take = parse_search_str(text,
-		&line, &search_str, &replace_str, &replace_with_str);
+	/* these will be initialized in parse_str(): */
+	int line_num;
+	char *search_str, *replace_with_str;
+	int action_2_take = parse_str(text, &line_num, &search_str, &replace_with_str);
+	printf("action_2_take: %s\n", print_action2take(action_2_take));
+
+	switch (action_2_take) {
+		case SEARCH:
+			printf("search string: %s\n", search_str);
+			break;
+		case REPLACE:
+			printf("search string: %s, replace string: %s\n", search_str, replace_with_str);
+			break;
+		case GO_TO_LINE:
+			printf("line_num: %d\n", line_num);
+			break;
+	}
 
 	if (action_2_take == SEARCH) {
+		assert(search_str);
 		GtkTextIter search_iter, match_start, match_end;
 
 		GtkTextMark *search_mark = gtk_text_buffer_get_mark(text_buffer, "search-mark");
@@ -283,7 +396,7 @@ gboolean do_search(GdkEventKey *key_event)
 		GtkTextMark *m_end = gtk_text_buffer_create_mark(text_buffer, NULL, &end, FALSE);
 
 		GtkTextIter match_start, match_end;
-		while (gtk_text_iter_forward_search(&iter, replace_str, 
+		while (gtk_text_iter_forward_search(&iter, search_str, 
 				GTK_TEXT_SEARCH_CASE_INSENSITIVE, &match_start, &match_end, &end))
 		{
 			gtk_text_buffer_move_mark(text_buffer, m1, &match_start);
@@ -300,7 +413,7 @@ gboolean do_search(GdkEventKey *key_event)
 
 	} else if (action_2_take == GO_TO_LINE) {
 		GtkTextIter iter;
-		gtk_text_buffer_get_iter_at_line(text_buffer, &iter, line - 1); // ...counting from 0 or 1
+		gtk_text_buffer_get_iter_at_line(text_buffer, &iter, line_num - 1); // ...counting from 0 or 1
 		gtk_widget_grab_focus(GTK_WIDGET(text_view));
 		gtk_text_buffer_place_cursor(text_buffer, &iter);
 		gtk_text_view_scroll_to_iter(text_view, &iter, 0.0, FALSE, 0.0, 0.0);
@@ -310,11 +423,3 @@ gboolean do_search(GdkEventKey *key_event)
 
 	return TRUE;
 }
-
-
-
-
-
-
-
-

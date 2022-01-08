@@ -937,7 +937,7 @@ gboolean do_save(GdkEventKey *key_event)
 
 	tab_set_unsaved_changes_to(tab, FALSE);
 
-	/* autocomplete: we'll update the list of words for each save-op to be more up-to-date */
+	/* autocomplete: we'll update the list of words during each save-op to be more up-to-date */
 	struct StrList *words = autocomplete_create_and_store_words(text_buffer);
 	void *old_words = tab_retrieve_widget(tab, AUTOCOMPLETE_WORDS);
 	free(old_words);
@@ -1140,6 +1140,11 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(SHIFT, 23, handle_tab);
 	add_keycombination_handler(0, 36, do_search);// <enter>
 
+	add_keycombination_handler(0, 9, autocomplete_close_popup); // escape
+	add_keycombination_handler(0, 111, autocomplete_upkey); // up
+	add_keycombination_handler(0, 116, autocomplete_downkey); // down
+	add_keycombination_handler(0, 36, do_autocomplete); // enter
+
 	//@ cursors blink is off for move_cursor_left() & move_cursor_right()
 	// also comments & identifiers -- not very convenient
 /*
@@ -1308,6 +1313,7 @@ int main() {
 	GtkApplication *app;
 
 	//test_str_replace();
+	test_parse_str();
 
 	guint major = gtk_get_major_version();
 	guint minor = gtk_get_minor_version();

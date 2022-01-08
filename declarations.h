@@ -52,18 +52,18 @@ void add_keycombination_handler(
 	int modifiers, int keycode, gboolean (*handler)(GdkEventKey *key_event));
 
 /* search-replace.c */
-/*
-gboolean toggle_search_entry(GdkEventKey *key_event);
-gboolean toggle_replace_entry(GdkEventKey *key_event);
-GtkWidget *create_search_and_replace_widget(GtkWidget *tab);
-gboolean on_search_and_replace(void);
-gboolean replace_selected_text(GdkEventKey *key_event);
-*/
-
-/* search.c */
 GtkWidget *create_search_widget(GtkWidget *tab);
 gboolean toggle_search_entry(GdkEventKey *key_event);
 gboolean do_search(GdkEventKey *key_event);
+const char *print_action2take(int action2take);
+int parse_str(const char *str2parse,
+	int *line_num, char **search_str, char **replace_with_str);
+
+/* possible values for action2take */
+#define SEARCH 0
+#define REPLACE 1
+#define GO_TO_LINE 2
+#define DO_NOTHING 3
 
 /* undo.c: */
 void init_undo(GtkWidget *tab);
@@ -85,7 +85,6 @@ void test_get_parent_path(void);
 void test_str_replace(void);
 
 /* autocomplete.c */
-// why does it work without struct StrList being declared here???
 #define MAX_STRS 1000
 struct StrList {
 	const char *strs[MAX_STRS];
@@ -94,6 +93,10 @@ struct StrList {
 };
 void autocomplete_init(GtkNotebook *notebook, GtkApplicationWindow* app_window);
 struct StrList *autocomplete_create_and_store_words(GtkTextBuffer *text_buffer);
+gboolean autocomplete_upkey(GdkEventKey *key_event);
+gboolean autocomplete_downkey(GdkEventKey *key_event);
+gboolean do_autocomplete(GdkEventKey *key_event);
+gboolean autocomplete_close_popup(GdkEventKey *key_event);
 
 /* root-navigation.c */
 GtkWidget *create_root_nav_widget(void);
@@ -104,6 +107,14 @@ gboolean display_openfile_dialog(GdkEventKey *key_event);
 
 /* autocomplete-character.c */
 void init_autocomplete_character(GtkTextBuffer *text_buffer);
+
+/* tests.c */
+int test_case_parse_str(const char *str2parse,
+	int expected_action,
+	int expected_line_num,
+	const char *expected_search_str,
+	const char *expected_replace_with_str);
+void test_parse_str(void);
 
 
 //#define PRINT_LOG_MESSAGES

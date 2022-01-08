@@ -183,7 +183,7 @@ static void display_suggestions_window(
 }
 
 
-static void autocomplete_on_text_buffer_insert_text(
+static void autocomplete_on_text_buffer_insert_text_after(
 	GtkTextBuffer *text_buffer,
 	GtkTextIter *location,
 	char *text,
@@ -193,16 +193,10 @@ static void autocomplete_on_text_buffer_insert_text(
 	printf("autocomplete_on_text_buffer_insert_text()\n");
 	//printf("text_buffer_insert_text_4_autocomplete(): %s\n", text);
 
-	// there is a whole lot of cases when we want to do this
-	// user deletes a character, user places the cursor, hits escape ...
-	// maybe some of it should be configurable
 	if (_suggestions_window != NULL) {
 		gtk_widget_destroy(_suggestions_window);
 		_suggestions_window = NULL;
 	}
-
-	GtkWidget *tab = (GtkWidget *) user_data;
-	GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
 
 	//assert(strlen(text) == 1);
 	// dont do autocomplete if the user pasted larger amount of text
@@ -210,6 +204,9 @@ static void autocomplete_on_text_buffer_insert_text(
 	if (strlen(text) != 1) {
 		return;
 	}
+
+	GtkWidget *tab = (GtkWidget *) user_data;
+	GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
 
 	// figure out if we are at the end of an identifier
 	{
@@ -308,7 +305,7 @@ static void autocomplete_on_text_buffer_insert_text(
 }
 
 
-static gboolean autocomplete_upkey(GdkEventKey *key_event)
+gboolean autocomplete_upkey(GdkEventKey *key_event)
 {
 	printf("autocomplete_upkey()\n");
 
@@ -324,7 +321,7 @@ static gboolean autocomplete_upkey(GdkEventKey *key_event)
 }
 
 
-static gboolean autocomplete_downkey(GdkEventKey *key_event)
+gboolean autocomplete_downkey(GdkEventKey *key_event)
 {
 	printf("autocomplete_downkey()\n");
 
@@ -341,7 +338,7 @@ static gboolean autocomplete_downkey(GdkEventKey *key_event)
 }
 
 
-static gboolean do_autocomplete(GdkEventKey *key_event)
+gboolean do_autocomplete(GdkEventKey *key_event)
 {
 	if (_suggestions_window) {
 		printf("*** should do autocomplete ***\n");
@@ -403,7 +400,7 @@ static void autocomplete_on_text_buffer_cursor_position_changed(GObject *object,
 }
 
 
-static gboolean autocomplete_close_popup(GdkEventKey *key_event)
+gboolean autocomplete_close_popup(GdkEventKey *key_event)
 {
 	if (_suggestions_window) {
 		gtk_widget_destroy(_suggestions_window);
@@ -502,7 +499,7 @@ static void autocomplete_init_tab(GtkWidget *tab)
 	assert(text_buffer);
 
 	g_signal_connect_after(G_OBJECT(text_buffer), "insert-text",
-		G_CALLBACK(autocomplete_on_text_buffer_insert_text), (gpointer) tab);
+		G_CALLBACK(autocomplete_on_text_buffer_insert_text_after), (gpointer) tab);
 
 	g_signal_connect(G_OBJECT(text_buffer), "notify::cursor-position",
 		G_CALLBACK(autocomplete_on_text_buffer_cursor_position_changed), NULL);
@@ -540,9 +537,4 @@ void autocomplete_init(GtkNotebook *notebook, GtkApplicationWindow* app_window)
 
 	g_signal_connect_after(G_OBJECT(notebook), "page-added",
 		G_CALLBACK(autocomplete_on_notebook_page_added), NULL);
-
-	add_keycombination_handler(0, 9, autocomplete_close_popup); // escape
-	add_keycombination_handler(0, 111, autocomplete_upkey); // up
-	add_keycombination_handler(0, 116, autocomplete_downkey); // down
-	add_keycombination_handler(0, 36, do_autocomplete); // enter
 }
