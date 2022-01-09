@@ -80,6 +80,13 @@ int parse_str(const char *str2parse,
 				current_buffer[j] = '/';
 				j += 1;
 				i1 = i2 = i2 + 2;
+			} else if (str2parse[i] == ':') { // if user wants ":" as the 1st character, they should say "\:"
+				int n = i2 - i1;
+				strncpy(&current_buffer[j], &str2parse[i1], n);
+				j += n;
+				current_buffer[j] = ':';
+				j += 1;
+				i1 = i2 = i2 + 2;
 			} else {
 				// unknown escape sequence
 				action2take = DO_NOTHING;

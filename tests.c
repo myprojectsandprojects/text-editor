@@ -88,8 +88,8 @@ void test_parse_str(void)
 	}
 
 	//if (test_case_parse_str("abc", SEARCH, -1, "123", NULL) == FAILED)	exit(0);
-	if (test_case_parse_str(":123", GO_TO_LINE, 123, NULL, NULL) == FAILED)	exit(0);
+	if (test_case_parse_str(":123", GO_TO_LINE, 123, NULL, NULL) == FAILED) exit(0);
 	if (test_case_parse_str("abc/def", REPLACE, -1, "abc", "def") == FAILED) exit(0);
-	if (test_case_parse_str("\t/\n", REPLACE, -1, "\t", "\n") == FAILED)	exit(0);
-
+	if (test_case_parse_str("\t/\n", REPLACE, -1, "\t", "\n") == FAILED) exit(0);
+	if (test_case_parse_str("\\:/ =", REPLACE, -1, ":", " =") == FAILED) exit(0);
 }
