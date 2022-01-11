@@ -141,6 +141,7 @@ void on_openfile_entry_changed
 	//printf("results: %s\n", results);
 
 	gettimeofday(&end, NULL);
+	// I think we are talking about micro- here, not milli-?
 	printf("It took %ld milliseconds\n",
 		1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec));
 

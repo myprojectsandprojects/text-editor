@@ -25,15 +25,12 @@ char *words[100] = {
 };
 */
 
-/*@ We dont close the suggestions-window when the user switches tabs, which means 1 is clearly not enough */
-//extern GtkWidget *window;
-GtkWidget					*_suggestions_window;
-GtkApplicationWindow		*_app_window;
-
-GtkTextIter _start_ident, _end_ident;
-GtkTextBuffer *_text_buffer;
+GtkApplicationWindow *_app_window;
+GtkWidget *_suggestions_window;
 GtkListBox *_suggestions_list;
-int deleting_while_autocompleting = 0;
+GtkWidget *_scrolled_window;
+GtkTextBuffer *_text_buffer;
+GtkTextIter _start_ident, _end_ident; //@ feels kind of hacky
 
 // we'll initialize these when creating the completions-window:
 int _num_list_items;
@@ -115,28 +112,35 @@ struct StrList *get_strs(struct StrList *str_list, const char *begins)
 }
 
 
-static void display_suggestions_window(
-	GtkTextView *text_view, GtkTextIter *location, struct StrList *completions)
+void close_suggestions_window(void)
 {
+	printf("close_suggestions_window()\n");
+
+	/*
+	if (_suggestions_window) {
+		GtkListBoxRow *row = gtk_list_box_get_row_at_index(GTK_LIST_BOX(_suggestions_list), 0);
+		GtkAllocation alloc;
+		gtk_widget_get_allocation(GTK_WIDGET(row), &alloc);
+		printf("width: %d, height: %d, x: %d, y: %d\n",
+			alloc.width, alloc.height, alloc.x, alloc.y);
+	}
+	*/
+
 	if (_suggestions_window != NULL) {
 		gtk_widget_destroy(_suggestions_window);
 		_suggestions_window = NULL;
+		_suggestions_list = NULL;
+		_scrolled_window = NULL;
 	}
-
-	GdkRectangle rect;
-	gint x, y, o_x, o_y;
-	GdkWindow *w = gtk_widget_get_window(GTK_WIDGET(text_view));
+}
 
 
-	gtk_text_view_get_iter_location(text_view, location, &rect);
-	printf("create_popup(): buffer coordinates: x: %d, y: %d\n", rect.x, rect.y);
+static void display_suggestions_window(
+	GtkTextView *text_view, GtkTextIter *location, struct StrList *completions)
+{
+	printf("display_suggestions_window()\n");
 
-	gtk_text_view_buffer_to_window_coords(text_view, GTK_TEXT_WINDOW_WIDGET, rect.x, rect.y, &x, &y);
-	printf("create_popup(): window coordinates: x: %d, y: %d\n", x, y);
-
-	gdk_window_get_origin(w, &o_x, &o_y);
-	printf("create_popup(): origin: x: %d, y: %d\n", x, y);
-
+	close_suggestions_window();
 
 	_suggestions_window = gtk_window_new(GTK_WINDOW_POPUP);
 	//_suggestions_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -149,7 +153,11 @@ static void display_suggestions_window(
 	//gtk_style_context_add_class (gtk_widget_get_style_context(_suggestions_window), "suggestions-popup");
 	add_class(_suggestions_window, "suggestions-popup");
 
-	gtk_window_set_default_size(GTK_WINDOW(_suggestions_window), 1, 200);
+	{
+		int width = 1;
+		int height = 1;
+		gtk_window_set_default_size(GTK_WINDOW(_suggestions_window), width, height);
+	}
 
 	_num_list_items = 0;
 	_index = 0;
@@ -158,25 +166,46 @@ static void display_suggestions_window(
 	for (int i = 0; i < completions->strs_i; ++i) {
 		char n[100];
 		snprintf(n, 100, "(%d)", completions->counts[i]);
-		GtkWidget *l = gtk_label_new(completions->strs[i]);
-		GtkWidget *l2 = gtk_label_new(n);
+		GtkWidget *l1 = gtk_label_new(n);
+		GtkWidget *l2 = gtk_label_new(completions->strs[i]);
 		GtkWidget *c = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
-		gtk_container_add(GTK_CONTAINER(c), l);
 		gtk_container_add(GTK_CONTAINER(c), l2);
+		gtk_container_add(GTK_CONTAINER(c), l1);
 		gtk_list_box_insert(GTK_LIST_BOX(suggestions), c, -1);
 		_num_list_items += 1;
 	}
-	GtkWidget *scrollbars = gtk_scrolled_window_new(NULL, NULL);
-	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrollbars), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
-
 	_suggestions_list = GTK_LIST_BOX(suggestions);
 
-	gtk_container_add(GTK_CONTAINER(scrollbars), suggestions);
-	gtk_container_add(GTK_CONTAINER(_suggestions_window), scrollbars);
-	//gtk_window_set_decorated(GTK_WINDOW(popup_window), FALSE);
-	//gtk_window_set_position(GTK_WINDOW(popup_window), GTK_WIN_POS_CENTER);
-	//gtk_window_set_position(GTK_WINDOW(popup_window), GTK_WIN_POS_MOUSE);
-	//gtk_window_set_transient_for(GTK_WINDOW(popup_window), GTK_WINDOW(window));
+	int max_items = 6;
+	if (_num_list_items > max_items) {
+		_scrolled_window = gtk_scrolled_window_new(NULL, NULL);
+		gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(_scrolled_window), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+		{
+			int item_height = 20; // this we pick randomly for now
+			int width = 0; // as small as possible
+			int height = max_items * item_height;
+			gtk_widget_set_size_request(_scrolled_window, width, height);
+		}
+		gtk_container_add(GTK_CONTAINER(_scrolled_window), suggestions);
+		gtk_container_add(GTK_CONTAINER(_suggestions_window), _scrolled_window);
+	} else {
+		gtk_container_add(GTK_CONTAINER(_suggestions_window), suggestions);
+	}
+
+
+	GdkRectangle rect;
+	gint x, y, o_x, o_y;
+	GdkWindow *w = gtk_widget_get_window(GTK_WIDGET(text_view));
+
+
+	gtk_text_view_get_iter_location(text_view, location, &rect);
+	printf("display_suggestions_window: buffer coordinates: x: %d, y: %d\n", rect.x, rect.y);
+
+	gtk_text_view_buffer_to_window_coords(text_view, GTK_TEXT_WINDOW_WIDGET, rect.x, rect.y, &x, &y);
+	printf("display_suggestions_window: window coordinates: x: %d, y: %d\n", x, y);
+
+	gdk_window_get_origin(w, &o_x, &o_y);
+	printf("display_suggestions_window: origin: x: %d, y: %d\n", x, y);
 	gtk_window_set_attached_to(GTK_WINDOW(_suggestions_window), GTK_WIDGET(_app_window));
 	gtk_window_move(GTK_WINDOW(_suggestions_window), x + o_x, y + o_y + 20);
 	gtk_widget_show_all(_suggestions_window);
@@ -190,13 +219,9 @@ static void autocomplete_on_text_buffer_insert_text_after(
 	int len,
 	gpointer user_data)
 {
-	printf("autocomplete_on_text_buffer_insert_text()\n");
-	//printf("text_buffer_insert_text_4_autocomplete(): %s\n", text);
+	printf("autocomplete_on_text_buffer_insert_text_after()\n");
 
-	if (_suggestions_window != NULL) {
-		gtk_widget_destroy(_suggestions_window);
-		_suggestions_window = NULL;
-	}
+	close_suggestions_window();
 
 	//assert(strlen(text) == 1);
 	// dont do autocomplete if the user pasted larger amount of text
@@ -214,16 +239,16 @@ static void autocomplete_on_text_buffer_insert_text_after(
 		// * unicode vs ascii?
 
 		gunichar c = gtk_text_iter_get_char(location);
-		printf("character @ cursor: %c\n", c);
+		//printf("character at cursor: %c\n", c);
 		if (!(isalnum(c) || c == '_')) {
-			printf("possibly at the end of an identifier..\n");
+			// possibly at the end of an identifier..
 			GtkTextIter i;
 			i = *location;
 			gtk_text_iter_backward_char(&i);
 			c = gtk_text_iter_get_char(&i);
-			printf("character before cursor: %c\n", c);
+			//printf("character before cursor: %c\n", c);
 			if (isalnum(c) || c == '_') {
-				printf("still possibly at the end of an identifier..\n");
+				// possibly at the end of an identifier..
 				while (gtk_text_iter_backward_char(&i)) {
 					c = gtk_text_iter_get_char(&i);
 					if (!(isalnum(c) || c == '_')) {
@@ -236,7 +261,8 @@ static void autocomplete_on_text_buffer_insert_text_after(
 				c = gtk_text_iter_get_char(&i);
 				if (isalpha(c) || c == '_') {
 					char *text = gtk_text_buffer_get_text(text_buffer, &i, location, FALSE);
-					printf("We are at the end of an identifier: %s\n", text);
+					printf("autocomplete_on_text_buffer_insert_text_after: ");
+					printf("we are at the end of an identifier: %s\n", text);
 
 					//char **words = (char **) tab_retrieve_widget(tab, AUTOCOMPLETE_WORDS);
 					/*
@@ -269,14 +295,13 @@ static void autocomplete_on_text_buffer_insert_text_after(
 					}
 					free(possible_completions); //@ ?
 				} else {
-					printf("not at the end of an identifier..\n");
+					// not at the end of an identifier
 				}
-
 			} else {
-				printf("not at the end of an identifier..\n");
+				// not at the end of an identifier
 			}
 		} else {
-			printf("we are definately not at the end of an identifier..\n");
+			// not at the end of an identifier
 		}
 	}
 
@@ -308,7 +333,7 @@ static void autocomplete_on_text_buffer_insert_text_after(
 gboolean autocomplete_upkey(GdkEventKey *key_event)
 {
 	printf("autocomplete_upkey()\n");
-
+/*
 	if (_suggestions_window) {
 		if (_index > 0) {
 			_index -= 1;
@@ -318,13 +343,60 @@ gboolean autocomplete_upkey(GdkEventKey *key_event)
 		return TRUE;
 	}
 	return FALSE;
+*/
+	if (!_suggestions_window) {
+		return FALSE;
+	}
+
+	_index -= 1;
+
+	if (_index < 0) {
+		_index = _num_list_items - 1;
+	}
+
+	GtkListBoxRow *row = gtk_list_box_get_row_at_index(GTK_LIST_BOX(_suggestions_list), _index);
+	gtk_list_box_select_row(GTK_LIST_BOX(_suggestions_list), row);
+
+	if (!_scrolled_window) {
+		return TRUE;
+	}
+
+	GtkAdjustment *a = gtk_list_box_get_adjustment(GTK_LIST_BOX(_suggestions_list));
+	gdouble value = gtk_adjustment_get_value(a);
+	gdouble upper = gtk_adjustment_get_upper(a);
+	gdouble lower = gtk_adjustment_get_lower(a);
+	gdouble page_size = gtk_adjustment_get_page_size(a);
+	printf("value: %f, upper: %f, lower: %f, page-size: %f\n",
+		value, upper, lower, page_size);
+
+	GtkAllocation alloc;
+	gtk_widget_get_allocation(GTK_WIDGET(row), &alloc);
+	printf("width: %d, height: %d, x: %d, y: %d\n",
+		alloc.width, alloc.height, alloc.x, alloc.y);
+
+	if (alloc.y >= value && alloc.y + alloc.height <= value + page_size) {
+		printf("selected item is visible..\n");
+	} else {
+		printf("selected item is NOT visible..\n");
+
+	if (alloc.y >= value) {
+			// scrolling downwards
+			gtk_adjustment_set_value(a, alloc.y - (page_size - alloc.height));
+		} else {
+			// scrolling upwards
+			gtk_adjustment_set_value(a, alloc.y);
+		}
+		gtk_list_box_set_adjustment(GTK_LIST_BOX(_suggestions_list), a);
+	}
+
+	return TRUE; // dont call the default handler
 }
 
 
 gboolean autocomplete_downkey(GdkEventKey *key_event)
 {
 	printf("autocomplete_downkey()\n");
-
+/*
 	if (_suggestions_window) {
 		printf("_index: %d\n", _index);
 		if (_index < _num_list_items - 1) {
@@ -335,25 +407,71 @@ gboolean autocomplete_downkey(GdkEventKey *key_event)
 		return TRUE;
 	}
 	return FALSE;
+*/
+
+	if (!_suggestions_window) {
+		return FALSE;
+	}
+
+	_index += 1;
+
+	if (_index > _num_list_items - 1) {
+		_index = 0;
+	}
+
+	GtkListBoxRow *row = gtk_list_box_get_row_at_index(GTK_LIST_BOX(_suggestions_list), _index);
+	gtk_list_box_select_row(GTK_LIST_BOX(_suggestions_list), row);
+
+	if (!_scrolled_window) {
+		return TRUE;
+	}
+
+	GtkAdjustment *a = gtk_list_box_get_adjustment(GTK_LIST_BOX(_suggestions_list));
+	gdouble value = gtk_adjustment_get_value(a);
+	gdouble upper = gtk_adjustment_get_upper(a);
+	gdouble lower = gtk_adjustment_get_lower(a);
+	gdouble page_size = gtk_adjustment_get_page_size(a);
+	printf("value: %f, upper: %f, lower: %f, page-size: %f\n",
+		value, upper, lower, page_size);
+
+	GtkAllocation alloc;
+	gtk_widget_get_allocation(GTK_WIDGET(row), &alloc);
+	printf("width: %d, height: %d, x: %d, y: %d\n",
+		alloc.width, alloc.height, alloc.x, alloc.y);
+
+	if (alloc.y >= value && alloc.y + alloc.height <= value + page_size) {
+		printf("selected item is visible..\n");
+	} else {
+		printf("selected item is NOT visible..\n");
+
+	if (alloc.y >= value) {
+			// scrolling downwards
+			gtk_adjustment_set_value(a, alloc.y - (page_size - alloc.height));
+		} else {
+			// scrolling upwards
+			gtk_adjustment_set_value(a, alloc.y);
+		}
+		gtk_list_box_set_adjustment(GTK_LIST_BOX(_suggestions_list), a);
+	}
+
+	return TRUE; // dont call the default handler
 }
 
 
 gboolean do_autocomplete(GdkEventKey *key_event)
 {
+	printf("do_autocomplete()\n");
 	if (_suggestions_window) {
-		printf("*** should do autocomplete ***\n");
-
-		// todo: do autocomplete
-		char *to_autocomplete = gtk_text_buffer_get_text(_text_buffer, &_start_ident, &_end_ident, FALSE);
-		printf("should autocomplete: %s\n", to_autocomplete);
-
+		assert(_text_buffer);
+		//char *to_autocomplete = gtk_text_buffer_get_text(_text_buffer, &_start_ident, &_end_ident, FALSE);
 		GtkListBoxRow *row = gtk_list_box_get_selected_row(_suggestions_list);
 		GtkWidget *x = gtk_bin_get_child(GTK_BIN(row));
 		assert(GTK_IS_CONTAINER(x));
 		GList *children = gtk_container_get_children(GTK_CONTAINER(x));
 		assert(GTK_IS_LABEL(children->data));
 		// assume first label is what we need
-		const char *text = gtk_label_get_label(GTK_LABEL(children->data));
+		//const gchar *text = gtk_label_get_label(GTK_LABEL(children->data)); // "This string is owned by the widget and must not be modified or freed"
+		char *text = strdup((const char *) gtk_label_get_label(GTK_LABEL(children->data)));
 		/*
 		for (GList *p = children; p != NULL; p = p->next) {
 			GtkWidget *widget = p->data;
@@ -368,8 +486,8 @@ gboolean do_autocomplete(GdkEventKey *key_event)
 		GtkTextMark *m2 = gtk_text_buffer_create_mark(_text_buffer, NULL, &_end_ident, FALSE);
 		//gtk_text_buffer_move_mark(text_buffer, m1, &match_start);
 		//gtk_text_buffer_move_mark(text_buffer, m2, &match_end);
-		deleting_while_autocompleting = 1; // deleting text changes the cursor position...
 		gtk_text_buffer_delete(_text_buffer, &_start_ident, &_end_ident);
+		assert(_text_buffer);
 		gtk_text_buffer_get_iter_at_mark(_text_buffer, &iter, m1);
 		gtk_text_buffer_insert(_text_buffer, &iter, text, -1);
 		gtk_text_buffer_delete_mark(_text_buffer, m1);
@@ -380,6 +498,8 @@ gboolean do_autocomplete(GdkEventKey *key_event)
 		gtk_widget_destroy(_suggestions_window);
 		_suggestions_window = NULL;
 */
+		_text_buffer = NULL;
+		free(text);
 		return TRUE;
 	}
 	return FALSE;
@@ -388,15 +508,18 @@ gboolean do_autocomplete(GdkEventKey *key_event)
 
 static void autocomplete_on_text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
 {
+/*
 	if (_suggestions_window) {
 		if (!deleting_while_autocompleting) {
-			printf("deleting tha window\n");
 			gtk_widget_destroy(_suggestions_window);
 			_suggestions_window = NULL;
 		} else {
 			deleting_while_autocompleting = 0;
 		}
 	}
+*/
+	printf("autocomplete_on_text_buffer_cursor_position_changed()\n");
+	close_suggestions_window();
 }
 
 
@@ -420,10 +543,7 @@ static void autocomplete_on_notebook_page_removed(
 {
 	printf("autocomplete_on_notebook_page_removed()\n");
 
-	if (_suggestions_window) {
-		gtk_widget_destroy(_suggestions_window);
-		_suggestions_window = NULL;
-	}
+	close_suggestions_window();
 }
 
 
@@ -435,10 +555,7 @@ static void autocomplete_on_notebook_switch_page(
 {
 	printf("autocomplete_on_notebook_switch_page()\n");
 
-	if (_suggestions_window) {
-		gtk_widget_destroy(_suggestions_window);
-		_suggestions_window = NULL;
-	}
+	close_suggestions_window();
 }
 
 
@@ -448,7 +565,7 @@ static void autocomplete_on_notebook_switch_page(
 	so that we can ignore those characters.. */
 struct StrList *autocomplete_create_and_store_words(GtkTextBuffer *text_buffer)
 {
-	printf("*** autocomplete_create_and_store_words()\n");
+	printf("autocomplete_create_and_store_words()\n");
 
 	struct StrList *words = create_strlist();
 	GtkTextIter i;
@@ -484,7 +601,7 @@ struct StrList *autocomplete_create_and_store_words(GtkTextBuffer *text_buffer)
 			}
 		}
 	}
-	printf("identifiers read: %d\n", n); // we only actually store unique strings
+	printf("autocomplete_create_and_store_words: identifiers read: %d\n", n); // we only actually store unique strings
 
 	return words;
 }

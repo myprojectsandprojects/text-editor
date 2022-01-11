@@ -574,7 +574,7 @@ char *get_base_name(const char *file_name)
 #define SIZE_KEYCODES 	65536 	// number of different values (2**16 (key_event->hardware_keycode is a 16-bit variable))
 #define SIZE_MODIFIERS 	16			// CTRL + ALT + SHIFT + ALTGR + 1
 //gboolean (*key_combinations[SIZE_MODIFIERS][SIZE_KEYCODES])(GdkEventKey *key_event); // global arrays should be initialized to defaults (NULL) (?)
-#define MAX_HANDLERS 9 // maximally, how many handlers for a keycombination
+#define MAX_HANDLERS 3 // maximally, how many handlers for a keycombination
 /* these should be initialized to 0's by default: */
 gboolean (*key_combinations[SIZE_MODIFIERS][SIZE_KEYCODES][MAX_HANDLERS])(GdkEventKey *key_event);
 
@@ -619,11 +619,9 @@ gboolean on_app_window_key_press(GtkWidget *window, GdkEvent *event, gpointer us
 		}
 	}
 */
-	if (key_combinations[modifiers][key_event->hardware_keycode][0] != NULL) {
-		for (int i = 0; key_combinations[modifiers][key_event->hardware_keycode][i] != NULL; ++i) {
-			if((*key_combinations[modifiers][key_event->hardware_keycode][i])(key_event)) {
-				return TRUE; // We have dealt with the key-press and nothing else should happen!
-			}
+	for (int i = 0; key_combinations[modifiers][key_event->hardware_keycode][i] != NULL; ++i) {
+		if((*key_combinations[modifiers][key_event->hardware_keycode][i])(key_event)) {
+			return TRUE; // We have dealt with the key-press and nothing else should happen!
 		}
 	}
 
@@ -1098,7 +1096,7 @@ gboolean handler1(GdkEventKey *key_event)
 gboolean handler2(GdkEventKey *key_event)
 {
 	printf("handler2 called!\n");
-	return TRUE;
+	return FALSE;
 }
 
 gboolean handler3(GdkEventKey *key_event)
@@ -1128,12 +1126,12 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	//printf("home directory: %s\n", home_dir);
 	snprintf(root_dir, ROOT_DIR_SIZE, "%s", home_dir);
 
-	/*
-	add_keycombination_handler(CTRL | ALT, 42, handler1);
+/*
+	add_keycombination_handler(CTRL | ALT, 42, handler1); // ctrl + alt + g
 	add_keycombination_handler(CTRL | ALT, 42, handler2);
 	add_keycombination_handler(CTRL | ALT, 42, handler3);
-	add_keycombination_handler(CTRL | ALT, 42, handler4);
-	*/
+	//add_keycombination_handler(CTRL | ALT, 42, handler4);
+*/
 
 	//key_combinations[0][23] = handle_tab; // <tab>
 	add_keycombination_handler(0, 23, handle_tab);
@@ -1145,6 +1143,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(0, 111, autocomplete_upkey); // up
 	add_keycombination_handler(0, 116, autocomplete_downkey); // down
 	add_keycombination_handler(0, 36, do_autocomplete); // enter
+	add_keycombination_handler(0, 23, do_autocomplete); // tab
 
 	//@ cursors blink is off for move_cursor_left() & move_cursor_right()
 	// also comments & identifiers -- not very convenient
@@ -1308,7 +1307,9 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 }
 
 
-int main() {
+int main()
+{
+	LOG_MSG("main()\n");
 
 	int status;
 	GtkApplication *app;
