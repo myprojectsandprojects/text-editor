@@ -130,6 +130,7 @@ void test_parse_str(void);
 
 struct Settings {
 	int pixels_above_lines;
+	int pixels_below_lines;
 	int left_margin;
 
 	char line_highlight_color[SETTING_VALUE_MAX];

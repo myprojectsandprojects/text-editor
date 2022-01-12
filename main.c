@@ -373,6 +373,8 @@ GtkWidget *create_tab(const char *file_name)
 
 	GtkTextView *text_view = GTK_TEXT_VIEW(gtk_text_view_new());
 	gtk_text_view_set_pixels_above_lines(text_view, settings.pixels_above_lines);
+	//gtk_text_view_set_pixels_below_lines(text_view, 30);
+	gtk_text_view_set_pixels_below_lines(text_view, settings.pixels_below_lines);
 	gtk_text_view_set_left_margin(text_view, settings.left_margin);
 	gtk_text_view_set_wrap_mode(text_view, GTK_WRAP_WORD);
 	gint position = 30; // set_tab_stops_internal() in gtksourceview
@@ -1077,6 +1079,8 @@ gboolean parse_settings_file(void *data)
 			snprintf(settings.unknown_color, SETTING_VALUE_MAX, "%s", value);
 		} else if (strcmp(name, "pixels-above-lines") == 0) {
 			settings.pixels_above_lines = atoi(value);
+		} else if (strcmp(name, "pixels-below-lines") == 0) {
+			settings.pixels_below_lines = atoi(value);
 		} else if (strcmp(name, "left-margin") == 0) {
 			settings.left_margin = atoi(value);
 		} else {

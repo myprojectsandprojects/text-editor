@@ -80,21 +80,20 @@ and just stick to classes.
 	font: Liberation Mono SemiBold 12;
 	font: Bpmono Bold 13;
 	font: Cousine Bold 12;
-	font: Consolas SemiBold 13;
 	font: JetBrainsMonoNL Regular 13;
 	font: JetBrainsMonoNL Medium 13;
 	font: JetBrainsMonoNL SemiBold 13;
 	font: RecursiveMonospace Regular 13;
 	font: Cascadia Mono 12;
 	font: Odudo Mono Regular 13;
-	font: Ubuntu Mono Bold 14;
 	font: iAWriterMonoS Bold 11;
 	font: Courier 10 Pitch 13;
-	font: Alma Mono Regular 13;
 	font: Alma Mono Heavy 13;
+	font: Alma Mono Regular 13;
 	font: Alma Mono Bold 12;
 	*/
 	font: Liberation Mono Bold 12;
+	font: Consolas Bold 12;
 }
 
 .text-view:selected,
@@ -183,7 +182,8 @@ and just stick to classes.
 .main-notebook tab:active
 {
 	/*background:rgb(38, 70, 83);*/ /* darker blueish */
-	background: rgb(58, 50, 45); /* darker brownish */
+	/*background: rgb(58, 50, 45);*/ /* darker brownish */
+	background: rgb(56, 50, 46);
 }
 
 .search-entry
@@ -195,7 +195,8 @@ and just stick to classes.
 .text-view
 {
 	/*background: rgb(38, 70, 83);*/ /* darker blueish */
-	background: rgb(58, 50, 45); /* darker brownish */
+	/*background: rgb(58, 50, 45);*/ /* darker brownish */
+	background: rgb(56, 50, 46);
 	color: rgb(233, 196, 106);
 }
 
