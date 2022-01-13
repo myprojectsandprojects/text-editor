@@ -376,7 +376,7 @@ gboolean do_search(GdkEventKey *key_event)
 			GTK_TEXT_SEARCH_CASE_INSENSITIVE, &match_start, &match_end, NULL);
 
 		if (found == TRUE) {
-			gtk_text_view_scroll_to_iter(text_view, &match_start, 0.0, FALSE, 0.0, 0.0);
+			gtk_text_view_scroll_to_iter(text_view, &match_start, 0.0, TRUE, 0.0, 0.1);
 			gtk_text_buffer_select_range(text_buffer, &match_end, &match_start);
 			search_iter = match_end;
 			gtk_text_buffer_move_mark(text_buffer, search_mark, &search_iter);

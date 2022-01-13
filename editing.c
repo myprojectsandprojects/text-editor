@@ -42,6 +42,8 @@ static gboolean init(GtkTextView **pview, GtkTextBuffer **pbuffer)
 void get_cursor_position(GtkTextBuffer *buffer,
 	GtkTextMark **pm, GtkTextIter *pi, gint *po)
 {
+	printf("get_cursor_position()\n");
+
 	GtkTextMark *m;
 	GtkTextIter i;
 	gint o;

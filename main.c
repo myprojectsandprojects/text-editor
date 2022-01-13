@@ -338,6 +338,23 @@ void on_text_view_size_allocate(GtkWidget *textview, GdkRectangle *alloc, gpoint
 }
 
 
+void on_adjustment_value_changed(GtkAdjustment *adj, gpointer user_data)
+{
+	//printf("*** on_adjustment_value_changed()\n");
+
+	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
+	GtkTextView *text_view = GTK_TEXT_VIEW(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
+	gdouble value = gtk_adjustment_get_value(adj);
+	// need to translate that value into a line number somehow
+	// y must be in buffer-coordinates. gtk_text_view_window_to_buffer_coords()
+	GtkTextIter where;
+	gtk_text_view_get_line_at_y(text_view, &where, value, NULL);
+	gint line = gtk_text_iter_get_line(&where);
+	//printf("*** on_adjustment_value_changed: line: %d\n", line);
+	gtk_text_buffer_move_mark_by_name(text_buffer, "scroll-mark", &where);
+}
+
+
 GtkWidget *create_tab(const char *file_name)
 {
 	static int count = 1;
@@ -437,6 +454,7 @@ GtkWidget *create_tab(const char *file_name)
 	tab_add_widget_4_retrieval(tab, TEXT_VIEW, text_view);
 	tab_add_widget_4_retrieval(tab, TEXT_BUFFER, text_buffer); //@ haa text-buffer is not a widget! void *?
 	tab_add_widget_4_retrieval(tab, FILEPATH_LABEL, file_path_label);
+	tab_add_widget_4_retrieval(tab, SCROLLED_WINDOW, scrolled_window);
 	
 	GtkWidget *wgt_search = create_search_widget(tab);
 
@@ -501,6 +519,14 @@ GtkWidget *create_tab(const char *file_name)
 
 	g_signal_connect(G_OBJECT(text_buffer), "changed", G_CALLBACK(text_buffer_changed), NULL);
 	//g_signal_connect_after(G_OBJECT(text_buffer), "changed", G_CALLBACK(text_buffer_changed_after), NULL);
+
+	{
+		GtkTextIter i;
+		gtk_text_buffer_get_start_iter(text_buffer, &i);
+		gtk_text_buffer_create_mark(text_buffer, "scroll-mark", &i, TRUE);
+		GtkAdjustment *adj = gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(text_view));
+		g_signal_connect(adj, "value-changed", G_CALLBACK(on_adjustment_value_changed), NULL);
+	}
 
 	return tab;
 }
@@ -1116,6 +1142,135 @@ gboolean handler4(GdkEventKey *key_event)
 }
 
 
+gboolean scroll_to_cursor_middle(GdkEventKey *key_event)
+{
+	LOG_MSG("scroll_to_cursor()\n");
+
+	GtkTextView *text_view = (GtkTextView *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
+	GtkTextBuffer *text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
+
+	GtkTextIter pos;
+	get_cursor_position(text_buffer, NULL, &pos, NULL);
+	gtk_text_view_scroll_to_iter(text_view, &pos,
+		0.0,
+		TRUE, // use alignment?
+		0.0, // x-alignment
+		0.5); // y-alignment (in the middle of the screen)
+
+	return TRUE;
+}
+
+
+gboolean scroll_to_cursor_top(GdkEventKey *key_event)
+{
+	LOG_MSG("scroll_to_cursor()\n");
+
+	GtkTextView *text_view = (GtkTextView *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
+	GtkTextBuffer *text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
+
+	GtkTextIter pos;
+	get_cursor_position(text_buffer, NULL, &pos, NULL);
+	gtk_text_view_scroll_to_iter(text_view, &pos,
+		0.0,
+		TRUE, // use alignment?
+		0.0, // x-alignment
+		0.0); // y-alignment (in the middle of the screen)
+
+	return TRUE;
+}
+
+
+gboolean scroll_to_cursor_bottom(GdkEventKey *key_event)
+{
+	LOG_MSG("scroll_to_cursor()\n");
+
+	GtkTextView *text_view = (GtkTextView *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
+	GtkTextBuffer *text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
+
+	GtkTextIter pos;
+	get_cursor_position(text_buffer, NULL, &pos, NULL);
+	gtk_text_view_scroll_to_iter(text_view, &pos,
+		0.0,
+		TRUE, // use alignment?
+		0.0, // x-alignment
+		1.0); // y-alignment (in the middle of the screen)
+
+	return TRUE;
+}
+
+
+gboolean scroll_to_start(GdkEventKey *key_event)
+{
+	LOG_MSG("scroll_to_cursor()\n");
+
+	GtkTextView *text_view = (GtkTextView *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
+	GtkTextBuffer *text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
+
+	GtkTextIter pos;
+	gtk_text_buffer_get_start_iter(text_buffer, &pos);
+	gtk_text_view_scroll_to_iter(text_view, &pos,
+		0.0,
+		TRUE, // use alignment?
+		0.0, // x-alignment
+		0.0); // y-alignment
+
+	return TRUE;
+}
+
+
+gboolean scroll_to_end(GdkEventKey *key_event)
+{
+	LOG_MSG("scroll_to_cursor()\n");
+
+	GtkTextView *text_view = (GtkTextView *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
+	GtkTextBuffer *text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
+
+	GtkTextIter pos;
+	gtk_text_buffer_get_end_iter(text_buffer, &pos);
+	gtk_text_view_scroll_to_iter(text_view, &pos,
+		0.0,
+		TRUE, // use alignment?
+		0.0, // x-alignment
+		1.0); // y-alignment
+
+	return TRUE;
+}
+
+
+gboolean scroll_up(GdkEventKey *key_event)
+{
+	LOG_MSG("scroll_up()\n");
+
+	GtkTextView *text_view = (GtkTextView *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
+	GtkTextBuffer *text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
+
+	GtkTextIter i;
+	GtkTextMark *m = gtk_text_buffer_get_mark(text_buffer, "scroll-mark");
+	gtk_text_buffer_get_iter_at_mark(text_buffer, &i, m);
+	gtk_text_iter_backward_lines(&i, 10);
+	gtk_text_view_scroll_to_iter(text_view, &i, 0.0, TRUE, 0.0, 0.0);
+
+	return TRUE;
+}
+
+
+gboolean scroll_down(GdkEventKey *key_event)
+{
+	LOG_MSG("scroll_down()\n");
+
+	GtkTextView *text_view = (GtkTextView *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
+	GtkTextBuffer *text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
+
+	GtkTextIter i;
+	GtkTextMark *m = gtk_text_buffer_get_mark(text_buffer, "scroll-mark");
+	gtk_text_buffer_get_iter_at_mark(text_buffer, &i, m);
+	gtk_text_iter_forward_lines(&i, 10);
+	gtk_text_view_scroll_to_iter(text_view, &i, 0.0, TRUE, 0.0, 0.0);
+
+	return TRUE;
+}
+
+
 void activate_handler(GtkApplication *app, gpointer data)
 {
 	LOG_MSG("activate_handler() called\n");
@@ -1136,6 +1291,24 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(CTRL | ALT, 42, handler3);
 	//add_keycombination_handler(CTRL | ALT, 42, handler4);
 */
+
+	/*
+		84 - numpad "5"
+		80 - numpad up
+		88 - numpad down
+		79 - numpad home
+		87 - numpad end
+		81 - numpad page-up
+		89 - numpad page-down
+	*/
+
+	add_keycombination_handler(0, 84, scroll_to_cursor_middle);
+	add_keycombination_handler(0, 80, scroll_to_cursor_top);
+	add_keycombination_handler(0, 88, scroll_to_cursor_bottom);
+	add_keycombination_handler(0, 79, scroll_to_start);
+	add_keycombination_handler(0, 87, scroll_to_end);
+	add_keycombination_handler(0, 81, scroll_up); // to do. scroll without moving the cursor is the idea
+	add_keycombination_handler(0, 89, scroll_down); // to do
 
 	//key_combinations[0][23] = handle_tab; // <tab>
 	add_keycombination_handler(0, 23, handle_tab);
