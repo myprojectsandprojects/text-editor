@@ -247,7 +247,7 @@ gboolean on_open_window_keypress_event(GtkWidget *open_window,
 		}
 		
 		if (S_ISREG(file_info.st_mode)) {
-			char *copy = malloc(strlen(label_text) + 1);
+			char *copy = (char *) malloc(strlen(label_text) + 1);
 			strcpy(copy, label_text);
 			create_tab(copy);
 			gtk_widget_destroy(open_window);

@@ -3,7 +3,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "tab.h"
+//#include "tab.h"
 #include "declarations.h"
 
 #define DELETE_ACTION 0
@@ -38,7 +38,7 @@ struct ActionsStack {
 
 struct ActionsStack *create_actions_stack()
 {
-	struct ActionsStack *actions = malloc(sizeof(struct ActionsStack));
+	struct ActionsStack *actions = (struct ActionsStack *) malloc(sizeof(struct ActionsStack));
 	actions->top = 0;
 	actions->bottom = 0;
 	actions->state = IS_EMPTY;
@@ -121,7 +121,7 @@ void on_text_buffer_delete_range_4undo(
 		tab_actions[index] = create_actions_stack();
 	}
 
-	struct UserAction *action = malloc(sizeof(struct UserAction));
+	struct UserAction *action = (struct UserAction *) malloc(sizeof(struct UserAction));
 	action->type = DELETE_ACTION;
 	action->start_offset = start_offset;
 	action->end_offset = end_offset;
@@ -197,7 +197,7 @@ void on_text_buffer_insert_text_4undo(
 		tab_actions[index] = create_actions_stack();
 	}
 
-	struct UserAction *action = malloc(sizeof(struct UserAction));
+	struct UserAction *action = (struct UserAction *) malloc(sizeof(struct UserAction));
 	action->type = INSERT_ACTION;
 	action->location_offset = location_offset;
 	action->text_length = length;

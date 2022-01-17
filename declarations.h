@@ -5,6 +5,42 @@
 
 #include <gtk/gtk.h>
 
+
+/* tab.c */
+enum WidgetName{
+	TEXT_VIEW,
+	TEXT_BUFFER,
+	COMMAND_REVEALER,
+	COMMAND_ENTRY,
+	SEARCH_REVEALER,
+	SEARCH_ENTRY,
+	REPLACE_REVEALER,
+	REPLACE_ENTRY,
+	STATUS_MESSAGE_LABEL,
+	FILEPATH_LABEL,
+	AUTOCOMPLETE_WORDS,
+	CURRENT_TEXT_HIGHLIGHTING,
+	HIGHLIGHTING_BUTTON_LABEL,
+	HIGHLIGHTING_CHANGED_EVENT_HANDLERS,
+	HIGHLIGHTING_CHANGED_EVENT_HANDLERS_INDEX,
+	N_WIDGETS
+};
+
+void tab_add_widget_4_retrieval(GtkWidget *tab, enum WidgetName widget_name, void *widget);
+void *tab_retrieve_widget(GtkWidget *tab, enum WidgetName widget_name);
+
+/* Maybe these functions should be somewhere else? */
+void *visible_tab_retrieve_widget(GtkNotebook *notebook, enum WidgetName widget_name);
+GtkWidget *get_visible_tab(GtkNotebook *notebook);
+
+struct TabInfo {
+	unsigned id;
+	const char *file_name; // NULL if no file associated with the tab.
+	const char *title;
+	gboolean unsaved_changes;
+	//char *base_name; // Maybe well put basename here for convenience.
+};
+
 /* hotloader.c */
 /* gboolean (*GSourceFunc) (gpointer data); */
 void hotloader_register_callback(const char *filepath, GSourceFunc when_changed);

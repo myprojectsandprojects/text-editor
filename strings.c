@@ -63,7 +63,7 @@ char *str_replace(const char *h, const char *n, const char *r)
 	int m = 0;
 
 	int r_len = strlen(r);
-	char *result_buffer = malloc(100);
+	char *result_buffer = (char *) malloc(100);
 
 	for (int i = 0; h[i] != 0; ++i) {
 		if (matching) {
@@ -199,7 +199,7 @@ char *get_slice_by(char **p_s, char ch)
 char **slice_by(const char *s, char c)
 {
 	char **list_of_ss, **p3;
-	p3 = list_of_ss = malloc(100);
+	p3 = list_of_ss = (char **) malloc(100);
 
 	const char *p1, *p2;
 	p1 = p2 = s;
@@ -214,7 +214,7 @@ char **slice_by(const char *s, char c)
 				until_space[n_characters] = 0;
 				printf("until space: %s\n", until_space);
 			}*/
-			char *until_space = malloc(n_characters + 1);
+			char *until_space = (char *) malloc(n_characters + 1);
 			strncpy(until_space, p1, n_characters);
 			until_space[n_characters] = 0;
 			//printf("until space: %s\n", until_space);
@@ -231,7 +231,7 @@ char **slice_by(const char *s, char c)
 
 	if (p2 > p1) {
 		//printf("last chunk: %s\n", p1);
-		*p3 = malloc(p2 - p1 + 1);
+		*p3 = (char *) malloc(p2 - p1 + 1);
 		strcpy(*p3, p1);
 		//*p3[p2 - p1] = 0;
 		(*p3)[p2 - p1] = 0;
@@ -263,7 +263,7 @@ char * get_until(const char *s, char c)
 		}
 	}
 
-	char *slice = malloc(i + 1);
+	char *slice = (char *) malloc(i + 1);
 	strncpy(slice, current_s, i);
 	slice[i] = 0;
 
@@ -294,13 +294,13 @@ char *get_parent_path(const char *path)
 
 	// either '/' at the beginning or no '/':
 	if (i == 0 || i < 0) {
-		parent_path = malloc(1 + 1);
+		parent_path = (char *) malloc(1 + 1);
 		parent_path[0] = '/';
 		parent_path[1] = 0;
 	} else {
 		//int n_chars = i + 1; // count chars including the 1 i points at
 		int n_chars = i; // count chars excluding the 1 i points at
-		parent_path = malloc(n_chars + 1);
+		parent_path = (char *) malloc(n_chars + 1);
 		strncpy(parent_path, path, n_chars);
 		parent_path[n_chars] = 0; // assume strncpy didnt 0-terminate
 	}

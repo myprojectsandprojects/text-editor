@@ -8,7 +8,6 @@
 #include <limits.h> // for NAME_MAX
 
 #include "declarations.h"
-#include "tab.h"
 
 GtkWidget *app_window;
 GtkWidget *nb_container;
@@ -42,10 +41,11 @@ const char *search_icon_path = "/home/eero/all/text-editor/icons/for-light-theme
 
 const char *settings_file_path = "/home/eero/all/text-editor/themes/settings";
 //char *css_file = "/home/eero/all/text-editor/themes/css";
+
 char *css_file_path = "/home/eero/all/text-editor/themes/css"; // cant be const because we pass it to pthread_create()
 
 
-struct Settings settings = {.left_margin = 1, .unknown_color = "cornflowerblue"};
+struct Settings settings;
 // ... other members are initialized to 0 (?)
 
 
@@ -399,11 +399,11 @@ GtkWidget *create_tab(const char *file_name)
 	//gtk_widget_set_hexpand(tab, TRUE);
 
 	struct TabInfo *tab_info;
-	tab_info = malloc(sizeof(struct TabInfo)); //@ free?
+	tab_info = (TabInfo *) malloc(sizeof(struct TabInfo)); //@ free?
 	if (file_name == NULL) {
 		tab_info->file_name = NULL;
 
-		tab_title = malloc(100); //@ free?
+		tab_title = (char *) malloc(100); //@ free?
 		snprintf(tab_title, 100, "%s %d", "Untitled", count);
 		tab_info->title = tab_title;
 	} else {
@@ -629,7 +629,7 @@ char *get_base_name(const char *file_name)
 		prev_token = curr_token;
 		curr_token = strtok(NULL, "/");
 	}
-	base_name = malloc(100); //@  buffer bounds
+	base_name = (char *) malloc(100); //@  buffer bounds
 	sprintf(base_name, "%s", prev_token);
 
 	return base_name;
@@ -988,7 +988,7 @@ gboolean do_save(GdkEventKey *key_event)
 	gtk_text_buffer_get_bounds(text_buffer, &start, &end);
 	char *contents = gtk_text_buffer_get_text(text_buffer, &start, &end, FALSE);
 
-	struct TabInfo *tab_info = g_object_get_data(G_OBJECT(tab), "tab-info");
+	struct TabInfo *tab_info = (TabInfo *) g_object_get_data(G_OBJECT(tab), "tab-info");
 	assert(tab_info != NULL);
 
 	if (tab_info->file_name == NULL) { // The tab doesnt have a file associated with it yet.
@@ -998,7 +998,7 @@ gboolean do_save(GdkEventKey *key_event)
 		tab_info->file_name = file_name;
 		tab_info->title = get_base_name(file_name);
 
-		GtkLabel *filepath_label = tab_retrieve_widget(tab, FILEPATH_LABEL);
+		GtkLabel *filepath_label = (GtkLabel *) tab_retrieve_widget(tab, FILEPATH_LABEL);
 		gtk_label_set_text(filepath_label, file_name);
 	}
 

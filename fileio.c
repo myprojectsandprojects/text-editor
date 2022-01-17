@@ -22,7 +22,7 @@ char *read_file(const char *filename) {
 
 	//g_print("read_file: file size: %d\n", size);
 
-	contents = malloc(size+1);
+	contents = (char *) malloc(size+1);
 	if (contents == NULL) {
 		printf("read_file: malloc() failed!\n");
 		return NULL;

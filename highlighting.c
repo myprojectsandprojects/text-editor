@@ -4,7 +4,7 @@
 #include <assert.h>
 
 #include "declarations.h"
-#include "tab.h"
+//#include "tab.h"
 
 extern GtkWidget *notebook;
 
@@ -293,7 +293,7 @@ void C_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *en
 
 			// Maybe our identifier is a keyword?
 			gboolean is_keyword = FALSE;
-			char *keywords[] = {
+			const char *keywords[] = {
 				"if", "else", "return", "for", "while", "break", "continue", "struct", "const", "extern", "static", NULL};
 
 			char *identifier = gtk_text_buffer_get_text(text_buffer, &begin, &iter, FALSE);
@@ -632,12 +632,12 @@ void register_highlighting_changed_event_handler(GtkWidget *tab, void *handler)
 {
 	printf("register_highlighting_changed_event_handler()\n");
 
-	void **handlers = tab_retrieve_widget(tab, HIGHLIGHTING_CHANGED_EVENT_HANDLERS);
-	int *p_index = tab_retrieve_widget(tab, HIGHLIGHTING_CHANGED_EVENT_HANDLERS_INDEX);
+	void **handlers = (void **) tab_retrieve_widget(tab, HIGHLIGHTING_CHANGED_EVENT_HANDLERS);
+	int *p_index = (int *) tab_retrieve_widget(tab, HIGHLIGHTING_CHANGED_EVENT_HANDLERS_INDEX);
 	if (!handlers) {
 		assert(p_index == NULL);
-		handlers = malloc(MAX_HANDLERS * sizeof(void *));
-		p_index = malloc(sizeof(int));
+		handlers = (void **) malloc(MAX_HANDLERS * sizeof(void *));
+		p_index = (int *) malloc(sizeof(int));
 		*p_index = 0;
 		tab_add_widget_4_retrieval(tab, HIGHLIGHTING_CHANGED_EVENT_HANDLERS, handlers);
 		tab_add_widget_4_retrieval(tab, HIGHLIGHTING_CHANGED_EVENT_HANDLERS_INDEX	, p_index);
@@ -652,8 +652,8 @@ void trigger_highlighting_changed_event_handlers(GtkWidget *tab)
 {
 	printf("trigger_highlighting_changed_event_handlers()\n");
 
-	void **handlers = tab_retrieve_widget(tab, HIGHLIGHTING_CHANGED_EVENT_HANDLERS);
-	int *p_index = tab_retrieve_widget(tab, HIGHLIGHTING_CHANGED_EVENT_HANDLERS_INDEX);
+	void **handlers = (void **) tab_retrieve_widget(tab, HIGHLIGHTING_CHANGED_EVENT_HANDLERS);
+	int *p_index = (int *) tab_retrieve_widget(tab, HIGHLIGHTING_CHANGED_EVENT_HANDLERS_INDEX);
 
 	if (!handlers) {
 		printf("trigger_highlighting_changed_event_handlers: no handlers registered\n");
@@ -839,7 +839,7 @@ GtkWidget *create_highlighting_selection_button(GtkWidget *tab)
 	gtk_menu_button_set_popup(GTK_MENU_BUTTON(hl_menu_button), menu);
 	//gtk_menu_button_set_direction(GTK_MENU_BUTTON(hl_menu_button), GTK_ARROW_UP);
 
-	register_highlighting_changed_event_handler(tab, on_highlighting_changed);
+	register_highlighting_changed_event_handler(tab, (void *) on_highlighting_changed);
 	/*
 	register_highlighting_changed_event_handler(tab, on_highlighting_changed2);
 	register_highlighting_changed_event_handler(tab, on_highlighting_changed3);

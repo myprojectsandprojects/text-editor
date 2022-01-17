@@ -9,7 +9,7 @@ autocomplete.c
 #include <assert.h>
 #include <gtk/gtk.h>
 
-#include "tab.h"
+//#include "tab.h"
 #include "declarations.h"
 /*
 int reading = 0;
@@ -38,7 +38,7 @@ int _index;
 
 struct StrList* create_strlist(void)
 {
-	struct StrList *p = malloc(sizeof(struct StrList));
+	struct StrList *p = (struct StrList *) malloc(sizeof(struct StrList));
 	p->strs_i = 0;
 	return p;
 }

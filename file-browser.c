@@ -101,7 +101,7 @@ static void create_nodes_for_dir(
 		if (fs_node->d_name[0] == '.') continue; // Ignore hidden files/directories
 
 		int len = strlen(fs_node->d_name);
-		basenames[i] = malloc(len + 1);
+		basenames[i] = (char *) malloc(len + 1);
 		strcpy(basenames[i], fs_node->d_name);
 		i += 1;
 		//free(fs_node); // Thats an error
@@ -227,7 +227,7 @@ on_filebrowser_row_doubleclicked
 
 	/* @ full path is now part of the node info in store, so we should just query that */
 	char node_rel_path[100]; node_rel_path[0] = 0;
-	char *node_full_path = malloc(100); node_full_path[0] = 0; //@ free?
+	char *node_full_path = (char *) malloc(100); node_full_path[0] = 0; //@ free?
 
 	while (gtk_tree_path_get_depth(path) > 0) // 1 -- root node, 0 -- nowhere
 	{

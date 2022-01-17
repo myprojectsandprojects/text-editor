@@ -4,7 +4,7 @@
 #include <string.h>
 #include <assert.h>
 #include "declarations.h"
-#include "tab.h"
+//#include "tab.h"
 
 GtkWidget 	*search_phrase_entry;
 GtkWidget 	*filename_filter_entry;
@@ -60,12 +60,12 @@ void on_list_row_selected(GtkListBox *list, GtkListBoxRow *row, gpointer data)
 	}
 
 	GtkWidget *search_result = gtk_bin_get_child(GTK_BIN(row));
-	char *file_path = g_object_get_data(G_OBJECT(search_result), "file-path");
+	char *file_path = (char *) g_object_get_data(G_OBJECT(search_result), "file-path");
 	unsigned long line_num = (unsigned long) g_object_get_data(G_OBJECT(search_result), "line-num"); // void * -> 64 bits, unsigned long -> 64 bits
 	GtkWidget *tab = create_tab(file_path);
 
 	/* Well wait for 1 secs, then scroll to the line that contains the search-phrase. We cant do it here immediately. No clue why. @ Need to look for a better way. */
-	void **args = malloc(2 * sizeof(void *));
+	void **args = (void **) malloc(2 * sizeof(void *));
 	args[0] = (void *) tab;
 	args[1] = (void *) line_num;
 
@@ -230,7 +230,7 @@ GtkWidget **create_search_result_widgets(char *contents)
 	//printf("N_BYTES: %lu\n", N_BYTES);
 	// we also have a global variable called search results..
 	GtkWidget **search_results;
-	search_results = malloc(N_BYTES + sizeof(GtkWidget *)); //@ dynamic array?
+	search_results = (GtkWidget **) malloc(N_BYTES + sizeof(GtkWidget *)); //@ dynamic array?
 
 	char *line;
 	int i = 0;
@@ -260,7 +260,7 @@ GtkWidget **create_search_result_widgets(char *contents)
 
 		GtkWidget *search_result = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
-		char *file_path_copy = malloc(strlen(file_path) + 1);
+		char *file_path_copy = (char *) malloc(strlen(file_path) + 1);
 		strcpy(file_path_copy, file_path);
 		g_object_set_data(G_OBJECT(search_result), "file-path", file_path_copy); //@ free?
 		unsigned long line_num = atoi(line_number); // void * -> 64 bits, unsigned long -> 64 bits
@@ -300,6 +300,9 @@ GtkWidget **create_search_result_widgets(char *contents)
 void *run_command_2(void* command)
 {
 	int ret;
+	GtkWidget **search_results; // we also have a global variable called search results..
+	long int size;
+	char *output;
 
 	printf("run_command_2()\n");
 
@@ -310,8 +313,8 @@ void *run_command_2(void* command)
 		goto wrap_up;
 	}
 
-	long int size = 10000000;
-	char *output = malloc(size+1); //@ dynamic buffer
+	size = 10000000;
+	output = (char *) malloc(size+1); //@ dynamic buffer
 
 	long int i;
 	for (i = 0; ((output[i] = fgetc(fd)) != EOF); ++i) {
@@ -328,8 +331,7 @@ void *run_command_2(void* command)
 	//g_timeout_add_seconds(1, display_search_results, (gpointer) output);
 	//display_search_results((gpointer) output);
 
-	// we also have a global variable called search results..
-	GtkWidget **search_results = create_search_result_widgets(output);
+	search_results = create_search_result_widgets(output);
 
 	// display_search_results() is the part that might take away the UI
 	// searching itself operates happily on the background
@@ -426,7 +428,7 @@ void search_handler(GtkButton *button, gpointer data)
 	previous_results = gtk_container_get_children(GTK_CONTAINER(search_results));
 	for (p = previous_results; p != NULL; p = p->next) {
 		//printf("previous search result...\n");
-		gtk_widget_destroy(p->data);
+		gtk_widget_destroy(GTK_WIDGET(p->data));
 	}
 	g_list_free(previous_results); //@ are we freeing everything?
 	printf("search_handler(): done deleting previous search results..\n");
@@ -475,7 +477,7 @@ void search_handler(GtkButton *button, gpointer data)
 	*/
 
 //	char command[1000];
-	char *command = malloc(1000);
+	char *command = (char *) malloc(1000);
 	command[0] = 0;
 
 	sprintf(command,

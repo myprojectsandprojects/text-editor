@@ -29,8 +29,6 @@ enum WidgetName{
 	N_WIDGETS
 };
 
-void *tab_widgets[100][N_WIDGETS];
-
 /*
 When some1 needs multiple widgets, then they have to make a separate function call 4 every widget, but in that case we are kinda repeating ourselves...
 */

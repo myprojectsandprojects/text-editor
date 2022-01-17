@@ -3,7 +3,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "tab.h"
+//#include "tab.h"
 #include "declarations.h"
 
 extern GtkWidget *notebook;
@@ -74,7 +74,7 @@ char **get_opening_tags(GtkTextIter *i)
 	//const int MAX_NAME_LENGTH = 100; // ... ascii-characters
 	const int MAX_LIST_LENGTH = 10; // ... strings
 
-	char **names = malloc(sizeof(char *) * (MAX_LIST_LENGTH + 1)); // + terminating-NULL
+	char **names = (char **) malloc(sizeof(char *) * (MAX_LIST_LENGTH + 1)); // + terminating-NULL
 
 	int j = 0;
 	for (GSList *p = tags; p != NULL; p = p->next, ++j) {
@@ -84,7 +84,7 @@ char **get_opening_tags(GtkTextIter *i)
 		//printf("tag name: %s\n", tag_name);
 
 		//char *name = malloc(MAX_NAME_LENGTH + 1); // + terminating-0
-		char *name = malloc(strlen(tag_name) + 1); // + terminating-0
+		char *name = (char *) malloc(strlen(tag_name) + 1); // + terminating-0
 		sprintf(name, "%s", tag_name);
 		names[j] = name;
 	}
@@ -268,7 +268,7 @@ void unindent_selected_block(GtkTextBuffer *text_buffer, GtkTextIter *selection_
 	gtk_text_iter_set_line_offset(selection_start, 0);
 	GtkTextMark *start = gtk_text_buffer_create_mark(text_buffer, NULL, selection_start, TRUE);
 	GtkTextMark *end = gtk_text_buffer_create_mark(text_buffer, NULL, selection_end, TRUE);
-	if(gtk_text_iter_forward_search(selection_start, "\t", 0, &match_start, &match_end, NULL) == TRUE) {
+	if(gtk_text_iter_forward_search(selection_start, "\t", (GtkTextSearchFlags) 0, &match_start, &match_end, NULL) == TRUE) {
 		if(gtk_text_iter_compare(&match_start, selection_end) < 0)
 			gtk_text_buffer_delete(text_buffer, &match_start, &match_end);
 	}
@@ -279,7 +279,7 @@ void unindent_selected_block(GtkTextBuffer *text_buffer, GtkTextIter *selection_
 
 	while(gtk_text_iter_compare(selection_start, selection_end) < 0) {
 		gtk_text_buffer_move_mark(text_buffer, start, selection_start);
-		if(gtk_text_iter_forward_search(selection_start, "\t", 0, &match_start, &match_end, NULL) == TRUE) {
+		if(gtk_text_iter_forward_search(selection_start, "\t", (GtkTextSearchFlags) 0, &match_start, &match_end, NULL) == TRUE) {
 			if(gtk_text_iter_compare(&match_start, selection_end) < 0)
 				gtk_text_buffer_delete(text_buffer, &match_start, &match_end);
 		}
@@ -838,7 +838,7 @@ gboolean move_cursor_up(GdkEventKey *key_event)
 	while (gtk_text_iter_get_char(&iter) == '\n' && !gtk_text_iter_is_start(&iter))
 		gtk_text_iter_backward_char(&iter);
 
-	if (gtk_text_iter_backward_search(&iter, "\n\n", 0, &start, &end, NULL)) {
+	if (gtk_text_iter_backward_search(&iter, "\n\n", (GtkTextSearchFlags) 0, &start, &end, NULL)) {
 		iter = end;
 		gtk_text_iter_backward_char(&iter);
 	} else {
@@ -872,7 +872,7 @@ gboolean move_cursor_down(GdkEventKey *key_event)
 	while (gtk_text_iter_get_char(&iter) == '\n' && !gtk_text_iter_is_end(&iter))
 		gtk_text_iter_forward_char(&iter);
 
-	if (gtk_text_iter_forward_search(&iter, "\n\n", 0, &start, &end, NULL)) {
+	if (gtk_text_iter_forward_search(&iter, "\n\n", (GtkTextSearchFlags) 0, &start, &end, NULL)) {
 		iter = end;
 		gtk_text_iter_backward_char(&iter);
 	} else {

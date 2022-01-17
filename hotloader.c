@@ -103,11 +103,11 @@ void hotloader_register_callback(const char *filepath, GSourceFunc when_changed)
 	LOG_MSG("hotloader_register_callback()\n");
 
 	/* I think we want to make our own copy, because we pass it to a separate thread. */
-	char *copy_filepath = malloc(strlen(filepath) + 1);
+	char *copy_filepath = (char *) malloc(strlen(filepath) + 1);
 	strcpy(copy_filepath, filepath);
 	filepath = copy_filepath;
 
-	struct Args *args = malloc(sizeof(struct Args));
+	struct Args *args = (Args *) malloc(sizeof(struct Args));
 	args->filepath = filepath;
 	args->when_changed = when_changed;
 

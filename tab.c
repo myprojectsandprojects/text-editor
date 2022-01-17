@@ -1,8 +1,10 @@
 #include <gtk/gtk.h>
 #include <assert.h>
 
-#include "tab.h"
+#include "declarations.h"
 
+
+void *tab_widgets[100][N_WIDGETS];
 
 GtkWidget *get_visible_tab(GtkNotebook *notebook)
 {

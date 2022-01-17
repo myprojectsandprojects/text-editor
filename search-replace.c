@@ -5,7 +5,7 @@
 #include <gtk/gtk.h>
 #include <assert.h>
 
-#include "tab.h"
+//#include "tab.h"
 #include "declarations.h"
 
 
@@ -44,7 +44,7 @@ int parse_str(const char *str2parse,
 	// ...causes this error: *** Error in `./a.out': corrupted size vs. prev_size: 0x00000000034eda60 ***
 	// when searching for "on_highlighting_selected"
 	
-	*search_str = malloc(strlen(str2parse) + 1);
+	*search_str = (char *) malloc(strlen(str2parse) + 1);
 	char *current_buffer = *search_str;
 	action2take = SEARCH;
 
@@ -111,7 +111,7 @@ int parse_str(const char *str2parse,
 			strncpy(&current_buffer[j], &str2parse[i1], n);
 			current_buffer[j + n] = 0;
 			i1 = i2 = i2 + 1;
-			*replace_with_str = malloc(strlen(str2parse));
+			*replace_with_str = (char *) malloc(strlen(str2parse));
 			current_buffer = *replace_with_str;
 			j = 0;
 		} else {
@@ -159,10 +159,10 @@ int not_used_parse_search_str(
 			strncpy(&parsed[j], &str_2_parse[i1], to_copy);
 
 			if (action_2_take == SEARCH) {
-				*search = malloc(strlen(parsed) + 1);
+				*search = (char *) malloc(strlen(parsed) + 1);
 				strcpy(*search, parsed);
 			} else if (action_2_take == REPLACE) {
-				*with = malloc(strlen(parsed) + 1);
+				*with = (char *) malloc(strlen(parsed) + 1);
 				strcpy(*with, parsed);
 			}
 			break;
@@ -225,7 +225,7 @@ int not_used_parse_search_str(
 			j += to_copy;
 			parsed[j] = 0;
 
-			*replace = malloc(strlen(parsed) + 1);
+			*replace = (char *) malloc(strlen(parsed) + 1);
 			strcpy(*replace, parsed);
 			j = 0;
 
@@ -333,7 +333,7 @@ gboolean do_search(GdkEventKey *key_event)
 
 	GtkRevealer *search_revealer = GTK_REVEALER(tab_retrieve_widget(tab, SEARCH_REVEALER));
 	//GtkWidget *search_entry = gtk_bin_get_child(GTK_BIN(search_revealer));
-	GtkWidget *search_entry = tab_retrieve_widget(tab, SEARCH_ENTRY);
+	GtkWidget *search_entry = (GtkWidget *) tab_retrieve_widget(tab, SEARCH_ENTRY);
 	GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
 	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
 
