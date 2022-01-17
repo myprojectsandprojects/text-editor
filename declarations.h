@@ -42,6 +42,7 @@ char *read_file(const char *filename);
 void write_file(const char *filename, const char *contents);
 
 /* main.c: */
+void add_menu_item(GtkMenu *menu, const char *label, GCallback callback, gpointer data);
 char *get_base_name(const char *file_name);
 void refresh_application_title(void);
 GtkWidget *create_tab(const char *file_name);
@@ -70,6 +71,23 @@ void init_undo(GtkWidget *tab);
 void actually_undo_last_action(GtkWidget *tab);
 
 /* highlighting.c: */
+/*
+#define NONE 0
+#define C 1
+#define CSS 2
+*/
+enum HighlightingType {
+	NONE,
+	C,
+	CSS
+};
+
+void set_text_highlighting(GtkWidget *tab, int type);
+#define ON 0
+#define OFF 1
+void set_current_line_highlighting(GtkTextBuffer *text_buffer, int to_what);
+GtkWidget *create_highlighting_selection_button(GtkWidget *tab);
+
 void init_highlighting(GtkTextBuffer *text_buffer);
 void remove_highlighting(GtkTextBuffer *text_buffer);
 

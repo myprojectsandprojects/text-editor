@@ -36,30 +36,6 @@ enum {
 };
 
 
-/* Well thats an entirely pointless function probably.. */
-static void add_menu_item(GtkMenu *menu, const char *label, GCallback callback, gpointer data)
-{
-	LOG_MSG("add_menu_item(): \"%s\"\n", label);
-
-	assert(menu != NULL);
-
-	static GtkMenu *_menu = NULL;
-	static int top_pos, bottom_pos;
-
-	if (_menu != menu) {
-		_menu = menu;
-		top_pos = 0;
-		bottom_pos = 1;
-	}
-
-	GtkWidget *item = gtk_menu_item_new_with_label(label);
-	gtk_menu_attach(GTK_MENU(menu), item, 0, 1, top_pos, bottom_pos);
-	g_signal_connect(item, "activate", callback, data);
-
-	top_pos += 1;
-	bottom_pos += 1;
-}
-
 /*
 static GtkTreeIter append_node_to_store(GtkTreeStore *store,
 												GtkTreeIter *parent,

@@ -114,7 +114,7 @@ struct StrList *get_strs(struct StrList *str_list, const char *begins)
 
 void close_suggestions_window(void)
 {
-	printf("close_suggestions_window()\n");
+	LOG_MSG("close_suggestions_window()\n");
 
 	/*
 	if (_suggestions_window) {
@@ -138,7 +138,7 @@ void close_suggestions_window(void)
 static void display_suggestions_window(
 	GtkTextView *text_view, GtkTextIter *location, struct StrList *completions)
 {
-	printf("display_suggestions_window()\n");
+	LOG_MSG("display_suggestions_window()\n");
 
 	close_suggestions_window();
 
@@ -199,13 +199,13 @@ static void display_suggestions_window(
 
 
 	gtk_text_view_get_iter_location(text_view, location, &rect);
-	printf("display_suggestions_window: buffer coordinates: x: %d, y: %d\n", rect.x, rect.y);
+	//printf("display_suggestions_window: buffer coordinates: x: %d, y: %d\n", rect.x, rect.y);
 
 	gtk_text_view_buffer_to_window_coords(text_view, GTK_TEXT_WINDOW_WIDGET, rect.x, rect.y, &x, &y);
-	printf("display_suggestions_window: window coordinates: x: %d, y: %d\n", x, y);
+	//printf("display_suggestions_window: window coordinates: x: %d, y: %d\n", x, y);
 
 	gdk_window_get_origin(w, &o_x, &o_y);
-	printf("display_suggestions_window: origin: x: %d, y: %d\n", x, y);
+	//printf("display_suggestions_window: origin: x: %d, y: %d\n", x, y);
 	gtk_window_set_attached_to(GTK_WINDOW(_suggestions_window), GTK_WIDGET(_app_window));
 	gtk_window_move(GTK_WINDOW(_suggestions_window), x + o_x, y + o_y + 20);
 	gtk_widget_show_all(_suggestions_window);
@@ -219,7 +219,7 @@ static void autocomplete_on_text_buffer_insert_text_after(
 	int len,
 	gpointer user_data)
 {
-	printf("autocomplete_on_text_buffer_insert_text_after()\n");
+	LOG_MSG("autocomplete_on_text_buffer_insert_text_after()\n");
 
 	close_suggestions_window();
 
@@ -261,8 +261,8 @@ static void autocomplete_on_text_buffer_insert_text_after(
 				c = gtk_text_iter_get_char(&i);
 				if (isalpha(c) || c == '_') {
 					char *text = gtk_text_buffer_get_text(text_buffer, &i, location, FALSE);
-					printf("autocomplete_on_text_buffer_insert_text_after: ");
-					printf("we are at the end of an identifier: %s\n", text);
+					//printf("autocomplete_on_text_buffer_insert_text_after: ");
+					//printf("we are at the end of an identifier: %s\n", text);
 
 					//char **words = (char **) tab_retrieve_widget(tab, AUTOCOMPLETE_WORDS);
 					/*
@@ -332,7 +332,7 @@ static void autocomplete_on_text_buffer_insert_text_after(
 
 gboolean autocomplete_upkey(GdkEventKey *key_event)
 {
-	printf("autocomplete_upkey()\n");
+	LOG_MSG("autocomplete_upkey()\n");
 /*
 	if (_suggestions_window) {
 		if (_index > 0) {
@@ -366,18 +366,18 @@ gboolean autocomplete_upkey(GdkEventKey *key_event)
 	gdouble upper = gtk_adjustment_get_upper(a);
 	gdouble lower = gtk_adjustment_get_lower(a);
 	gdouble page_size = gtk_adjustment_get_page_size(a);
-	printf("value: %f, upper: %f, lower: %f, page-size: %f\n",
-		value, upper, lower, page_size);
+	//printf("value: %f, upper: %f, lower: %f, page-size: %f\n",
+		//value, upper, lower, page_size);
 
 	GtkAllocation alloc;
 	gtk_widget_get_allocation(GTK_WIDGET(row), &alloc);
-	printf("width: %d, height: %d, x: %d, y: %d\n",
-		alloc.width, alloc.height, alloc.x, alloc.y);
+	//printf("width: %d, height: %d, x: %d, y: %d\n",
+		//alloc.width, alloc.height, alloc.x, alloc.y);
 
 	if (alloc.y >= value && alloc.y + alloc.height <= value + page_size) {
-		printf("selected item is visible..\n");
+		//printf("selected item is visible..\n");
 	} else {
-		printf("selected item is NOT visible..\n");
+		//printf("selected item is NOT visible..\n");
 
 	if (alloc.y >= value) {
 			// scrolling downwards
@@ -395,7 +395,7 @@ gboolean autocomplete_upkey(GdkEventKey *key_event)
 
 gboolean autocomplete_downkey(GdkEventKey *key_event)
 {
-	printf("autocomplete_downkey()\n");
+	LOG_MSG("autocomplete_downkey()\n");
 /*
 	if (_suggestions_window) {
 		printf("_index: %d\n", _index);
@@ -431,18 +431,18 @@ gboolean autocomplete_downkey(GdkEventKey *key_event)
 	gdouble upper = gtk_adjustment_get_upper(a);
 	gdouble lower = gtk_adjustment_get_lower(a);
 	gdouble page_size = gtk_adjustment_get_page_size(a);
-	printf("value: %f, upper: %f, lower: %f, page-size: %f\n",
-		value, upper, lower, page_size);
+	//printf("value: %f, upper: %f, lower: %f, page-size: %f\n",
+		//value, upper, lower, page_size);
 
 	GtkAllocation alloc;
 	gtk_widget_get_allocation(GTK_WIDGET(row), &alloc);
-	printf("width: %d, height: %d, x: %d, y: %d\n",
-		alloc.width, alloc.height, alloc.x, alloc.y);
+	//printf("width: %d, height: %d, x: %d, y: %d\n",
+		//alloc.width, alloc.height, alloc.x, alloc.y);
 
 	if (alloc.y >= value && alloc.y + alloc.height <= value + page_size) {
-		printf("selected item is visible..\n");
+		//printf("selected item is visible..\n");
 	} else {
-		printf("selected item is NOT visible..\n");
+		//printf("selected item is NOT visible..\n");
 
 	if (alloc.y >= value) {
 			// scrolling downwards
@@ -460,7 +460,7 @@ gboolean autocomplete_downkey(GdkEventKey *key_event)
 
 gboolean do_autocomplete(GdkEventKey *key_event)
 {
-	printf("do_autocomplete()\n");
+	LOG_MSG("do_autocomplete()\n");
 	if (_suggestions_window) {
 		assert(_text_buffer);
 		//char *to_autocomplete = gtk_text_buffer_get_text(_text_buffer, &_start_ident, &_end_ident, FALSE);
@@ -518,7 +518,7 @@ static void autocomplete_on_text_buffer_cursor_position_changed(GObject *object,
 		}
 	}
 */
-	printf("autocomplete_on_text_buffer_cursor_position_changed()\n");
+	LOG_MSG("autocomplete_on_text_buffer_cursor_position_changed()\n");
 	close_suggestions_window();
 }
 
@@ -541,7 +541,7 @@ static void autocomplete_on_notebook_page_removed(
 	guint page_num,
 	gpointer user_data)
 {
-	printf("autocomplete_on_notebook_page_removed()\n");
+	LOG_MSG("autocomplete_on_notebook_page_removed()\n");
 
 	close_suggestions_window();
 }
@@ -553,7 +553,7 @@ static void autocomplete_on_notebook_switch_page(
 	guint page_num,
 	gpointer user_data)
 {
-	printf("autocomplete_on_notebook_switch_page()\n");
+	LOG_MSG("autocomplete_on_notebook_switch_page()\n");
 
 	close_suggestions_window();
 }
@@ -565,7 +565,7 @@ static void autocomplete_on_notebook_switch_page(
 	so that we can ignore those characters.. */
 struct StrList *autocomplete_create_and_store_words(GtkTextBuffer *text_buffer)
 {
-	printf("autocomplete_create_and_store_words()\n");
+	LOG_MSG("autocomplete_create_and_store_words()\n");
 
 	struct StrList *words = create_strlist();
 	GtkTextIter i;
@@ -601,7 +601,7 @@ struct StrList *autocomplete_create_and_store_words(GtkTextBuffer *text_buffer)
 			}
 		}
 	}
-	printf("autocomplete_create_and_store_words: identifiers read: %d\n", n); // we only actually store unique strings
+	LOG_MSG("autocomplete_create_and_store_words: identifiers read: %d\n", n); // we only actually store unique strings
 
 	return words;
 }
@@ -609,7 +609,7 @@ struct StrList *autocomplete_create_and_store_words(GtkTextBuffer *text_buffer)
 
 static void autocomplete_init_tab(GtkWidget *tab)
 {
-	printf("autocomplete_init_tab()\n");
+	LOG_MSG("autocomplete_init_tab()\n");
 
 	GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
 	//GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
@@ -632,7 +632,7 @@ static void autocomplete_on_notebook_page_added(
 	guint page_num,
 	gpointer user_data)
 {
-	printf("*** autocomplete_on_notebook_page_added()\n");
+	LOG_MSG("autocomplete_on_notebook_page_added()\n");
 
 	autocomplete_init_tab(child);
 }
@@ -640,7 +640,7 @@ static void autocomplete_on_notebook_page_added(
 
 void autocomplete_init(GtkNotebook *notebook, GtkApplicationWindow* app_window)
 {
-	printf("autocomplete_init()\n");
+	LOG_MSG("autocomplete_init()\n");
 
 	_app_window = app_window;
 

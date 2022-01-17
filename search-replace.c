@@ -40,7 +40,11 @@ int parse_str(const char *str2parse,
 		return GO_TO_LINE;
 	}
 
-	*search_str = malloc(strlen(str2parse));
+	//*search_str = malloc(strlen(str2parse));
+	// ...causes this error: *** Error in `./a.out': corrupted size vs. prev_size: 0x00000000034eda60 ***
+	// when searching for "on_highlighting_selected"
+	
+	*search_str = malloc(strlen(str2parse) + 1);
 	char *current_buffer = *search_str;
 	action2take = SEARCH;
 
@@ -427,6 +431,7 @@ gboolean do_search(GdkEventKey *key_event)
 	}
 
 	//@ free everything
+	printf("do_search: returning..\n");
 
 	return TRUE;
 }

@@ -49,6 +49,31 @@ struct Settings settings = {.left_margin = 1, .unknown_color = "cornflowerblue"}
 // ... other members are initialized to 0 (?)
 
 
+/* Well thats an entirely pointless function probably.. */
+void add_menu_item(GtkMenu *menu, const char *label, GCallback callback, gpointer data)
+{
+	LOG_MSG("add_menu_item(): \"%s\"\n", label);
+
+	assert(menu != NULL);
+
+	static GtkMenu *_menu = NULL;
+	static int top_pos, bottom_pos;
+
+	if (_menu != menu) {
+		_menu = menu;
+		top_pos = 0;
+		bottom_pos = 1;
+	}
+
+	GtkWidget *item = gtk_menu_item_new_with_label(label);
+	gtk_menu_attach(GTK_MENU(menu), item, 0, 1, top_pos, bottom_pos);
+	g_signal_connect(item, "activate", callback, data);
+
+	top_pos += 1;
+	bottom_pos += 1;
+}
+
+
 void add_class(GtkWidget *widget, const char *class_name)
 {
 	GtkStyleContext *style_context = gtk_widget_get_style_context(widget);
@@ -139,7 +164,9 @@ void text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpo
 	GtkLabel *label = (GtkLabel *) user_data;
 	gtk_label_set_text(label, buffer);
 
-	/* Line highlighting -- it messes up code highlighting. */
+/*
+	printf("text_buffer_cursor_position_changed: line-highlighting stuff\n");
+	// Line highlighting -- it messes up code highlighting.
 	GtkTextIter start, end, start_buffer, end_buffer;
 	gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
 	gtk_text_buffer_remove_tag_by_name(text_buffer, "line-highlight", &start_buffer, &end_buffer);
@@ -151,6 +178,7 @@ void text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpo
 	end = i;
 	//printf("applying the tag: %d, %d\n", gtk_text_iter_get_offset(&start), gtk_text_iter_get_offset(&end));
 	gtk_text_buffer_apply_tag_by_name(text_buffer, "line-highlight", &start, &end);
+*/
 }
 
 //@ empty string
@@ -303,7 +331,7 @@ void on_scrolled_window_size_allocate(GtkWidget *scrolled_window, GdkRectangle *
 	gtk_widget_set_size_request(GTK_WIDGET(bottom_margin), allocation->width, allocation->height);
 }
 
-
+/*
 void on_highlighting_selected(GtkMenuItem *item, gpointer data)
 {
 	LOG_MSG("on_highlighting_selected()\n");
@@ -320,7 +348,9 @@ void on_highlighting_selected(GtkMenuItem *item, gpointer data)
 
 	gtk_label_set_text(button_label, selected_item);
 
-	/* instead of visible_tab_retrieve_widget() maybe we should have something that gives us a tab to which the widget we already have belongs to. because we have a button label and we want the tab it belongs to. or really we want the buffer */
+	// instead of visible_tab_retrieve_widget() maybe we should have something that gives us a tab
+	//to which the widget we already have belongs to.
+	// because we have a button label and we want the tab it belongs to. or really we want the buffer
 	GtkTextBuffer *text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
 	if (strcmp(selected_item, "None") == 0) {
 		LOG_MSG("on_highlighting_selected(): removing highlighting...\n");
@@ -330,17 +360,17 @@ void on_highlighting_selected(GtkMenuItem *item, gpointer data)
 		init_highlighting(text_buffer);
 	}
 }
-
+*/
 
 void on_text_view_size_allocate(GtkWidget *textview, GdkRectangle *alloc, gpointer data) {
 	LOG_MSG("on_text_view_size_allocate()\n");
 	gtk_text_view_set_bottom_margin(GTK_TEXT_VIEW(textview), alloc->height);
 }
 
-
+/*
 void on_adjustment_value_changed(GtkAdjustment *adj, gpointer user_data)
 {
-	//printf("*** on_adjustment_value_changed()\n");
+	printf("*** on_adjustment_value_changed()\n");
 
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER));
 	GtkTextView *text_view = GTK_TEXT_VIEW(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
@@ -353,7 +383,7 @@ void on_adjustment_value_changed(GtkAdjustment *adj, gpointer user_data)
 	//printf("*** on_adjustment_value_changed: line: %d\n", line);
 	gtk_text_buffer_move_mark_by_name(text_buffer, "scroll-mark", &where);
 }
-
+*/
 
 GtkWidget *create_tab(const char *file_name)
 {
@@ -388,18 +418,22 @@ GtkWidget *create_tab(const char *file_name)
 	//gtk_style_context_add_class (gtk_widget_get_style_context(scrolled_window), "scrolled-window");
 	gtk_widget_set_vexpand(scrolled_window, TRUE);
 
+
 	GtkTextView *text_view = GTK_TEXT_VIEW(gtk_text_view_new());
+
 	gtk_text_view_set_pixels_above_lines(text_view, settings.pixels_above_lines);
-	//gtk_text_view_set_pixels_below_lines(text_view, 30);
 	gtk_text_view_set_pixels_below_lines(text_view, settings.pixels_below_lines);
 	gtk_text_view_set_left_margin(text_view, settings.left_margin);
 	gtk_text_view_set_wrap_mode(text_view, GTK_WRAP_WORD);
-	gint position = 30; // set_tab_stops_internal() in gtksourceview
+
+	// set_tab_stops_internal() in gtksourceview:
+	gint position = 30;
 	PangoTabArray *tab_array = pango_tab_array_new(1, TRUE); //@ free?
 	pango_tab_array_set_tab(tab_array, 0, PANGO_TAB_LEFT, position);
 	gtk_text_view_set_tabs(text_view, tab_array);
 
 	add_class(GTK_WIDGET(text_view), "text-view");
+
 	g_signal_connect(G_OBJECT(text_view), "size-allocate", G_CALLBACK(on_text_view_size_allocate), NULL);
 
 
@@ -419,10 +453,11 @@ GtkWidget *create_tab(const char *file_name)
 	gtk_container_add(GTK_CONTAINER(statusbar_container), separator_label);
 	gtk_container_add(GTK_CONTAINER(statusbar_container), line_number_label);
 
-
+/*
 	GtkWidget *hl_label = gtk_label_new(NULL);
 	GtkWidget *hl_menu_button = gtk_menu_button_new();
 	gtk_container_add(GTK_CONTAINER(hl_menu_button), hl_label);
+*/
 
 	GtkWidget *status_bar = gtk_grid_new();
 	gtk_grid_set_column_spacing(GTK_GRID(status_bar), 0);
@@ -433,15 +468,17 @@ GtkWidget *create_tab(const char *file_name)
 	gtk_grid_attach(GTK_GRID(status_bar), margin, 0, 0, 1, 1);
 	gtk_grid_attach(GTK_GRID(status_bar), statusbar_container, 1, 0, 1, 1);
 	gtk_grid_attach(GTK_GRID(status_bar), space, 2, 0, 1, 1);
-	gtk_grid_attach(GTK_GRID(status_bar), hl_menu_button, 3, 0, 1, 1);
+
+	GtkWidget *button = create_highlighting_selection_button(tab);
+	gtk_grid_attach(GTK_GRID(status_bar), button, 3, 0, 1, 1);
 
 	add_class(status_bar, "status-bar");
 	//add_class(line_nr_value, "line-number-value-label");
-	add_class(hl_menu_button, "code-highlighting-menu-button");
+	//add_class(hl_menu_button, "code-highlighting-menu-button");
 
 	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
 
-	if(file_name != NULL) {
+	if (file_name) {
 		char *contents = read_file(file_name); //@ error handling. if we cant open a file, we shouldnt create a tab?
 		gtk_text_buffer_set_text(text_buffer, contents, -1);
 		free(contents);
@@ -454,7 +491,6 @@ GtkWidget *create_tab(const char *file_name)
 	tab_add_widget_4_retrieval(tab, TEXT_VIEW, text_view);
 	tab_add_widget_4_retrieval(tab, TEXT_BUFFER, text_buffer); //@ haa text-buffer is not a widget! void *?
 	tab_add_widget_4_retrieval(tab, FILEPATH_LABEL, file_path_label);
-	tab_add_widget_4_retrieval(tab, SCROLLED_WINDOW, scrolled_window);
 	
 	GtkWidget *wgt_search = create_search_widget(tab);
 
@@ -468,6 +504,9 @@ GtkWidget *create_tab(const char *file_name)
 	int page = gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, NULL);
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page);
 
+	set_text_highlighting(tab, NONE);
+	//set_current_line_highlighting();
+
 	/* We want autocomplete-character's handler for "insert-text"-signal to be the first handler called.  
 	(code-highlighting and undo also register callbacks for this signal.) */
 	init_autocomplete_character(text_buffer);
@@ -475,8 +514,8 @@ GtkWidget *create_tab(const char *file_name)
 	tab_set_unsaved_changes_to(tab, FALSE);
 
 	/* we create the menu here (after we set buffer contents) because we want to do the initial highlighting while creating the menu */
-	GtkWidget *menu = gtk_menu_new();
-
+	//GtkWidget *menu = gtk_menu_new();
+/*
 	//const char *default_highlighting = "None";
 	const char *default_highlighting = "C";
 	const char *highlightings[] = {
@@ -501,7 +540,7 @@ GtkWidget *create_tab(const char *file_name)
 
 	gtk_menu_button_set_popup(GTK_MENU_BUTTON(hl_menu_button), menu);
 	//gtk_menu_button_set_direction(GTK_MENU_BUTTON(hl_menu_button), GTK_ARROW_UP);
-
+*/
 	init_undo(tab);
 
 	g_signal_connect(G_OBJECT(text_view), "copy-clipboard", G_CALLBACK(text_view_copy_clipboard), NULL);
@@ -512,22 +551,25 @@ GtkWidget *create_tab(const char *file_name)
 
 	gtk_text_buffer_create_tag(text_buffer,
 		"line-highlight", "paragraph-background", settings.line_highlight_color, NULL);
-
 	text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, line_number_label);
 	g_signal_connect(G_OBJECT(text_buffer),
 		"notify::cursor-position", G_CALLBACK(text_buffer_cursor_position_changed), line_number_label);
 
 	g_signal_connect(G_OBJECT(text_buffer), "changed", G_CALLBACK(text_buffer_changed), NULL);
 	//g_signal_connect_after(G_OBJECT(text_buffer), "changed", G_CALLBACK(text_buffer_changed_after), NULL);
-
+/*
 	{
+		// so we are doing this to implement up/down scrolling buttons...
+		// this text-mark keeps track of the viewports position
+		// but wouldnt it be easier to query the viewports position in the handler for these buttons directly?
+		// it is possible? am I missing something?
 		GtkTextIter i;
 		gtk_text_buffer_get_start_iter(text_buffer, &i);
 		gtk_text_buffer_create_mark(text_buffer, "scroll-mark", &i, TRUE);
 		GtkAdjustment *adj = gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(text_view));
 		g_signal_connect(adj, "value-changed", G_CALLBACK(on_adjustment_value_changed), NULL);
 	}
-
+*/
 	return tab;
 }
 
@@ -1241,13 +1283,13 @@ gboolean scroll_up(GdkEventKey *key_event)
 {
 	LOG_MSG("scroll_up()\n");
 
+	GtkTextIter i;
 	GtkTextView *text_view = (GtkTextView *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
 	GtkTextBuffer *text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
-
-	GtkTextIter i;
-	GtkTextMark *m = gtk_text_buffer_get_mark(text_buffer, "scroll-mark");
-	gtk_text_buffer_get_iter_at_mark(text_buffer, &i, m);
-	gtk_text_iter_backward_lines(&i, 10);
+	GtkAdjustment *adj = gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(text_view));
+	gdouble value = gtk_adjustment_get_value(adj);
+	gtk_text_view_get_line_at_y(text_view, &i, value, NULL);
+	gtk_text_iter_backward_lines(&i, 20);
 	gtk_text_view_scroll_to_iter(text_view, &i, 0.0, TRUE, 0.0, 0.0);
 
 	return TRUE;
@@ -1258,13 +1300,24 @@ gboolean scroll_down(GdkEventKey *key_event)
 {
 	LOG_MSG("scroll_down()\n");
 
+/*
 	GtkTextView *text_view = (GtkTextView *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
 	GtkTextBuffer *text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
 
 	GtkTextIter i;
 	GtkTextMark *m = gtk_text_buffer_get_mark(text_buffer, "scroll-mark");
 	gtk_text_buffer_get_iter_at_mark(text_buffer, &i, m);
-	gtk_text_iter_forward_lines(&i, 10);
+	gtk_text_iter_forward_lines(&i, 20);
+	gtk_text_view_scroll_to_iter(text_view, &i, 0.0, TRUE, 0.0, 0.0);
+*/
+
+	GtkTextIter i;
+	GtkTextView *text_view = (GtkTextView *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
+	GtkTextBuffer *text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
+	GtkAdjustment *adj = gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(text_view));
+	gdouble value = gtk_adjustment_get_value(adj);
+	gtk_text_view_get_line_at_y(text_view, &i, value, NULL);
+	gtk_text_iter_forward_lines(&i, 20);
 	gtk_text_view_scroll_to_iter(text_view, &i, 0.0, TRUE, 0.0, 0.0);
 
 	return TRUE;
@@ -1492,7 +1545,7 @@ int main()
 	GtkApplication *app;
 
 	//test_str_replace();
-	test_parse_str();
+	//test_parse_str();
 
 	guint major = gtk_get_major_version();
 	guint minor = gtk_get_minor_version();

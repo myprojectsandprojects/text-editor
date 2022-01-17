@@ -197,9 +197,11 @@ void on_openfile_entry_changed
 	return;
 
 	// this is always 1 and 1. widget not realized yet?
+	/*
 	GtkAllocation alloc;
 	gtk_widget_get_allocation(file_list, &alloc);
 	printf("list width: %d, list height: %d\n", alloc.width, alloc.height);
+	*/
 }
 
 gboolean on_open_window_keypress_event(GtkWidget *open_window,
@@ -338,7 +340,7 @@ gboolean display_openfile_dialog(GdkEventKey *key_event)
 	gtk_window_set_modal(GTK_WINDOW(open_window), TRUE);
 	gtk_window_set_decorated(GTK_WINDOW(open_window), FALSE);
 	gtk_window_set_default_size(GTK_WINDOW(open_window),
-		openfile_dialog_width, 1);
+		openfile_dialog_width, 0);
 	add_class(open_window, "openfile-dialog");
 
 	/* Position relative to app window: */
@@ -389,6 +391,7 @@ gboolean display_openfile_dialog(GdkEventKey *key_event)
 	//gtk_container_add(GTK_CONTAINER(container), scrollbars);
 
 	gtk_widget_show_all(open_window);
+	gtk_window_resize(GTK_WINDOW(open_window), openfile_dialog_width, 1);
 
 	return TRUE;
 }

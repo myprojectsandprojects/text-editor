@@ -10,6 +10,6 @@ keyword:rgb(200, 200, 200):rgb(223, 223, 158):rgb(223, 223, 136)
 preproccessor:rgb(152, 148, 168):rgb(152, 147, 173)
 unknown:red
 
-pixels-above-lines:2
-pixels-below-lines:2
+pixels-above-lines:3
+pixels-below-lines:3
 left-margin:10

@@ -91,8 +91,9 @@ and just stick to classes.
 	font: Alma Mono Heavy 13;
 	font: Alma Mono Regular 13;
 	font: Alma Mono Bold 12;
-	*/
 	font: Liberation Mono Bold 12;
+	font: Courier 10 Pitch Regular 13;
+	*/
 	font: Consolas Bold 11;
 }
 
@@ -188,7 +189,7 @@ and just stick to classes.
 
 .search-entry
 {
-	color: white;
+	color: rgb(200, 200, 200);
 	background: rgb(78, 70, 65);
 	border: none;
 }
