@@ -1376,6 +1376,8 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 	//@ cursors blink is off for move_cursor_left() & move_cursor_right()
 	// also comments & identifiers -- not very convenient
+	// not to mention -- if the tab doesnt use highlighting, right?
+	// ... as this functionality relies upon the existence of text-tags in the document-buffer
 /*
 	key_combinations[CTRL][113] = move_cursor_left; // ctrl + <left arrow>
 	key_combinations[CTRL][114] = move_cursor_right; // ctrl + <right arrow>
@@ -1393,26 +1395,27 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	//key_combinations[CTRL][48] = move_cursor_end_line; // ctrl + ä
 	add_keycombination_handler(CTRL, 48, move_cursor_end_line);
 
-	//key_combinations[ALT][111] = move_lines_up; // alt + <up arrow>
-	add_keycombination_handler(ALT, 111, move_lines_up);
-	//key_combinations[ALT][116] = move_lines_down; // alt + <down arrow>
-	add_keycombination_handler(ALT, 116, move_lines_down);
-	//key_combinations[ALT][113] = move_token_left; // alt + <left arrow>
-	add_keycombination_handler(ALT, 113, move_token_left);
-	//key_combinations[ALT][114] = move_token_right; // alt + <right arrow>
-	add_keycombination_handler(ALT, 114, move_token_right);
-	//key_combinations[ALT][35] = insert_line_before; // alt + õ (35)
-	add_keycombination_handler(ALT, 35, insert_line_before);
-	//key_combinations[ALT][51] = insert_line_after; // alt + ' (51)
-	add_keycombination_handler(ALT, 51, insert_line_after);
-	//key_combinations[ALT][40] = duplicate_line; // alt + d
-	add_keycombination_handler(ALT, 40, duplicate_line);
-	//key_combinations[ALT][119] = delete_line; // alt + <delete>
-	add_keycombination_handler(ALT, 119, delete_line);
-	//key_combinations[ALT][34] = change_line; // alt + ü
-	add_keycombination_handler(ALT, 34, change_line);
-	//key_combinations[ALT][33] = delete_end_of_line; // alt + p
-	add_keycombination_handler(ALT, 33, delete_end_of_line);
+	//key_combinations[ALT][111] = move_lines_up;
+	add_keycombination_handler(ALT, 111, move_lines_up); // alt + <up arrow>
+	//key_combinations[ALT][116] = move_lines_down;
+	add_keycombination_handler(ALT, 116, move_lines_down); // alt + <down arrow>
+	//key_combinations[ALT][113] = move_token_left;
+	add_keycombination_handler(ALT, 113, move_token_left); // alt + <left arrow>
+	//key_combinations[ALT][114] = move_token_right;
+	add_keycombination_handler(ALT, 114, move_token_right); // alt + <right arrow>
+	//key_combinations[ALT][35] = insert_line_before;
+	add_keycombination_handler(ALT, 35, insert_line_before); // alt + õ (35)
+	//key_combinations[ALT][51] = insert_line_after;
+	add_keycombination_handler(ALT, 51, insert_line_after); // alt + ' (51)
+	//key_combinations[ALT][40] = duplicate_line;
+	add_keycombination_handler(ALT, 40, duplicate_line); // alt + d
+	//key_combinations[ALT][119] = delete_line;
+	add_keycombination_handler(ALT, 119, delete_line); // alt + <delete>
+	//key_combinations[ALT][34] = change_line;
+	add_keycombination_handler(ALT, 34, change_line); // alt + ü
+	//key_combinations[ALT][33] = delete_end_of_line;
+	add_keycombination_handler(ALT, 33, delete_end_of_line); // alt + p
+	add_keycombination_handler(ALT, 32, delete_word); // alt + o
 
 	//key_combinations[CTRL][52] = undo_last_action; // ctrl + z
 	add_keycombination_handler(CTRL, 52, undo_last_action);

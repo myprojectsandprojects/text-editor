@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <ctype.h>
 
 //#include "tab.h"
 #include "declarations.h"
@@ -650,6 +651,52 @@ gboolean delete_end_of_line(GdkEventKey *key_event)
 		gtk_text_iter_backward_char(&i);
 	i2 = i;
 	gtk_text_buffer_delete(buffer, &i1, &i2);
+
+	return TRUE;
+}
+
+
+gboolean delete_word(GdkEventKey *key_event)
+{
+	printf("delete_word()\n");
+	GtkTextBuffer *text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
+	if (!text_buffer) {
+		return FALSE;
+	}
+
+	GtkTextIter i;
+	get_cursor_position(text_buffer, NULL, &i, NULL);
+	gunichar c = gtk_text_iter_get_char(&i);
+	printf("*** character at cursor: %c\n", c);
+
+	// check if we are at the beginning of a word
+	gboolean is_iterator_moved = gtk_text_iter_backward_char(&i);
+	gunichar c_before;
+	gboolean at_start = FALSE; // whether we are at the beginning of the buffer
+	if (is_iterator_moved) {
+		c_before = gtk_text_iter_get_char(&i);
+	} else {
+		c_before = '\0'; // what value should we use here? if an iterator points at the end of the buffer, then what is the value?
+		at_start = TRUE;
+	}
+	printf("*** character before cursor: %c\n", c_before);
+	// let's also include numbers
+	if ( !((isalnum(c) || c == '_') && !(isalnum(c_before) || c_before == '_')) ) {
+		// we are not at the beginning of a word
+		return TRUE;
+	}
+	if (!at_start) {
+		gtk_text_iter_forward_char(&i);
+	}
+	GtkTextIter start = i;
+	gunichar ch;
+	while (gtk_text_iter_forward_char(&i)) {
+		ch = gtk_text_iter_get_char(&i);
+		if (!(isalnum(ch) || ch == '_')) {
+			break;
+		}
+	}
+	gtk_text_buffer_delete(text_buffer, &start, &i);
 
 	return TRUE;
 }

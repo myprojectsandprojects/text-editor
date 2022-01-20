@@ -169,7 +169,7 @@ int is_beginning_of(const char *needle, const char *haystack)
 {
 	return strstr(haystack, needle) == haystack;
 }
-
+/*
 char *get_slice_by_literally(char **original, char ch)
 {
 	for (int i = 0;; ++i) {
@@ -184,7 +184,7 @@ char *get_slice_by_literally(char **original, char ch)
 		}
 	}
 }
-
+*/
 // The input-string must be writable!
 //@ "abc" and "abc:" will both return "abc" if slicing by ':'. perhaps we wanna know
 char *get_slice_by(char **p_s, char ch)
