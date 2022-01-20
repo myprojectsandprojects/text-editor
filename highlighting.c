@@ -53,6 +53,12 @@ void CSS_remove_tags(GtkTextBuffer *text_buffer)
 }
 
 
+struct TagAttribute {
+	const char *property;
+	const char *value;
+};
+
+
 void C_create_tags(GtkTextBuffer *text_buffer)
 {
 	printf("C_create_tags()\n");
@@ -62,7 +68,45 @@ void C_create_tags(GtkTextBuffer *text_buffer)
 	gtk_text_buffer_create_tag(text_buffer, "keyword", "foreground", settings.keyword_color,
 		"weight", "bold", NULL);
 */
-	gtk_text_buffer_create_tag(text_buffer, "keyword", "foreground", settings.keyword_color, NULL);
+	//gtk_text_buffer_create_tag(text_buffer, "keyword", "foreground", settings.keyword_color, NULL);
+
+	struct TagAttribute *attributes[100];
+
+	/*
+	struct TagAttribute *attribute = (struct TagAttribute *) malloc(sizeof(struct TagAttribute));
+	attributes[0] = attribute;
+	*/
+	attributes[0] = (struct TagAttribute *) malloc(sizeof(struct TagAttribute));
+	attributes[1] = (struct TagAttribute *) malloc(sizeof(struct TagAttribute));
+	attributes[2] = (struct TagAttribute *) malloc(sizeof(struct TagAttribute));
+	attributes[3] = NULL;
+
+	attributes[0]->property = "foreground";
+	attributes[0]->value = "white";
+	attributes[1]->property = "background";
+	attributes[1]->value = "black";
+	attributes[2]->property = "style";
+	attributes[2]->value = "italic";
+
+	GtkTextTag *t = gtk_text_buffer_create_tag(text_buffer, "keyword", NULL);
+	for (int i = 0; attributes[i] != NULL; ++i) {
+		if (strcmp(attributes[i]->property, "style") == 0) {
+			PangoStyle translated_value;
+			if (strcmp(attributes[i]->value, "normal") == 0) {
+				translated_value = PANGO_STYLE_NORMAL;
+			} else if (strcmp(attributes[i]->value, "italic") == 0) {
+				translated_value = PANGO_STYLE_ITALIC;
+			} else if (strcmp(attributes[i]->value, "oblique") == 0) {
+				translated_value = PANGO_STYLE_OBLIQUE;
+			} else {
+				assert(0);
+			}
+			g_object_set(G_OBJECT(t), attributes[i]->property, translated_value, NULL);
+			continue;
+		}
+		g_object_set(G_OBJECT(t), attributes[i]->property, attributes[i]->value, NULL);
+	}
+	
 	gtk_text_buffer_create_tag(text_buffer, "type", "foreground", settings.type_color, NULL);
 	gtk_text_buffer_create_tag(text_buffer, "operator", "foreground", settings.operator_color, NULL);
 	gtk_text_buffer_create_tag(text_buffer, "number", "foreground", settings.number_color, NULL);
@@ -746,7 +790,7 @@ void on_highlighting_selected(GtkMenuItem *item, gpointer data)
 
 	const char *selected_item = gtk_menu_item_get_label(item);
 	//printf("label: %s\n", selected_item);
-	GtkLabel *button_label = (GtkLabel *) tab_retrieve_widget(tab, HIGHLIGHTING_BUTTON_LABEL);
+	//GtkLabel *button_label = (GtkLabel *) tab_retrieve_widget(tab, HIGHLIGHTING_BUTTON_LABEL);
 /*
 	const char *button_label_text = gtk_label_get_text(button_label);
 	if (strcmp(button_label_text, selected_item) == 0) {
@@ -754,7 +798,7 @@ void on_highlighting_selected(GtkMenuItem *item, gpointer data)
 		return;
 	}
 */
-	gtk_label_set_text(button_label, selected_item);
+	//gtk_label_set_text(button_label, selected_item);
 
 	if (strcmp(selected_item, "None") == 0) {
 		set_text_highlighting(tab, NONE);
@@ -771,6 +815,7 @@ void on_highlighting_changed(GtkWidget *tab)
 	printf("on_highlighting_changed()\n");
 
 	// update the button
+
 	int highlighting = *((int *) tab_retrieve_widget(tab, CURRENT_TEXT_HIGHLIGHTING));
 	GtkWidget *button_label = (GtkWidget *) tab_retrieve_widget(tab, HIGHLIGHTING_BUTTON_LABEL);
 
@@ -847,4 +892,77 @@ GtkWidget *create_highlighting_selection_button(GtkWidget *tab)
 	*/
 
 	return hl_menu_button;
+}
+
+
+char *ignore_whitespace(char *str)
+{
+	int i = 0;
+	while (str[i] == ' ' || str[i] == '\t') ++i;
+	return str + i;
+}
+
+
+void parse_text_tags_file(void)
+{
+	printf("parse_text_tags_file()\n");
+
+	char *contents = read_file("/home/eero/all/text-editor/themes/text-highlighting-settings");
+	//printf("parse_text_tags_file: contents: %s\n", contents);
+	while (char *line = get_slice_by(&contents, '\n')) {
+		//printf("parse_text_tags_file: line: %s\n", line);
+		line = ignore_whitespace(line);
+		printf("*** %s\n", line);
+		/*
+		if (line[0] == '\0') {
+			continue;
+		}
+		*/
+		if (line[0] == '#') {
+			printf("*** comment: %s\n", line);
+			continue;
+		}
+
+		// get_slice_by(...):
+		// abc:123 -> abc, 123, (null)
+		// abc: -> abc, (null), (null)
+		// abc -> abc, (null), (null), remaining: ""
+
+		// get_slice_by_strict(...):
+		// abc:123 -> abc, 123, (null)
+		// abc: -> abc, (null), (null)
+		// abc -> (null), (null), (null), remaining: "abc"
+		// we could check if the remaining still has something... if has, we know there was no colon.
+
+		// get_slice_by(...):
+		// abc:123 -> abc, 123, (null)
+		// abc: -> abc, "", (null)
+		// abc -> abc, (null), (null) or: abc -> (null), (null), (null)
+		// : -> "", "", (null)
+		// :: -> "", "", ""
+
+		char *copy = strdup(line);
+
+		char *slice1, *slice2, *slice3;
+		slice1 = get_slice_by(&line, ':');
+		slice2 = get_slice_by(&line, ':');
+		slice3 = get_slice_by(&line, ':');
+		//printf("slice1: %s, slice2: %s, slice3: %s\n", slice1, slice2, slice3);
+
+		// what about whitespace?
+		if (slice1 && slice2 && slice3) {
+			printf("parse_text_tags_file: unrecognized line format: %s\n", copy);
+			continue;
+		}
+		if (slice1 && slice2) {
+			printf("*** -> property: %s, value: %s\n\n", slice1, slice2);
+			continue;
+		}
+		if (slice1) {
+			printf("*** -> tag or language name: %s\n\n", slice1);
+			continue;
+		}
+		// empty line?
+		//printf( )
+	}
 }

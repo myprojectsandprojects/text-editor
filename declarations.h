@@ -123,9 +123,11 @@ void set_text_highlighting(GtkWidget *tab, int type);
 #define OFF 1
 void set_current_line_highlighting(GtkTextBuffer *text_buffer, int to_what);
 GtkWidget *create_highlighting_selection_button(GtkWidget *tab);
-
+void parse_text_tags_file(void);
+/*
 void init_highlighting(GtkTextBuffer *text_buffer);
 void remove_highlighting(GtkTextBuffer *text_buffer);
+*/
 
 /* strings.c: */
 char *get_slice_by(char **p_s, char ch);
@@ -137,6 +139,7 @@ int copy_string(const char *src, char *dst, int src_i, int dst_i, int n);
 
 void test_get_parent_path(void);
 void test_str_replace(void);
+void test_get_slice_by(void);
 
 /* autocomplete.c */
 #define MAX_STRS 1000

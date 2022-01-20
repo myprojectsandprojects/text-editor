@@ -1,0 +1,20 @@
+	    # comments begin with a '#'
+
+language:C
+	comment:
+		foreground: green
+		style: italic
+	
+	identifier:
+		foreground: rgb(1, 2, 3)
+	keyword:
+		foreground: white
+		weight: bold
+
+	# need the '-':
+	preproccessor-directive:
+		foreground: purple
+
+Settings
+	comment:
+what is this?

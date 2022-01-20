@@ -46,7 +46,6 @@ char *css_file_path = "/home/eero/all/text-editor/themes/css"; // cant be const 
 
 
 struct Settings settings;
-// ... other members are initialized to 0 (?)
 
 
 /* Well thats an entirely pointless function probably.. */
@@ -1446,6 +1445,8 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	//parse_settings_file(settings_file_path);
 	parse_settings_file(NULL);
 	apply_css_from_file((void *) css_file_path);
+
+	parse_text_tags_file();
 /*
 	pthread_t id;
 	int r = pthread_create(&id, NULL, watch_for_changes, css_file_path);
@@ -1546,6 +1547,7 @@ int main()
 
 	//test_str_replace();
 	//test_parse_str();
+	test_get_slice_by();
 
 	guint major = gtk_get_major_version();
 	guint minor = gtk_get_minor_version();

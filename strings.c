@@ -170,7 +170,23 @@ int is_beginning_of(const char *needle, const char *haystack)
 	return strstr(haystack, needle) == haystack;
 }
 
-/* The input-string must be writable! */
+char *get_slice_by_literally(char **original, char ch)
+{
+	for (int i = 0;; ++i) {
+		if ((*original)[i] == '\0') {
+			break;
+		}
+		if ((*original)[i] == ch) {
+			(*original)[i] = '\0';
+			*original = 
+			return 
+			//break;
+		}
+	}
+}
+
+// The input-string must be writable!
+//@ "abc" and "abc:" will both return "abc" if slicing by ':'. perhaps we wanna know
 char *get_slice_by(char **p_s, char ch)
 {
 	char *s = *p_s;
@@ -194,6 +210,46 @@ char *get_slice_by(char **p_s, char ch)
 	*p_s = &(s[i]);
 
 	return s;
+}
+
+void test_get_slice_by(void)
+{
+	char *sp, *slice;
+
+	char s[] = "abc";
+	printf("%s -> \n", s);
+	sp = (char *) s;
+	while (slice = get_slice_by(&sp, ':')) {
+		printf("slice: %s\n", slice);
+	}
+
+	char s2[] = "abc:";
+	printf("%s -> \n", s2);
+	sp = (char *) s2;
+	while (slice = get_slice_by(&sp, ':')) {
+		printf("slice: %s\n", slice);
+	}
+
+	char s3[] = "abc:123";
+	printf("%s -> \n", s3);
+	sp = (char *) s3;
+	while (slice = get_slice_by(&sp, ':')) {
+		printf("slice: %s\n", slice);
+	}
+
+	char s4[] = "";
+	printf("%s -> \n", s4);
+	sp = (char *) s4;
+	while (slice = get_slice_by(&sp, ':')) {
+		printf("slice: %s\n", slice);
+	}
+
+	char s5[] = " ";
+	printf("%s -> \n", s5);
+	sp = (char *) s5;
+	while (slice = get_slice_by(&sp, ':')) {
+		printf("slice: %s\n", slice);
+	}
 }
 
 char **slice_by(const char *s, char c)
