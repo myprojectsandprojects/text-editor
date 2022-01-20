@@ -504,7 +504,8 @@ GtkWidget *create_tab(const char *file_name)
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page);
 
 	set_text_highlighting(tab, NONE);
-	//set_current_line_highlighting();
+	//set_current_line_highlighting(text_buffer, OFF);
+	set_current_line_highlighting(text_buffer, ON);
 
 	/* We want autocomplete-character's handler for "insert-text"-signal to be the first handler called.  
 	(code-highlighting and undo also register callbacks for this signal.) */
@@ -548,8 +549,6 @@ GtkWidget *create_tab(const char *file_name)
 
 	//g_signal_connect(G_OBJECT(text_view), "populate-popup", G_CALLBACK(on_text_view_populate_popup), NULL);
 
-	gtk_text_buffer_create_tag(text_buffer,
-		"line-highlight", "paragraph-background", settings.line_highlight_color, NULL);
 	text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, line_number_label);
 	g_signal_connect(G_OBJECT(text_buffer),
 		"notify::cursor-position", G_CALLBACK(text_buffer_cursor_position_changed), line_number_label);

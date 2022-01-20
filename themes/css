@@ -96,6 +96,8 @@ and just stick to classes.
 	font: Consolas Bold 11;
 	*/
 	font: Source Code Pro SemiBold 11;
+	font: Dank Mono Bold 13;
+	font: Monofur Bold 13;
 }
 
 .text-view:selected,

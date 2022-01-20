@@ -774,8 +774,30 @@ void set_current_line_highlighting(GtkTextBuffer *text_buffer, int to_what)
 
 	if (to_what == ON) {
 		// current line highlighting ON for the text buffer
+
+		gtk_text_buffer_create_tag(text_buffer,
+			"line-highlight", "paragraph-background", settings.line_highlight_color, NULL);
+
+		//highlighting_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL);
+		unsigned long id = g_signal_connect(G_OBJECT(text_buffer),
+			"notify::cursor-position", G_CALLBACK(highlighting_text_buffer_cursor_position_changed), NULL);
+
+		g_object_set_data(G_OBJECT(text_buffer), "highlighting-cursor-position-changed", (void *) id);
+
 	} else if (to_what == OFF) {
 		// current line highlighting OFF for the text buffer
+
+		GtkTextTagTable *table = gtk_text_buffer_get_tag_table(text_buffer);
+		GtkTextTag* p = gtk_text_tag_table_lookup(table, "line-highligh");
+		if (p) {
+			gtk_text_tag_table_remove(table, p);
+		}
+
+		unsigned long id = (unsigned long) g_object_get_data(G_OBJECT(text_buffer), "highlighting-cursor-position-changed");
+		// g_signal_handler_disconnect: assertion 'handler_id > 0' failed
+		if (id > 0) {
+			g_signal_handler_disconnect(text_buffer, id);
+		}
 	}
 }
 
