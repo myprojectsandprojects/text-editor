@@ -503,14 +503,13 @@ GtkWidget *create_tab(const char *file_name)
 	int page = gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, NULL);
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page);
 
+	set_text_highlighting(tab, NONE);
 	if (file_name) {
 		const char *extension = strrchr(file_name, '.');
 		printf("*** extension: %s\n", extension);
 		if (extension && (strcmp(extension, ".c") == 0)) {
 			set_text_highlighting(tab, C);
 		}
-	} else {
-		set_text_highlighting(tab, NONE);
 	}
 	//set_current_line_highlighting(text_buffer, OFF);
 	set_current_line_highlighting(text_buffer, ON);

@@ -68,14 +68,12 @@ void C_create_tags(GtkTextBuffer *text_buffer)
 	gtk_text_buffer_create_tag(text_buffer, "keyword", "foreground", settings.keyword_color,
 		"weight", "bold", NULL);
 */
-	//gtk_text_buffer_create_tag(text_buffer, "keyword", "foreground", settings.keyword_color, NULL);
-
+	gtk_text_buffer_create_tag(text_buffer, "keyword", "foreground", settings.keyword_color, NULL);
+/*
 	struct TagAttribute *attributes[100];
 
-	/*
-	struct TagAttribute *attribute = (struct TagAttribute *) malloc(sizeof(struct TagAttribute));
-	attributes[0] = attribute;
-	*/
+	//struct TagAttribute *attribute = (struct TagAttribute *) malloc(sizeof(struct TagAttribute));
+	//attributes[0] = attribute;
 	attributes[0] = (struct TagAttribute *) malloc(sizeof(struct TagAttribute));
 	attributes[1] = (struct TagAttribute *) malloc(sizeof(struct TagAttribute));
 	attributes[2] = (struct TagAttribute *) malloc(sizeof(struct TagAttribute));
@@ -106,7 +104,7 @@ void C_create_tags(GtkTextBuffer *text_buffer)
 		}
 		g_object_set(G_OBJECT(t), attributes[i]->property, attributes[i]->value, NULL);
 	}
-	
+*/	
 	gtk_text_buffer_create_tag(text_buffer, "type", "foreground", settings.type_color, NULL);
 	gtk_text_buffer_create_tag(text_buffer, "operator", "foreground", settings.operator_color, NULL);
 	gtk_text_buffer_create_tag(text_buffer, "number", "foreground", settings.number_color, NULL);
