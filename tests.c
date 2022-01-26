@@ -9,6 +9,46 @@
 #define FAILED 1
 
 
+/* main.c */
+
+void test_table(void)
+{
+	printf("test_table()\n");
+
+	struct Table *t = table_create();
+	int *p = (int *) malloc(sizeof(int));
+	*p = 123;
+	table_store(t, "the number", (void *) p);
+	void *d = table_get(t, "the number");
+	int the_number = *((int *) d);
+	printf("test_table: the number: %d\n", the_number);
+	table_store(t, "the string", (void *) "forty two");
+	d = table_get(t, "the string");
+	const char *the_str = (const char *) d;
+	printf("test_table: the string: %s\n", the_str);
+}
+
+
+/* strings.c */
+
+// not automated, just a sensibility-check for time being
+void test_get_word_with_allocate(void)
+{
+	char s[] = "This is a sentence!";
+	//char s[] = "abc  123	xyz 	\n abc-+*/123";
+	//char s[] = "";
+	//char s[] = "¹@£$½¬{[]}\`]}";
+	//char s[] = "\n¹@£$½¬\n\n{[]}\n\`]}\n"; // unknown espace sequence warning
+	char *p = (char *) s;
+
+	printf("%s\n", s);
+	while (char *w = get_word_with_allocate(&p)) {
+		printf("word: %s\n", w);
+		free(w);
+	}
+}
+
+
 /* search-replace.c: */
 
 

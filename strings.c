@@ -3,6 +3,8 @@
 #include <string.h>
 #include <assert.h>
 
+#include "declarations.h"
+
 /*
 	int -> number of bytes copied 
 	copy_string(
@@ -169,22 +171,39 @@ int is_beginning_of(const char *needle, const char *haystack)
 {
 	return strstr(haystack, needle) == haystack;
 }
-/*
-char *get_slice_by_literally(char **original, char ch)
+
+
+char *get_slice_by_version2(char **original, char ch)
 {
-	for (int i = 0;; ++i) {
+	int i = 0;
+
+	if (*original == NULL) {
+		return NULL;
+	}
+
+	if (*original[0] == '\0') {
+		*original = NULL;
+		return NULL;
+	}
+	while (1) {
 		if ((*original)[i] == '\0') {
-			break;
+			char *r = *original;
+			*original = NULL;
+			return r;
+			//break;
 		}
 		if ((*original)[i] == ch) {
 			(*original)[i] = '\0';
-			*original = 
-			return 
+			char *r = *original + i;
+			*original = &(*original)[i + 1];
+			return r;
 			//break;
 		}
+		++i;
 	}
 }
-*/
+
+
 // The input-string must be writable!
 //@ "abc" and "abc:" will both return "abc" if slicing by ':'. perhaps we wanna know
 char *get_slice_by(char **p_s, char ch)
@@ -217,39 +236,47 @@ void test_get_slice_by(void)
 	char *sp, *slice;
 
 	char s[] = "abc";
-	printf("%s -> \n", s);
+	printf("%s ->", s);
 	sp = (char *) s;
-	while (slice = get_slice_by(&sp, ':')) {
-		printf("slice: %s\n", slice);
+	while (slice = get_slice_by_version2(&sp, ':')) {
+		printf(" slice: %s", slice);
 	}
+	printf(" remaining: %s", sp);
+	printf("\n");
 
 	char s2[] = "abc:";
-	printf("%s -> \n", s2);
+	printf("%s ->", s2);
 	sp = (char *) s2;
-	while (slice = get_slice_by(&sp, ':')) {
-		printf("slice: %s\n", slice);
+	while (slice = get_slice_by_version2(&sp, ':')) {
+		printf(" slice: %s", slice);
 	}
-
+	printf(" remaining: %s", sp);
+	printf("\n");
+/*
 	char s3[] = "abc:123";
-	printf("%s -> \n", s3);
+	printf("%s ->", s3);
 	sp = (char *) s3;
 	while (slice = get_slice_by(&sp, ':')) {
-		printf("slice: %s\n", slice);
+		printf(" slice: %s", slice);
 	}
+	printf("\n");
 
 	char s4[] = "";
-	printf("%s -> \n", s4);
+	printf("%s ->", s4);
 	sp = (char *) s4;
 	while (slice = get_slice_by(&sp, ':')) {
-		printf("slice: %s\n", slice);
+		printf(" slice: %s", slice);
 	}
+	printf("\n");
 
 	char s5[] = " ";
-	printf("%s -> \n", s5);
+	printf("%s ->", s5);
 	sp = (char *) s5;
 	while (slice = get_slice_by(&sp, ':')) {
-		printf("slice: %s\n", slice);
+		printf(" slice: %s", slice);
 	}
+	printf("\n");
+*/
 }
 
 char **slice_by(const char *s, char c)
@@ -386,3 +413,38 @@ void test_get_parent_path()
 }
 
 
+char *get_word_with_allocate(char **pstr)
+{
+	//*pstr = ignore_whitespace(*pstr);
+
+	// also ignore newlines
+	for (;;) {
+		*pstr = ignore_whitespace(*pstr);
+		if (*pstr[0] != '\n') {
+			break;
+		}
+		do {
+			*pstr += 1;
+		} while (*pstr == "\n");
+	}
+
+	int i = 0;
+	while ( !((*pstr)[i] == ' ' || (*pstr)[i] == '\t' || (*pstr)[i] == '\n' || (*pstr)[i] == '\0') ) i += 1;
+	if (i == 0) {
+		*pstr = *pstr + i;
+		return NULL;
+	}
+	char *word = (char *) malloc(i * sizeof(char) + 1);
+	strncpy(word, *pstr, i);
+	word[i] = '\0';
+	*pstr = *pstr + i;
+	return word;	
+}
+
+
+char *ignore_whitespace(char *str)
+{
+	int i = 0;
+	while (str[i] == ' ' || str[i] == '\t') i += 1;
+	return &str[i];
+}

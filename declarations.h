@@ -5,6 +5,9 @@
 
 #include <gtk/gtk.h>
 
+// struct List stuff needs this, but I dont quite understand that:
+#include <stdlib.h>
+
 
 /* tab.c */
 enum WidgetName{
@@ -22,6 +25,7 @@ enum WidgetName{
 	CURRENT_TEXT_HIGHLIGHTING,
 	HIGHLIGHTING_BUTTON_LABEL,
 	HIGHLIGHTING_CHANGED_EVENT_HANDLERS,
+	HIGHLIGHTING_FUNC,
 	HIGHLIGHTING_CHANGED_EVENT_HANDLERS_INDEX,
 	N_WIDGETS
 };
@@ -78,7 +82,53 @@ void get_cursor_position(GtkTextBuffer *buffer, GtkTextMark **pm, GtkTextIter *p
 char *read_file(const char *filename);
 void write_file(const char *filename, const char *contents);
 
+
 /* main.c: */
+
+#define INITIAL_SIZE 3
+
+template <typename T> struct List {
+	T *data; // pointer to dynamically allocated array of any type
+	int index; // this should be initialized to 0
+	int size; // the current size of the elements array
+};
+
+template <typename T>
+struct List<T> *list_create(void) {
+	struct List<T> *l = (struct List<T> *) malloc(sizeof(struct List<T>));
+	l->index = 0;
+	l->size = INITIAL_SIZE;
+	l->data = (T *) malloc(l->size * sizeof(T));
+	return l;
+}
+
+template <typename T>
+void list_add(struct List<T> *l, T item) {
+	//printf("adding an item to the list\n");
+	//assert(l->index < SIZE);
+	if (!(l->index < l->size)) {
+		// realloc()?
+		//printf("allocating more memory\n");
+		l->size *= 2;
+		T *new_memory = (T *) malloc(l->size * sizeof(T));
+		for (int i = 0; i < l->index; ++i) {
+			new_memory[i] = l->data[i];
+		}
+		free(l->data); //@ this can be a problem? because we wanna store all kinds of stuff here
+		l->data = new_memory;
+	}
+	l->data[l->index] = item;
+	l->index += 1;
+}
+
+struct Table {
+	struct List<const char *> *names;
+	struct List<void *> *values;
+};
+struct Table *table_create(void);
+void table_store(struct Table *t, const char *name, void *value);
+void *table_get(struct Table *t, const char *name);
+
 void add_menu_item(GtkMenu *menu, const char *label, GCallback callback, gpointer data);
 char *get_base_name(const char *file_name);
 void refresh_application_title(void);
@@ -113,13 +163,15 @@ void actually_undo_last_action(GtkWidget *tab);
 #define C 1
 #define CSS 2
 */
+
 enum HighlightingType {
 	NONE,
 	C,
 	CSS
 };
 
-void set_text_highlighting(GtkWidget *tab, int type);
+void init_highlighting(void);
+void set_text_highlighting(GtkWidget *tab, const char *new_highlighting);
 #define ON 0
 #define OFF 1
 void set_current_line_highlighting(GtkTextBuffer *text_buffer, int to_what);
@@ -137,6 +189,8 @@ char *get_parent_path(const char *path);
 int is_beginning_of(const char *needle, const char *haystack);
 char *str_replace(const char *h, const char *n, const char *r);
 int copy_string(const char *src, char *dst, int src_i, int dst_i, int n);
+char *get_word_with_allocate(char **pstr);
+char *ignore_whitespace(char *str);
 
 void test_get_parent_path(void);
 void test_str_replace(void);
@@ -167,12 +221,14 @@ gboolean display_openfile_dialog(GdkEventKey *key_event);
 void init_autocomplete_character(GtkTextBuffer *text_buffer);
 
 /* tests.c */
+void test_table(void);
 int test_case_parse_str(const char *str2parse,
 	int expected_action,
 	int expected_line_num,
 	const char *expected_search_str,
 	const char *expected_replace_with_str);
 void test_parse_str(void);
+void test_get_word_with_allocate(void);
 
 
 //#define PRINT_LOG_MESSAGES

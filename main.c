@@ -48,6 +48,31 @@ char *css_file_path = "/home/eero/all/text-editor/themes/css"; // cant be const 
 struct Settings settings;
 
 
+struct Table *table_create(void)
+{
+	struct Table *t = (struct Table *) malloc(sizeof(struct Table));
+	t->names = list_create<const char *>();
+	t->values = list_create<void *>();
+	return t;
+}
+
+void table_store(struct Table *t, const char *name, void *value)
+{
+	list_add(t->names, name);
+	list_add(t->values, value);
+}
+
+void *table_get(struct Table *t, const char *name)
+{
+	for (int i = 0; i < t->names->index; ++i) {
+		if (strcmp(name, t->names->data[i]) == 0) {
+			return t->values->data[i];
+		}
+	}
+	return NULL;
+}
+
+
 /* Well thats an entirely pointless function probably.. */
 void add_menu_item(GtkMenu *menu, const char *label, GCallback callback, gpointer data)
 {
@@ -503,6 +528,8 @@ GtkWidget *create_tab(const char *file_name)
 	int page = gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, NULL);
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page);
 
+	set_text_highlighting(tab, "C");
+	/*
 	set_text_highlighting(tab, NONE);
 	if (file_name) {
 		const char *extension = strrchr(file_name, '.');
@@ -511,6 +538,8 @@ GtkWidget *create_tab(const char *file_name)
 			set_text_highlighting(tab, C);
 		}
 	}
+	*/
+
 	//set_current_line_highlighting(text_buffer, OFF);
 	set_current_line_highlighting(text_buffer, ON);
 
@@ -1455,6 +1484,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	parse_settings_file(NULL);
 	apply_css_from_file((void *) css_file_path);
 
+	init_highlighting();
 	parse_text_tags_file();
 /*
 	pthread_t id;
@@ -1556,7 +1586,9 @@ int main()
 
 	//test_str_replace();
 	//test_parse_str();
-	test_get_slice_by();
+	//test_get_slice_by();
+	//test_get_word_with_allocate();
+	//test_table();
 
 	guint major = gtk_get_major_version();
 	guint minor = gtk_get_minor_version();

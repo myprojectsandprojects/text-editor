@@ -1,20 +1,32 @@
-	    # comments begin with a '#'
 
-language:C
-	comment:
-		foreground: green
-		style: italic
-	
-	identifier:
-		foreground: rgb(1, 2, 3)
-	keyword:
-		foreground: white
-		weight: bold
+# comments begin with a '#'
+# based on the number of spaces before the text
+# we decide what kind of entry it is.
+# no spaces for language name, 1 space for tag name and 2 spaces for property-value pair.
+# rgb-values cant contain spaces!
 
-	# need the '-':
-	preproccessor-directive:
-		foreground: purple
+C
+	comment
+		foreground rgb(67,157,147)
+		#foreground pink
+	string-literal
+		foreground rgb(54,175,114)
+	number-literal
+		foreground rgb(201,111,89)
+	identifier
+		foreground rgb(224,196,129)
+	keyword
+		foreground rgb(200,200,200)
+	type
+		foreground rgb(223,162,113)
+	operator
+		foreground rgb(224,196,129)
+	preprocessor-directive
+		foreground rgb(152,148,168)
+	unknown
+		foreground red
 
+Css
+Python
 Settings
-	comment:
-what is this?
+xxx
