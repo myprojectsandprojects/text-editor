@@ -15,12 +15,14 @@ C
 		foreground rgb(201,111,89)
 	identifier
 		foreground rgb(224,196,129)
+		#foreground rgb(199,173,132)
 	keyword
 		foreground rgb(200,200,200)
 	type
 		foreground rgb(223,162,113)
 	operator
 		foreground rgb(224,196,129)
+		#foreground rgb(199,173,132)
 	preprocessor-directive
 		foreground rgb(152,148,168)
 	unknown

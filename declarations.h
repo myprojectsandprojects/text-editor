@@ -27,6 +27,7 @@ enum WidgetName{
 	HIGHLIGHTING_CHANGED_EVENT_HANDLERS,
 	HIGHLIGHTING_FUNC,
 	HIGHLIGHTING_CHANGED_EVENT_HANDLERS_INDEX,
+	GOTO_MARK,
 	N_WIDGETS
 };
 
@@ -157,18 +158,8 @@ int parse_str(const char *str2parse,
 void init_undo(GtkWidget *tab);
 void actually_undo_last_action(GtkWidget *tab);
 
-/* highlighting.c: */
-/*
-#define NONE 0
-#define C 1
-#define CSS 2
-*/
 
-enum HighlightingType {
-	NONE,
-	C,
-	CSS
-};
+/* highlighting.c: */
 
 void init_highlighting(void);
 void set_text_highlighting(GtkWidget *tab, const char *new_highlighting);
@@ -177,12 +168,10 @@ void set_text_highlighting(GtkWidget *tab, const char *new_highlighting);
 void set_current_line_highlighting(GtkTextBuffer *text_buffer, int to_what);
 GtkWidget *create_highlighting_selection_button(GtkWidget *tab);
 void parse_text_tags_file(void);
-/*
-void init_highlighting(GtkTextBuffer *text_buffer);
-void remove_highlighting(GtkTextBuffer *text_buffer);
-*/
+
 
 /* strings.c: */
+
 char *get_slice_by(char **p_s, char ch);
 char **slice_by(const char *s, char c);
 char *get_parent_path(const char *path);

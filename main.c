@@ -355,37 +355,6 @@ void on_scrolled_window_size_allocate(GtkWidget *scrolled_window, GdkRectangle *
 	gtk_widget_set_size_request(GTK_WIDGET(bottom_margin), allocation->width, allocation->height);
 }
 
-/*
-void on_highlighting_selected(GtkMenuItem *item, gpointer data)
-{
-	LOG_MSG("on_highlighting_selected()\n");
-
-	const char *selected_item = gtk_menu_item_get_label(item);
-	//printf("label: %s\n", selected_item);
-	GtkLabel *button_label = GTK_LABEL(data);
-
-	const char *button_label_text = gtk_label_get_text(button_label);
-	if (strcmp(button_label_text, selected_item) == 0) {
-		LOG_MSG("on_highlighting_selected(): highlighting option already selected. no need to do anything\n");
-		return;
-	}
-
-	gtk_label_set_text(button_label, selected_item);
-
-	// instead of visible_tab_retrieve_widget() maybe we should have something that gives us a tab
-	//to which the widget we already have belongs to.
-	// because we have a button label and we want the tab it belongs to. or really we want the buffer
-	GtkTextBuffer *text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
-	if (strcmp(selected_item, "None") == 0) {
-		LOG_MSG("on_highlighting_selected(): removing highlighting...\n");
-		remove_highlighting(text_buffer);
-	} else {
-		LOG_MSG("on_highlighting_selected(): initializing highlighting...\n");
-		init_highlighting(text_buffer);
-	}
-}
-*/
-
 void on_text_view_size_allocate(GtkWidget *textview, GdkRectangle *alloc, gpointer data) {
 	LOG_MSG("on_text_view_size_allocate()\n");
 	gtk_text_view_set_bottom_margin(GTK_TEXT_VIEW(textview), alloc->height);
@@ -1218,10 +1187,56 @@ gboolean handler4(GdkEventKey *key_event)
 }
 
 
+gboolean set_mark(GdkEventKey *key_event)
+{
+	printf("set_mark()\n");
+
+	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
+	if (!tab) return FALSE;
+
+	GtkTextIter iter;
+	GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
+	get_cursor_position(text_buffer, NULL, &iter, NULL);
+
+	GtkTextMark *goto_mark = (GtkTextMark *) tab_retrieve_widget(tab, GOTO_MARK);
+	if (!goto_mark) {
+		goto_mark = gtk_text_buffer_create_mark(text_buffer, "goto-mark", &iter, TRUE);
+		tab_add_widget_4_retrieval(tab, GOTO_MARK, goto_mark);
+	} else {
+		gtk_text_buffer_move_mark(text_buffer, goto_mark, &iter);
+	}
+}
+
+
+gboolean go_to_mark(GdkEventKey *key_event)
+{
+	printf("go_to_mark()\n");
+
+	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
+	if (!tab) return FALSE;
+
+	GtkTextMark *goto_mark = (GtkTextMark *) tab_retrieve_widget(tab, GOTO_MARK);
+	if (!goto_mark) return TRUE; // in case where we havent set the mark yet
+
+	GtkTextIter iter;
+	GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
+	gtk_text_buffer_get_iter_at_mark(text_buffer, &iter, goto_mark);
+	gtk_text_buffer_place_cursor(text_buffer, &iter);
+
+	GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
+	gtk_text_view_scroll_to_iter(text_view, &iter,
+		0.0,
+		TRUE, // use alignment?
+		0.0, // x-alignment
+		0.5); // y-alignment (in the middle of the screen)
+}
+
+
 gboolean scroll_to_cursor_middle(GdkEventKey *key_event)
 {
 	LOG_MSG("scroll_to_cursor()\n");
 
+	//@
 	GtkTextView *text_view = (GtkTextView *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
 	GtkTextBuffer *text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
 
@@ -1394,8 +1409,11 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(0, 88, scroll_to_cursor_bottom);
 	add_keycombination_handler(0, 79, scroll_to_start);
 	add_keycombination_handler(0, 87, scroll_to_end);
-	add_keycombination_handler(0, 81, scroll_up); // to do. scroll without moving the cursor is the idea
-	add_keycombination_handler(0, 89, scroll_down); // to do
+	add_keycombination_handler(0, 81, scroll_up);
+	add_keycombination_handler(0, 89, scroll_down);
+
+	add_keycombination_handler(0, 91, set_mark); // numpad delete
+	add_keycombination_handler(0, 90, go_to_mark); // numpad 0
 
 	//key_combinations[0][23] = handle_tab; // <tab>
 	add_keycombination_handler(0, 23, handle_tab);
