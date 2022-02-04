@@ -1394,23 +1394,13 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	//add_keycombination_handler(CTRL | ALT, 42, handler4);
 */
 
-	/*
-		84 - numpad "5"
-		80 - numpad up
-		88 - numpad down
-		79 - numpad home
-		87 - numpad end
-		81 - numpad page-up
-		89 - numpad page-down
-	*/
-
-	add_keycombination_handler(0, 84, scroll_to_cursor_middle);
-	add_keycombination_handler(0, 80, scroll_to_cursor_top);
-	add_keycombination_handler(0, 88, scroll_to_cursor_bottom);
-	add_keycombination_handler(0, 79, scroll_to_start);
-	add_keycombination_handler(0, 87, scroll_to_end);
-	add_keycombination_handler(0, 81, scroll_up);
-	add_keycombination_handler(0, 89, scroll_down);
+	add_keycombination_handler(0, 84, scroll_to_cursor_middle); // 84 - numpad "5"
+	add_keycombination_handler(0, 80, scroll_to_cursor_top); // 80 - numpad up
+	add_keycombination_handler(0, 88, scroll_to_cursor_bottom); // 88 - numpad down
+	add_keycombination_handler(0, 79, scroll_to_start); // 79 - numpad home
+	add_keycombination_handler(0, 87, scroll_to_end); // 87 - numpad end
+	add_keycombination_handler(0, 81, scroll_up); // 81 - numpad page-up
+	add_keycombination_handler(0, 89, scroll_down); // 89 - numpad page-down
 
 	add_keycombination_handler(0, 91, set_mark); // numpad delete
 	add_keycombination_handler(0, 90, go_to_mark); // numpad 0
@@ -1469,6 +1459,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	//key_combinations[ALT][33] = delete_end_of_line;
 	add_keycombination_handler(ALT, 33, delete_end_of_line); // alt + p
 	add_keycombination_handler(ALT, 32, delete_word); // alt + o
+	add_keycombination_handler(ALT, 31, delete_inside); // alt + i
 
 	//key_combinations[CTRL][52] = undo_last_action; // ctrl + z
 	add_keycombination_handler(CTRL, 52, undo_last_action);

@@ -659,6 +659,7 @@ gboolean delete_end_of_line(GdkEventKey *key_event)
 gboolean delete_word(GdkEventKey *key_event)
 {
 	printf("delete_word()\n");
+
 	GtkTextBuffer *text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
 	if (!text_buffer) {
 		return FALSE;
@@ -699,6 +700,90 @@ gboolean delete_word(GdkEventKey *key_event)
 	gtk_text_buffer_delete(text_buffer, &start, &i);
 
 	return TRUE;
+}
+
+
+//@ think more about it
+// for the completness sake, we should also do [] and <>
+// doublequotes seem complicated because if we see a doublequote
+// then how would we know if its a closing or opening doublequote without
+// counting doublequotes from the beginning of the file?
+gboolean delete_inside(GdkEventKey *key_event)
+{
+	printf("delete_inside()\n");
+
+	GtkTextBuffer *text_buffer =
+		(GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
+	if (!text_buffer) return FALSE;
+
+	GtkTextIter i;
+	get_cursor_position(text_buffer, NULL, &i, NULL);
+	//gunichar c = gtk_text_iter_get_char(&i);
+	//printf("*** character at cursor: %c\n", c);
+
+	bool parenthesis_found_open,
+		parenthesis_found_close,
+		curlybrace_found_open,
+		curlybrace_found_close;
+	parenthesis_found_open = parenthesis_found_close = curlybrace_found_open = curlybrace_found_close = false;
+	int parenthesis_nestedness, curlybrace_nestedness;
+	curlybrace_nestedness = parenthesis_nestedness = 0;
+
+	GtkTextIter start, end;
+	start = end = i;
+
+	while (gtk_text_iter_backward_char(&start)) {
+		if (gtk_text_iter_get_char(&start) == ')') {
+			parenthesis_nestedness += 1;
+		} else if (gtk_text_iter_get_char(&start) == '(') {
+			if (parenthesis_nestedness > 0) {
+				parenthesis_nestedness -= 1;
+			} else {
+				parenthesis_found_open = true;
+				gtk_text_iter_forward_char(&start);
+				break;
+			}
+		} else if (gtk_text_iter_get_char(&start) == '}') {
+			curlybrace_nestedness += 1;
+		} else if (gtk_text_iter_get_char(&start) == '{') {
+			if (curlybrace_nestedness > 0) {
+				curlybrace_nestedness -= 1;
+			} else {
+				curlybrace_found_open = true;
+				gtk_text_iter_forward_char(&start);
+				break;
+			}
+		}
+	}
+	curlybrace_nestedness = parenthesis_nestedness = 0;
+
+	do {
+		if (gtk_text_iter_get_char(&end) == '(') {
+			parenthesis_nestedness += 1;
+		} else if (gtk_text_iter_get_char(&end) == ')') {
+			if (parenthesis_nestedness > 0) {
+				parenthesis_nestedness -= 1;
+			} else {
+				parenthesis_found_close = true;
+				break;
+			}
+		} else if (gtk_text_iter_get_char(&end) == '{') {
+			curlybrace_nestedness += 1;
+		} else if (gtk_text_iter_get_char(&end) == '}') {
+			if (curlybrace_nestedness > 0) {
+				curlybrace_nestedness -= 1;
+			} else {
+				curlybrace_found_close = true;
+				break;
+			}
+		}
+	} while (gtk_text_iter_forward_char(&end));
+
+	if (parenthesis_found_open && parenthesis_found_close && gtk_text_iter_compare(&start, &end) != 0
+		|| curlybrace_found_open && curlybrace_found_close && gtk_text_iter_compare(&start, &end) != 0)
+	{
+		gtk_text_buffer_delete(text_buffer, &start, &end);
+	}
 }
 
 
