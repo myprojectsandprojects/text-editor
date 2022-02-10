@@ -712,6 +712,7 @@ gboolean delete_inside(GdkEventKey *key_event)
 {
 	printf("delete_inside()\n");
 
+/*
 	GtkTextBuffer *text_buffer =
 		(GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
 	if (!text_buffer) return FALSE;
@@ -721,6 +722,64 @@ gboolean delete_inside(GdkEventKey *key_event)
 	//gunichar c = gtk_text_iter_get_char(&i);
 	//printf("*** character at cursor: %c\n", c);
 
+
+	// lets try doublequotes
+	// this feature only makes sense if the language is C!
+	// take this line of code: "gtk_text_iter_get_char(&k) == '"'" -- there is a single doublequote here
+
+	bool inside_str = false;
+	bool inside_comment = false;
+	GtkTextIter start, end;
+
+	GtkTextIter j;
+	for (gtk_text_buffer_get_start_iter(text_buffer, &j);
+		gtk_text_iter_compare(&j, &i) < 0;
+		gtk_text_iter_forward_char(&j))
+	{
+		//printf(" %c", gtk_text_iter_get_char(&j));
+		if (gtk_text_iter_get_char(&j) == '/') {
+			gtk_text_iter_forward_char(&j);
+			if (gtk_text_iter_get_char(&j) == '*') {
+				// ignore characters inside a block comment
+				while (gtk_text_iter_compare(&j, &i) < 0) {
+					if (gtk_text_iter_get_char(&j) == '*') {
+						gtk_text_iter_forward_char(&j);
+						if (gtk_text_iter_get_char(&j) == '/') {
+							break;
+						}
+					}
+					gtk_text_iter_forward_char(&j);
+				}
+				continue;
+			}
+		} else if (gtk_text_iter_get_char(&j) == '*')
+			if (gtk_text_iter_get_char(&j) == '"') {
+				inside_str = !inside_str;
+				if (inside_str) {
+					start = j;
+					gtk_text_iter_forward_char(&start);
+				}
+			}
+		}
+	}
+
+	if (inside_str) {
+		printf("is inside a string\n");
+		// print the string
+		GtkTextIter k;
+		for (k = i; !gtk_text_iter_is_end(&k); gtk_text_iter_forward_char(&k)) {
+			if (gtk_text_iter_get_char(&k) == '"') {
+				end = k;
+				break;
+			}
+		}
+		gtk_text_buffer_delete(text_buffer, &start, &end);
+	} else {
+		printf("not inside a string\n");
+	}
+*/
+
+/*
 	bool parenthesis_found_open,
 		parenthesis_found_close,
 		curlybrace_found_open,
@@ -784,6 +843,8 @@ gboolean delete_inside(GdkEventKey *key_event)
 	{
 		gtk_text_buffer_delete(text_buffer, &start, &end);
 	}
+	*/
+	return TRUE;
 }
 
 

@@ -1,0 +1,30 @@
+
+/* This is a comment */
+
+current-line-background-color {node1{} pink}
+
+node {
+	subnode1 {
+		subsubnode1 {this is a value}
+	}
+	subnode2 {
+		subsubnode2
+	}
+	some-node {this is a new cool value!}
+}
+
+highlighting {
+	languages {
+		C {
+			tags {
+				comment {
+					foreground-color {green}
+					style {italic}
+				}
+			}
+		}
+		Python {}
+		Bash {}
+		Css {}
+	}
+}

@@ -40,13 +40,282 @@ const char *parent_dir_icon_path = "/home/eero/all/text-editor/icons/for-light-t
 const char *search_icon_path = "/home/eero/all/text-editor/icons/for-light-theme/search-20.png";
 
 const char *settings_file_path = "/home/eero/all/text-editor/themes/settings";
+const char *new_settings_file_path = "/home/eero/all/text-editor/themes/new-settings";
 //char *css_file = "/home/eero/all/text-editor/themes/css";
 
 char *css_file_path = "/home/eero/all/text-editor/themes/css"; // cant be const because we pass it to pthread_create()
 
 
 struct Settings settings;
+struct Node *new_settings;
 
+
+struct Node *get_node(struct Node *root, const char *apath) {
+	struct Node *result = NULL;
+	char *path = strdup(apath);
+	char *copy = path;
+	//printf("path: %s\n", path);
+
+	struct Node *node = root;
+	char *segment;
+	while ((segment = get_slice_by(&path, '/')) != NULL) {
+		//printf("segment: %s\n", segment);
+		bool found = false;
+		struct Node *n;
+		for (int i = 0; i < node->nodes->i_end; ++i) {
+			n = (struct Node *) node->nodes->data[i];
+			//printf("looking at: %s\n", n->name);
+			if (strcmp(n->name, segment) == 0) {
+				found = true;
+				break;
+			}
+		}
+		if (found) {
+			//printf("found node: %s\n", segment);
+			node = n;
+			result = n; //@ khm
+			continue;
+		} else {
+			break;
+		}
+	}
+
+	free(copy);
+
+	return result;
+}
+
+// return value belongs to the node!
+const char *settings_get_value(struct Node *settings, const char *path) {
+	const char *result = NULL;
+	struct Node *node = get_node(settings, path);
+	if (node) {
+		result = ((struct Node *) node->nodes->data[0])->name; // first child-node stores the value as its name
+	}
+	return result;
+}
+
+void print_node(struct Node *node, int depth) {
+	char indent[100];
+	int i;
+
+	for (i = 0; i < depth; ++i) {
+		//indent[i] = '\t';
+		indent[i] = ' ';
+	}
+	indent[i] = '\0';
+
+	printf("%s%s\n", indent, node->name);
+
+	for (int i = 0; i < node->nodes->i_end; ++i) {
+		print_node((struct Node *) node->nodes->data[i], depth + 1);
+	}
+}
+
+void print_nodes(struct Node *node) {
+	print_node(node, 0);
+}
+
+struct Node *new_parse_settings_file(const char *file_path)
+{
+	printf("new_parse_settings_file()\n");
+
+	char *contents = read_file(file_path);
+	assert(contents); //@ i think we should fail gracefully here
+	//printf("contents:\n%s\n", contents);
+
+	int start_comment, end_comment;
+	start_comment = -1;
+	end_comment = -1;
+	#define SIZE 100
+	char buffer[SIZE];
+	int index = 0;
+
+	struct Node *node_path[100];
+	int path_index = 0;
+
+	struct Node *root = (struct Node *) malloc(sizeof(struct Node));
+	root->name = "Root";
+	root->nodes = new_list();
+
+	node_path[path_index++] = root;
+
+	for (int i = 0; contents[i] != 0; ++i) {
+
+		// ignore comments
+		if (contents[i] == '/') {
+			i += 1;
+			if (contents[i] == '*') {
+				// we have begin comment
+				start_comment = i - 1;
+				while (true) { // until we hit end-of-string or find '*/'
+					i += 1;
+					if (contents[i] == 0) {
+						i -= 1; // we dont want the outer-loop to miss the 0-character
+						break;
+					}
+					if (contents[i] == '*') {
+						i += 1;
+						if (contents[i] == '/') {
+							// we have end comment
+							end_comment = i;
+							/*
+							int n_chars = end_comment - start_comment + 1; // include '/'
+							printf("n_chars: %d\n", n_chars);
+							assert(n_chars < SIZE - 1);
+							strncpy(buffer, &contents[start_comment], n_chars);
+							buffer[n_chars] = 0; // we assume we actually copied this many chars (?)
+							printf("%s\n", buffer);
+							*/
+							break;
+						}
+						i -= 1;
+					}
+				} // 'while'
+				continue;
+			}
+			i -= 1;
+		} // '/'
+
+		if (contents[i] == '{') {
+			buffer[index] = 0;
+			index = 0;
+			//printf("node: %s\n", buffer);
+			
+			const char *node_name = trim_whitespace(buffer);
+			
+			//printf("node name: %s\n", node_name);
+			
+			struct Node *n = (struct Node *) malloc(sizeof(struct Node));
+			n->name = strdup(node_name);
+			n->nodes = new_list();
+
+			list_append(node_path[path_index - 1]->nodes, n);
+			
+			node_path[path_index++] = n;
+			//list_add()
+			/*
+			for (int i = 0; i < path_index; ++i) {
+				printf("%s\n", node_path[i]->name);
+			}
+			printf("\n");
+			*/
+
+			continue;
+		}
+
+		if (contents[i] == '}') {
+			buffer[index] = 0;
+			index = 0;
+			//printf("node: %s\n", buffer);
+
+			const char *node_name = trim_whitespace(buffer);
+			if (strlen(node_name) == 0) {
+				path_index -= 1;
+				continue;
+			}
+
+			//printf("node name: %s\n", node_name);
+
+			struct Node *n = (struct Node *) malloc(sizeof(struct Node));
+			n->name = strdup(node_name);
+			n->nodes = new_list();
+
+			list_append(node_path[path_index - 1]->nodes, n);
+			
+			path_index -= 1;
+			/*
+			for (int i = 0; i < path_index; ++i) {
+				printf("%s\n", node_path[i]->name);
+			}
+			printf("\n");
+			*/
+
+			continue;
+		}
+		
+		// store character
+		//printf("%c\n", contents[i]);
+		buffer[index++] = contents[i];
+	}
+
+	// traverse the tree
+	/*{
+		struct CList *nodes = new_list(); // stack
+	
+		// push item
+		list_append(nodes, root);
+	
+		while (nodes->i_end > 0) {
+	
+			// pop item
+			struct Node *node = (struct Node *) nodes->data[nodes->i_end - 1];
+			nodes->i_end -= 1;
+	
+			for (int i = 0; i < node->nodes->i_end; ++i) {
+				// push item
+				list_append(nodes, node->nodes->data[i]);
+			}
+	
+			printf("node name: %s\n", node->name);
+		}
+	}*/
+
+	//print_nodes(root);
+/*
+	printf("current-line-background: %s\n", settings_get_value(root, "current-line-background"));
+	printf("node/subnode1/subsubnode1: %s\n", settings_get_value(root, "node/subnode1/subsubnode1"));
+	printf("doesnotexist: %s\n", settings_get_value(root, "doesnotexist"));
+	printf("highlighting/languages/C/tags/comment/foreground-color: %s\n",
+		settings_get_value(root, "highlighting/languages/C/tags/comment/foreground-color"));
+	printf("highlighting/languages/C/tags/comment/style: %s\n",
+		settings_get_value(root, "highlighting/languages/C/tags/comment/style"));
+*/
+	// iterate over languages
+	/*
+	struct Node *n_languages = get_node(root, "highlighting/languages");
+	struct CList *children = n_languages->nodes;
+	for (int i = 0; i < children->i_end; ++i) {
+		struct Node *child = (struct Node *) children->data[i];
+		const char *language = child->name;
+		printf("* %s\n", language);
+	}
+*/
+
+	return root;
+}
+
+struct CList *new_list(void) {
+	struct CList *l = (struct CList *) malloc(sizeof(struct CList));
+	l->i_end = 0;
+	l->size = CLIST_INITIAL_SIZE;
+	l->data = (void **) malloc(l->size * sizeof(void *));
+	return l;
+}
+
+void list_append(struct CList *l, void *item) {
+	if (!(l->i_end < l->size)) {
+		// realloc()?
+		l->size *= 2;
+		void **new_memory = (void **) malloc(l->size * sizeof(void *));
+		for (int i = 0; i < l->i_end; ++i) {
+			new_memory[i] = l->data[i];
+		}
+		free(l->data); // freeing the list of pointers, not what is being pointed to
+		l->data = new_memory;
+	}
+	l->data[l->i_end] = item;
+	l->i_end += 1;
+}
+
+void *list_pop_last(struct CList *l) {
+	void *r = NULL;
+	if (l->i_end > 0) {
+		l->i_end -= 1;
+		r = l->data[l->i_end];
+	}
+	return r;
+}
 
 struct Table *table_create(void)
 {
@@ -1495,6 +1764,12 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 	init_highlighting();
 	parse_text_tags_file();
+
+	new_settings = new_parse_settings_file(new_settings_file_path);
+	/*
+	const char *value = settings_get_value(new_settings, "node/some-node");
+	printf("*** the value is: %s\n", value);
+	*/
 /*
 	pthread_t id;
 	int r = pthread_create(&id, NULL, watch_for_changes, css_file_path);

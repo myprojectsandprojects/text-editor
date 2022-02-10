@@ -7,22 +7,24 @@
 
 C
 	comment
-		foreground rgb(160,160,160)
+		foreground rgb(67,157,147)
+		#foreground pink
 	string-literal
-		foreground rgb(120,100,100)
+		foreground rgb(54,175,114)
 	number-literal
-		foreground blue
+		foreground rgb(201,111,89)
 	identifier
-		foreground black
+		foreground rgb(224,196,129)
+		#foreground rgb(199,173,132)
 	keyword
-		foreground black
-		weight bold
+		foreground rgb(200,200,200)
 	type
-		foreground steelblue
+		foreground rgb(223,162,113)
 	operator
-		foreground black
+		foreground rgb(224,196,129)
+		#foreground rgb(199,173,132)
 	preprocessor-directive
-		foreground rgb(41,175,94)
+		foreground rgb(152,148,168)
 	unknown
 		foreground red
 

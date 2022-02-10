@@ -87,6 +87,22 @@ void write_file(const char *filename, const char *contents);
 
 /* main.c: */
 
+#define CLIST_INITIAL_SIZE 3
+
+struct CList {
+	void **data; // pointer to dynamically allocated array of any type
+	int i_end; // this should be initialized to 0
+	int size; // the current size of the elements array
+};
+struct CList *new_list(void);
+void list_append(struct CList *l, void *item);
+void *list_pop_last(struct CList *l);
+
+struct Node {
+	const char *name;
+	struct CList *nodes; // if this is NULL, then node is a leaf-node and name stores the value
+};
+
 #define INITIAL_SIZE 3
 
 template <typename T> struct List {
@@ -181,6 +197,7 @@ char *str_replace(const char *h, const char *n, const char *r);
 int copy_string(const char *src, char *dst, int src_i, int dst_i, int n);
 char *get_word_with_allocate(char **pstr);
 char *ignore_whitespace(char *str);
+char *trim_whitespace(char *str);
 
 void test_get_parent_path(void);
 void test_str_replace(void);

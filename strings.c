@@ -5,6 +5,23 @@
 
 #include "declarations.h"
 
+
+char *trim_whitespace(char *str) {
+	int start_name, end_name;
+	int i = 0;
+
+	while ((str[i] == ' ' || str[i] == '\t' || str[i] == '\n') && str[i] != 0)
+		i += 1;
+	start_name = i;
+	i = strlen(str) - 1;
+	while ((str[i] == ' ' || str[i] == '\t' || str[i] == '\n') && i > start_name)
+		i -= 1;
+	end_name = i;
+	str[i + 1] = 0; //@ if we end up with an empty string, we are writing past 0-character (?)
+
+	return &str[start_name];
+}
+
 /*
 	int -> number of bytes copied 
 	copy_string(

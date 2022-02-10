@@ -684,6 +684,7 @@ GtkWidget *create_highlighting_selection_button(GtkWidget *tab)
 }
 
 
+//@ error handling
 // * if a line from the file has excessive stuff after our stuff, then we dont detect that
 void parse_text_tags_file(void)
 {
@@ -728,7 +729,7 @@ void parse_text_tags_file(void)
 			line[i] = '\0';
 		}
 
-		char *language_name, *tag_name, *property_name, *value;
+		char *language_name, *tag_name/*, *property_name, *value*/;
 		char *copy = strdup(line);
 		
 		if (whitespace_count == 0) {
@@ -756,9 +757,17 @@ void parse_text_tags_file(void)
 		} else if (whitespace_count == 2) {
 			// expecting a property-value pair
 			char *attribute_name = get_word_with_allocate(&line);
-			//printf("*** property name: %s\n", property_name);
+			if(!attribute_name) {
+				printf("%s -> expecting attribute name!\n", copy);
+				continue;
+			}
+			//printf("*** property name: %s\n", attribute_name);
 			char *attribute_value = get_word_with_allocate(&line);
-			//printf("*** value: %s\n\n", value);
+			if(!attribute_value) {
+				printf("%s -> expecting attribute value!\n", copy);
+				continue;
+			}
+			//printf("*** value: %s\n\n", attribute_value);
 			if (!current_tag) {
 				printf("%s -> cant specify an attribute without tag being specified first\n\n", copy);
 				continue;
