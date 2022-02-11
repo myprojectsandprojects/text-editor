@@ -40,7 +40,7 @@ const char *parent_dir_icon_path = "/home/eero/all/text-editor/icons/for-light-t
 const char *search_icon_path = "/home/eero/all/text-editor/icons/for-light-theme/search-20.png";
 
 const char *settings_file_path = "/home/eero/all/text-editor/themes/settings";
-const char *new_settings_file_path = "/home/eero/all/text-editor/themes/new-settings";
+char *new_settings_file_path = "/home/eero/all/text-editor/themes/new-settings"; // cant be const because hotloader needs a non-const thing
 //char *css_file = "/home/eero/all/text-editor/themes/css";
 
 char *css_file_path = "/home/eero/all/text-editor/themes/css"; // cant be const because we pass it to pthread_create()
@@ -1662,6 +1662,18 @@ gboolean scroll_down(GdkEventKey *key_event)
 }
 
 
+gboolean update_settings(gpointer user_arg)
+{
+	printf("update_settings()\n");
+	//printf("update_settings: user_arg: %s\n", (const char *) user_arg);
+	struct Node *new_new_settings = new_parse_settings_file(new_settings_file_path);
+	//@ free old settings
+	new_settings = new_new_settings;
+
+	return FALSE; // dont call us again
+}
+
+
 void activate_handler(GtkApplication *app, gpointer data)
 {
 	LOG_MSG("activate_handler() called\n");
@@ -1780,7 +1792,8 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 	//parse_settings_file(settings_file_path);
 	parse_settings_file(NULL);
-	apply_css_from_file((void *) css_file_path);
+	//apply_css_from_file((void *) css_file_path);
+	apply_css_from_file(NULL);
 
 	init_highlighting();
 	//parse_text_tags_file();
@@ -1798,8 +1811,9 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	}
 */
 
-	hotloader_register_callback(css_file_path, apply_css_from_file);
-	hotloader_register_callback(settings_file_path, parse_settings_file);
+	hotloader_register_callback(css_file_path, apply_css_from_file, NULL);
+	//hotloader_register_callback(settings_file_path, parse_settings_file);
+	hotloader_register_callback(new_settings_file_path, update_settings, new_settings_file_path);
 
 	/*uid_t real_uid = getuid();
 	uid_t effective_uid = geteuid();

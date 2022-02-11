@@ -48,7 +48,7 @@ struct TabInfo {
 
 /* hotloader.c */
 /* gboolean (*GSourceFunc) (gpointer data); */
-void hotloader_register_callback(const char *filepath, GSourceFunc when_changed);
+void hotloader_register_callback(const char *filepath, GSourceFunc when_changed, void *user_arg);
 
 /* file-browser.c: */
 GtkWidget *create_filebrowser_widget(void);

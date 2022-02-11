@@ -10,6 +10,7 @@
 struct Args {
 	const char *filepath;
 	GSourceFunc when_changed;
+	void *user_arg;
 };
 
 
@@ -48,6 +49,7 @@ static void *monitor_changes_and_call(void *args)
 
 	const char *filepath = ((struct Args *) args)->filepath;
 	GSourceFunc when_changed = ((struct Args *) args)->when_changed;
+	void *user_arg = ((struct Args *) args)->user_arg;
 
 	int in_desc = inotify_init();
 
@@ -86,7 +88,7 @@ static void *monitor_changes_and_call(void *args)
 				}
 			} else {
 				assert(event->mask & IN_CLOSE_WRITE);
-				g_timeout_add_seconds(1, when_changed, NULL);
+				g_timeout_add_seconds(1, when_changed, user_arg);
 			}
 
 			p += sizeof(struct inotify_event) + event->len;
@@ -98,7 +100,7 @@ static void *monitor_changes_and_call(void *args)
 
 
 /* gboolean (*GSourceFunc) (gpointer data); */
-void hotloader_register_callback(const char *filepath, GSourceFunc when_changed)
+void hotloader_register_callback(const char *filepath, GSourceFunc when_changed, void *user_arg)
 {
 	LOG_MSG("hotloader_register_callback()\n");
 
@@ -110,6 +112,7 @@ void hotloader_register_callback(const char *filepath, GSourceFunc when_changed)
 	struct Args *args = (Args *) malloc(sizeof(struct Args));
 	args->filepath = filepath;
 	args->when_changed = when_changed;
+	args->user_arg = user_arg;
 
 	pthread_t id;
 	int r = pthread_create(&id, NULL, monitor_changes_and_call, (void *) args);

@@ -12,7 +12,8 @@ highlighting {
 		C {
 			tags {
 				comment {
-					foreground {rgb(160,160,160)}
+					/*foreground {rgb(160,160,160)}*/
+					foreground{red}
 					style {PANGO_STYLE_OBLIQUE} /* PANGO_STYLE_NORMAL, PANGO_STYLE_ITALIC, PANGO_STYLE_OBLIQUE */
 				}
 				identifier {

@@ -65,7 +65,7 @@ and just stick to classes.
 	font: Cascadia Mono 12;
 	font: Source Code Pro SemiBold 12;
 	*/
-	font: Courier 10 Pitch Regular 13;
+	font: Courier 10 Pitch Bold 13;
 }
 
 /*
