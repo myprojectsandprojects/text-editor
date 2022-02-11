@@ -90,7 +90,7 @@ void write_file(const char *filename, const char *contents);
 #define CLIST_INITIAL_SIZE 3
 
 struct CList {
-	void **data; // pointer to dynamically allocated array of any type
+	void **data;
 	int i_end; // this should be initialized to 0
 	int size; // the current size of the elements array
 };
@@ -102,6 +102,9 @@ struct Node {
 	const char *name;
 	struct CList *nodes; // if this is NULL, then node is a leaf-node and name stores the value
 };
+
+struct Node *get_node(struct Node *root, const char *apath);
+const char *settings_get_value(struct Node *settings, const char *path);
 
 #define INITIAL_SIZE 3
 

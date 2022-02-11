@@ -76,6 +76,7 @@ struct Node *get_node(struct Node *root, const char *apath) {
 			result = n; //@ khm
 			continue;
 		} else {
+			result = NULL;
 			break;
 		}
 	}
@@ -683,10 +684,29 @@ GtkWidget *create_tab(const char *file_name)
 
 	GtkTextView *text_view = GTK_TEXT_VIEW(gtk_text_view_new());
 
-	gtk_text_view_set_pixels_above_lines(text_view, settings.pixels_above_lines);
-	gtk_text_view_set_pixels_below_lines(text_view, settings.pixels_below_lines);
-	gtk_text_view_set_left_margin(text_view, settings.left_margin);
-	gtk_text_view_set_wrap_mode(text_view, GTK_WRAP_WORD);
+	//gtk_text_view_set_pixels_above_lines(text_view, settings.pixels_above_lines);
+	//gtk_text_view_set_pixels_below_lines(text_view, settings.pixels_below_lines);
+	//gtk_text_view_set_left_margin(text_view, settings.left_margin);
+	gtk_text_view_set_pixels_above_lines(text_view,
+		atoi(settings_get_value(new_settings, "pixels-above-lines")));
+	gtk_text_view_set_pixels_below_lines(text_view,
+		atoi(settings_get_value(new_settings, "pixels-below-lines")));
+	gtk_text_view_set_left_margin(text_view,
+		atoi(settings_get_value(new_settings, "left-margin")));
+
+	const char *value = settings_get_value(new_settings, "wrap-mode");
+	assert(value);
+	if (strcmp(value, "GTK_WRAP_NONE") == 0) {
+		gtk_text_view_set_wrap_mode(text_view, GTK_WRAP_NONE);
+	} else if (strcmp(value, "GTK_WRAP_CHAR") == 0) {
+		gtk_text_view_set_wrap_mode(text_view, GTK_WRAP_CHAR);
+	} else if (strcmp(value, "GTK_WRAP_WORD") == 0) {
+		gtk_text_view_set_wrap_mode(text_view, GTK_WRAP_WORD);
+	} else if (strcmp(value, "GTK_WRAP_WORD_CHAR") == 0) {
+		gtk_text_view_set_wrap_mode(text_view, GTK_WRAP_WORD_CHAR);
+	} else {
+		assert(false);
+	}
 
 	// set_tab_stops_internal() in gtksourceview:
 	gint position = 30;
@@ -1763,7 +1783,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	apply_css_from_file((void *) css_file_path);
 
 	init_highlighting();
-	parse_text_tags_file();
+	//parse_text_tags_file();
 
 	new_settings = new_parse_settings_file(new_settings_file_path);
 	/*

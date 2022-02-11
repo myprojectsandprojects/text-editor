@@ -25,8 +25,9 @@ struct Language {
 struct List<struct Language *> *languages;
 struct Table *func_table; // names -> highlighting functions
 
-extern GtkWidget *notebook;
+//extern GtkWidget *notebook;
 extern struct Settings settings;
+extern struct Node *new_settings;
 
 //@ multiple tabs share these global variables... could this be a problem?
 int global_location_offset; // location of last insertion or deletion
@@ -265,7 +266,7 @@ void css_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *
 	printf("css_highlight()\n");
 }
 
-void init_highlighting()
+void init_highlighting(void)
 {
 	assert(!func_table);
 
@@ -278,6 +279,39 @@ void create_tags(GtkTextBuffer *text_buffer, const char *language)
 {
 	printf("create_tags()\n");
 	printf("create_tags: creating tags for \"%s\"\n", language);
+
+	const int size = 100;
+	char path[size];
+	snprintf(path, size, "highlighting/languages/%s/tags", language);
+	struct Node *tags = get_node(new_settings, path);
+	assert(tags);
+
+	for (int i = 0; i < tags->nodes->i_end; ++i) {
+		struct Node *tag = (struct Node *) tags->nodes->data[i];
+		const char *tag_name = tag->name;
+		printf("creating tag: %s\n", tag_name);
+		GtkTextTag *gtk_tag = gtk_text_buffer_create_tag(text_buffer, tag_name, NULL);
+		for (int i = 0; i < tag->nodes->i_end; ++i) {
+			struct Node *name = (struct Node *) tag->nodes->data[i];
+			struct Node *value = (struct Node *) name->nodes->data[0];
+			if (strcmp(name->name, "style") == 0) {
+				PangoStyle translated_value;
+				if (strcmp(value->name, "PANGO_STYLE_NORMAL") == 0) {
+					translated_value = PANGO_STYLE_NORMAL;
+				} else if (strcmp(value->name, "PANGO_STYLE_ITALIC") == 0) {
+					translated_value = PANGO_STYLE_ITALIC;
+				} else if (strcmp(value->name, "PANGO_STYLE_OBLIQUE") == 0) {
+					translated_value = PANGO_STYLE_OBLIQUE;
+				} else {
+					assert(false); //@ more elegant error handling, inform the user
+				}
+				g_object_set(G_OBJECT(gtk_tag), name->name, translated_value, NULL);
+				continue;
+			}
+			g_object_set(G_OBJECT(gtk_tag), name->name, value->name, NULL);
+		}
+	}
+	return;
 
 	for (int i = 0; i < languages->index; ++i) {
 		//printf("%s\n", languages->data[i]->name);
@@ -318,6 +352,22 @@ void create_tags(GtkTextBuffer *text_buffer, const char *language)
 void remove_tags(GtkTextBuffer *text_buffer, const char *language)
 {
 	printf("remove_tags()\n");
+
+	const int size = 100;
+	char path[size];
+	snprintf(path, size, "highlighting/languages/%s/tags", language);
+	struct Node *tags = get_node(new_settings, path);
+
+	GtkTextTagTable *table = gtk_text_buffer_get_tag_table(text_buffer);
+
+	for (int i = 0; i < tags->nodes->i_end; ++i) {
+		struct Node *tag = (struct Node *) tags->nodes->data[i];
+		const char *tag_name = tag->name;
+		//printf("removing tag: %s\n", tag_name);
+		GtkTextTag* gtk_tag = gtk_text_tag_table_lookup(table, tag_name);
+		gtk_text_tag_table_remove(table, gtk_tag);
+	}
+	return;
 
 	for (int i = 0; i < languages->index; ++i) {
 		//printf("%s\n", languages->data[i]->name);
@@ -409,7 +459,7 @@ TOKEN_RANGE:
 	print_tags(buffer, &abs_start, &abs_end);*/
 
 	void *func = tab_retrieve_widget((GtkWidget *) data, HIGHLIGHTING_FUNC);
-	if (func) {
+	if (func) { //@ shouldnt this be an assertion? why are we being called, if there is no highlighting?
 		((void (*) (GtkTextBuffer *, GtkTextIter *, GtkTextIter *)) func)(buffer, &start, &end);
 	}
 
@@ -504,7 +554,6 @@ void event_register_handler(const char *event_name, void *handler, GtkWidget *ta
 	printf("event_register_handler()\n");
 
 	if (strcmp(event_name, "highlighting-changed") == 0) {
-		printf("todo: register handler for \"highlighting-changed\"\n");
 		struct List<void *> *handlers =
 			(struct List<void *> *) tab_retrieve_widget(tab, HIGHLIGHTING_CHANGED_EVENT_HANDLERS);
 		if (!handlers) {
@@ -522,7 +571,6 @@ void event_trigger_handlers(const char *event_name, GtkWidget *tab)
 	printf("event_trigger_handlers()\n");
 
 	if (strcmp(event_name, "highlighting-changed") == 0) {
-		printf("event_trigger_handlers: todo: trigger \"highlighting-changed\" handlers\n");
 		struct List<void *> *handlers =
 			(struct List<void *> *) tab_retrieve_widget(tab, HIGHLIGHTING_CHANGED_EVENT_HANDLERS);
 		for (int i = 0; i < handlers->index; ++i) {
@@ -574,7 +622,7 @@ void set_text_highlighting(GtkWidget *tab, const char *new_highlighting)
 		create_tags(text_buffer, new_highlighting);
 		GtkTextIter start, end;
 		void *func = table_get(func_table, new_highlighting);
-		if (func) {
+		if (func) { //@ this should be an assertion, eventually
 			gtk_text_buffer_get_bounds(text_buffer, &start, &end);
 			((void (*) (GtkTextBuffer *, GtkTextIter *, GtkTextIter *)) func)(text_buffer, &start, &end);
 		}
@@ -599,8 +647,16 @@ void set_current_line_highlighting(GtkTextBuffer *text_buffer, int to_what)
 	if (to_what == ON) {
 		// current line highlighting ON for the text buffer
 
+/*
 		gtk_text_buffer_create_tag(text_buffer,
 			"line-highlight", "paragraph-background", settings.line_highlight_color, NULL);
+*/
+		{ //@ we dont check if the tag already exists
+			const char *value = settings_get_value(new_settings, "highlighting/line-highlighting-color");
+			gtk_text_buffer_create_tag(text_buffer, "line-highlight",
+				"paragraph-background", value,
+				NULL);
+		}
 
 		//highlighting_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL);
 		unsigned long id = g_signal_connect(G_OBJECT(text_buffer),
@@ -665,9 +721,16 @@ GtkWidget *create_highlighting_selection_button(GtkWidget *tab)
 	GtkWidget *menu = gtk_menu_new();
 
 	add_menu_item(GTK_MENU(menu), "None", G_CALLBACK(on_highlighting_selected), (void *) tab);
+	/*
 	for (int i = 0; i < languages->index; ++i) {
 		const char *language_name = languages->data[i]->name;
 		//printf("todo: create menu item for \"%s\"\n", language_name);
+		add_menu_item(GTK_MENU(menu), language_name, G_CALLBACK(on_highlighting_selected), (void *) tab);
+	}
+	*/
+	struct Node *languages = get_node(new_settings, "highlighting/languages");
+	for (int i = 0; i < languages->nodes->i_end; ++i) {
+		const char *language_name = ((struct Node *)languages->nodes->data[i])->name;
 		add_menu_item(GTK_MENU(menu), language_name, G_CALLBACK(on_highlighting_selected), (void *) tab);
 	}
 

@@ -1,30 +1,55 @@
 
 /* This is a comment */
 
-current-line-background-color {node1{} pink}
-
-node {
-	subnode1 {
-		subsubnode1 {this is a value}
-	}
-	subnode2 {
-		subsubnode2
-	}
-	some-node {this is a new cool value!}
-}
+wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
+left-margin {10}
+pixels-above-lines {0}
+pixels-below-lines {0}
 
 highlighting {
+	line-highlighting-color { rgb(240, 240, 240) }
 	languages {
 		C {
 			tags {
 				comment {
-					foreground-color {green}
-					style {italic}
+					foreground {rgb(160,160,160)}
+					style {PANGO_STYLE_OBLIQUE} /* PANGO_STYLE_NORMAL, PANGO_STYLE_ITALIC, PANGO_STYLE_OBLIQUE */
+				}
+				identifier {
+					foreground {black}
+				}
+				keyword {
+					foreground {black}
+					weight {bold}
+				}
+				string-literal {
+					foreground {rgb(120,100,100)}
+				}
+				number-literal {
+					foreground {blue}
+				}
+				preprocessor-directive {
+					foreground {rgb(41,175,94)}
+				}
+				type {
+					foreground {steelblue}
+				}
+				operator {
+					foreground {black}
+				}
+				unknown {
+					foreground {red}
 				}
 			}
 		}
-		Python {}
-		Bash {}
-		Css {}
+		Python {
+			tags {}
+		}
+		Bash {
+			tags {}
+		}
+		Css {
+			tags {}
+		}
 	}
 }
