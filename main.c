@@ -50,6 +50,9 @@ struct Settings settings;
 struct Node *new_settings;
 
 
+struct CList *tabs; // temp
+
+
 struct Node *get_node(struct Node *root, const char *apath) {
 	struct Node *result = NULL;
 	char *path = strdup(apath);
@@ -315,6 +318,32 @@ void *list_pop_last(struct CList *l) {
 		l->i_end -= 1;
 		r = l->data[l->i_end];
 	}
+	return r;
+}
+
+bool list_delete_item(struct CList *l, void *item)
+{
+	bool r = false;
+
+	int i = 0;
+	while (l->data[i] != item && i < l->i_end) {
+		i += 1;
+	}
+	if (i < l->i_end) {
+		// we found the item
+		r = true;
+
+		// we dont do this because we dont know what it is.
+		// we expect our caller to free the thing themselves.
+		//free(l->data[i]);
+
+		for (int j = i + 1; j < l->i_end; ++j) {
+			l->data[j - 1] = l->data[j];
+		}
+
+		l->i_end -= 1;
+	}
+
 	return r;
 }
 
@@ -648,6 +677,44 @@ void on_adjustment_value_changed(GtkAdjustment *adj, gpointer user_data)
 }
 */
 
+//@ should inform the user and/or use default values
+void configure_text_view(GtkTextView *text_view, struct Node *settings)
+{
+	printf("configure_text_view()\n");
+
+	{
+		const char *value_str = settings_get_value(new_settings, "pixels-above-lines");
+		assert(value_str);
+		gtk_text_view_set_pixels_above_lines(text_view, atoi(value_str));
+	}
+
+	{
+		const char *value_str = settings_get_value(new_settings, "pixels-below-lines");
+		assert(value_str);
+		gtk_text_view_set_pixels_below_lines(text_view, atoi(value_str));
+	}
+
+	{
+		const char *value_str = settings_get_value(new_settings, "left-margin");
+		assert(value_str);
+		gtk_text_view_set_left_margin(text_view, atoi(value_str));
+	}
+
+	const char *value = settings_get_value(new_settings, "wrap-mode");
+	assert(value);
+	if (strcmp(value, "GTK_WRAP_NONE") == 0) {
+		gtk_text_view_set_wrap_mode(text_view, GTK_WRAP_NONE);
+	} else if (strcmp(value, "GTK_WRAP_CHAR") == 0) {
+		gtk_text_view_set_wrap_mode(text_view, GTK_WRAP_CHAR);
+	} else if (strcmp(value, "GTK_WRAP_WORD") == 0) {
+		gtk_text_view_set_wrap_mode(text_view, GTK_WRAP_WORD);
+	} else if (strcmp(value, "GTK_WRAP_WORD_CHAR") == 0) {
+		gtk_text_view_set_wrap_mode(text_view, GTK_WRAP_WORD_CHAR);
+	} else {
+		assert(false);
+	}
+}
+
 GtkWidget *create_tab(const char *file_name)
 {
 	static int count = 1;
@@ -683,30 +750,11 @@ GtkWidget *create_tab(const char *file_name)
 
 
 	GtkTextView *text_view = GTK_TEXT_VIEW(gtk_text_view_new());
+	configure_text_view(text_view, new_settings);
 
 	//gtk_text_view_set_pixels_above_lines(text_view, settings.pixels_above_lines);
 	//gtk_text_view_set_pixels_below_lines(text_view, settings.pixels_below_lines);
 	//gtk_text_view_set_left_margin(text_view, settings.left_margin);
-	gtk_text_view_set_pixels_above_lines(text_view,
-		atoi(settings_get_value(new_settings, "pixels-above-lines")));
-	gtk_text_view_set_pixels_below_lines(text_view,
-		atoi(settings_get_value(new_settings, "pixels-below-lines")));
-	gtk_text_view_set_left_margin(text_view,
-		atoi(settings_get_value(new_settings, "left-margin")));
-
-	const char *value = settings_get_value(new_settings, "wrap-mode");
-	assert(value);
-	if (strcmp(value, "GTK_WRAP_NONE") == 0) {
-		gtk_text_view_set_wrap_mode(text_view, GTK_WRAP_NONE);
-	} else if (strcmp(value, "GTK_WRAP_CHAR") == 0) {
-		gtk_text_view_set_wrap_mode(text_view, GTK_WRAP_CHAR);
-	} else if (strcmp(value, "GTK_WRAP_WORD") == 0) {
-		gtk_text_view_set_wrap_mode(text_view, GTK_WRAP_WORD);
-	} else if (strcmp(value, "GTK_WRAP_WORD_CHAR") == 0) {
-		gtk_text_view_set_wrap_mode(text_view, GTK_WRAP_WORD_CHAR);
-	} else {
-		assert(false);
-	}
 
 	// set_tab_stops_internal() in gtksourceview:
 	gint position = 30;
@@ -751,8 +799,8 @@ GtkWidget *create_tab(const char *file_name)
 	gtk_grid_attach(GTK_GRID(status_bar), statusbar_container, 1, 0, 1, 1);
 	gtk_grid_attach(GTK_GRID(status_bar), space, 2, 0, 1, 1);
 
-	GtkWidget *button = create_highlighting_selection_button(tab);
-	gtk_grid_attach(GTK_GRID(status_bar), button, 3, 0, 1, 1);
+	GtkWidget *menu_button = highlighting_new_menu_button(tab, new_settings);
+	gtk_grid_attach(GTK_GRID(status_bar), menu_button, 3, 0, 1, 1);
 
 	add_class(status_bar, "status-bar");
 	//add_class(line_nr_value, "line-number-value-label");
@@ -786,7 +834,10 @@ GtkWidget *create_tab(const char *file_name)
 	int page = gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, NULL);
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page);
 
-	set_text_highlighting(tab, "C");
+	//@ what type of highlighting to use should be decided based on whats found
+	// in the settings-file. each language entry in the settings-file should specify the extensions somehow
+	// so maybe a function like: select_highlighting_based_on_file_extension(const char *file_name) then?
+	set_text_highlighting(tab, "None");
 	/*
 	set_text_highlighting(tab, NONE);
 	if (file_name) {
@@ -799,7 +850,10 @@ GtkWidget *create_tab(const char *file_name)
 	*/
 
 	//set_current_line_highlighting(text_buffer, OFF);
-	set_current_line_highlighting(text_buffer, ON);
+	//set_current_line_highlighting(text_buffer, ON);
+	// if the value is set in settings, we should do line highlighting, otherwise not
+	highlighting_current_line_enable_or_disable(new_settings, text_buffer);
+	//highlighting_current_line_enable(text_buffer, new_settings);
 
 	/* We want autocomplete-character's handler for "insert-text"-signal to be the first handler called.  
 	(code-highlighting and undo also register callbacks for this signal.) */
@@ -862,6 +916,11 @@ GtkWidget *create_tab(const char *file_name)
 		g_signal_connect(adj, "value-changed", G_CALLBACK(on_adjustment_value_changed), NULL);
 	}
 */
+	// I think it makes sense to do this as the very last thing,
+	// because, in theory, update_settings(), which iterates over these tabs,
+	// might be called at any time.
+	list_append(tabs, (void *) tab); // temp
+
 	return tab;
 }
 
@@ -1152,6 +1211,9 @@ gboolean close_tab(GdkEventKey *key_event)
 	}
 	GtkWidget *tab = gtk_notebook_get_nth_page(GTK_NOTEBOOK(notebook), page);
 	gtk_widget_destroy(tab);
+
+	list_delete_item(tabs, tab); // temp
+
 	return TRUE;
 }
 
@@ -1670,6 +1732,41 @@ gboolean update_settings(gpointer user_arg)
 	//@ free old settings
 	new_settings = new_new_settings;
 
+	assert(tabs);
+	for (int i = 0; i < tabs->i_end; ++i) {
+		GtkWidget *tab = (GtkWidget *) tabs->data[i];
+		struct TabInfo *tab_info = (struct TabInfo *) g_object_get_data(G_OBJECT(tab), "tab-info");
+		printf("todo: update tab: %d\n", tab_info->id);
+
+		// update text-view
+		GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
+		configure_text_view(text_view, new_settings);
+
+
+		// we are trying to update the tags in a very hacky way
+		char *highlighting = (char *) tab_retrieve_widget(tab, CURRENT_TEXT_HIGHLIGHTING);
+		assert(highlighting);
+
+		// the string that "highlighting" points to is freed by "set_text_highlighting()"
+		highlighting = strdup(highlighting);
+
+		//printf("highlighting before: %s\n", highlighting);
+		set_text_highlighting(tab, "None");
+		//printf("highlighting after: %s\n", highlighting);
+		set_text_highlighting(tab, highlighting);
+
+		free(highlighting);
+
+
+		// update highlighting menu
+		highlighting_update_menu(tab, new_settings);
+
+		// update line highlighting
+		GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
+		highlighting_current_line_enable_or_disable(new_settings, text_buffer);
+		
+	}
+
 	return FALSE; // dont call us again
 }
 
@@ -1677,6 +1774,8 @@ gboolean update_settings(gpointer user_arg)
 void activate_handler(GtkApplication *app, gpointer data)
 {
 	LOG_MSG("activate_handler() called\n");
+
+	tabs = new_list(); // temp
 
 /*
 Cant call set_root_dir() here because it expects file-browser and root-navigation to be already created.
@@ -1791,14 +1890,14 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 
 	//parse_settings_file(settings_file_path);
-	parse_settings_file(NULL);
+	//parse_settings_file(NULL);
+	new_settings = new_parse_settings_file(new_settings_file_path);
 	//apply_css_from_file((void *) css_file_path);
 	apply_css_from_file(NULL);
 
 	init_highlighting();
 	//parse_text_tags_file();
 
-	new_settings = new_parse_settings_file(new_settings_file_path);
 	/*
 	const char *value = settings_get_value(new_settings, "node/some-node");
 	printf("*** the value is: %s\n", value);
@@ -1813,7 +1912,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 	hotloader_register_callback(css_file_path, apply_css_from_file, NULL);
 	//hotloader_register_callback(settings_file_path, parse_settings_file);
-	hotloader_register_callback(new_settings_file_path, update_settings, new_settings_file_path);
+	hotloader_register_callback(new_settings_file_path, update_settings, NULL);
 
 	/*uid_t real_uid = getuid();
 	uid_t effective_uid = geteuid();
@@ -1907,6 +2006,22 @@ int main()
 	//test_get_slice_by();
 	//test_get_word_with_allocate();
 	//test_table();
+
+/*
+	struct CList *l = new_list();
+	for (int i = 0; i < 10; ++i) {
+		int *p = (int *) malloc(sizeof(int));
+		*p = i;
+		list_append(l, (void *) p);
+	}
+	list_delete_item(l, l->data[2]);
+	list_delete_item(l, l->data[l->i_end - 1]);
+	list_delete_item(l, l->data[0]);
+	for (int i = 0; i < l->i_end; ++i) {
+		printf("%d\n", *((int *) l->data[i]));
+	}
+	return 0;
+*/
 
 	guint major = gtk_get_major_version();
 	guint minor = gtk_get_minor_version();

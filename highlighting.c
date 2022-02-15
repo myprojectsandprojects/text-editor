@@ -23,10 +23,10 @@ struct Language {
 
 
 struct List<struct Language *> *languages;
-struct Table *func_table; // names -> highlighting functions
+struct Table *func_table; // maps highlighting languages to highlighting functions
 
 //extern GtkWidget *notebook;
-extern struct Settings settings;
+//extern struct Settings settings;
 extern struct Node *new_settings;
 
 //@ multiple tabs share these global variables... could this be a problem?
@@ -275,22 +275,37 @@ void init_highlighting(void)
 	table_store(func_table, "Css", (void *) css_highlight);
 }
 
-void create_tags(GtkTextBuffer *text_buffer, const char *language)
+void create_tags(GtkWidget *tab, const char *language)
 {
 	printf("create_tags()\n");
 	printf("create_tags: creating tags for \"%s\"\n", language);
+
+	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
+
+	// we store them so that we know what to remove when highlighting language changes
+	// initially, remove_tags() looked up its tags from settings,
+	// but now, as we are doing the hotloading business, we dont know if the tags have changed..
+	// alternatively, we could perhaps remove the tags before updating the settings
+	struct CList *tags_list = new_list();
+	//@ free old list
+	tab_add_widget_4_retrieval(tab, HIGHLIGHTING_TAGS, (void *) tags_list);
 
 	const int size = 100;
 	char path[size];
 	snprintf(path, size, "highlighting/languages/%s/tags", language);
 	struct Node *tags = get_node(new_settings, path);
-	assert(tags);
+
+	//assert(tags);
+	if (!tags) {
+		return;
+	}
 
 	for (int i = 0; i < tags->nodes->i_end; ++i) {
 		struct Node *tag = (struct Node *) tags->nodes->data[i];
 		const char *tag_name = tag->name;
 		printf("creating tag: %s\n", tag_name);
 		GtkTextTag *gtk_tag = gtk_text_buffer_create_tag(text_buffer, tag_name, NULL);
+		list_append(tags_list, (void *) gtk_tag);
 		for (int i = 0; i < tag->nodes->i_end; ++i) {
 			struct Node *name = (struct Node *) tag->nodes->data[i];
 			struct Node *value = (struct Node *) name->nodes->data[0];
@@ -349,10 +364,20 @@ void create_tags(GtkTextBuffer *text_buffer, const char *language)
 	assert(false);
 }
 
-void remove_tags(GtkTextBuffer *text_buffer, const char *language)
+void remove_tags(GtkWidget *tab, const char *language)
 {
 	printf("remove_tags()\n");
 
+	GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
+	GtkTextTagTable *table = gtk_text_buffer_get_tag_table(text_buffer);
+
+	struct CList *tags = (struct CList *) tab_retrieve_widget(tab, HIGHLIGHTING_TAGS);
+	for (int i = 0; i < tags->i_end; ++i) {
+		gtk_text_tag_table_remove(table, (GtkTextTag *) tags->data[i]);
+	}
+
+	return;
+#if 0
 	const int size = 100;
 	char path[size];
 	snprintf(path, size, "highlighting/languages/%s/tags", language);
@@ -365,7 +390,6 @@ void remove_tags(GtkTextBuffer *text_buffer, const char *language)
 		const char *tag_name = tag->name;
 		//printf("removing tag: %s\n", tag_name);
 		GtkTextTag* gtk_tag = gtk_text_tag_table_lookup(table, tag_name);
-		gtk_text_tag_table_remove(table, gtk_tag);
 	}
 	return;
 
@@ -386,6 +410,7 @@ void remove_tags(GtkTextBuffer *text_buffer, const char *language)
 		}
 	}
 	assert(false);
+#endif
 }
 
 /* 
@@ -597,7 +622,7 @@ void set_text_highlighting(GtkWidget *tab, const char *new_highlighting)
 	if (old_highlighting
 	&& strcmp(old_highlighting, "None") != 0
 	&& strcmp(new_highlighting, old_highlighting) != 0) {
-		remove_tags(text_buffer, old_highlighting);
+		remove_tags(tab, old_highlighting);
 	}
 
 	if (old_highlighting
@@ -616,10 +641,9 @@ void set_text_highlighting(GtkWidget *tab, const char *new_highlighting)
 	}
 
 	if (!old_highlighting && strcmp(new_highlighting, "None") != 0
-	||
-	strcmp(new_highlighting, "None") != 0
-	&& strcmp(new_highlighting, old_highlighting) != 0) {
-		create_tags(text_buffer, new_highlighting);
+	|| strcmp(new_highlighting, "None") != 0 && strcmp(new_highlighting, old_highlighting) != 0)
+	{
+		create_tags(tab, new_highlighting);
 		GtkTextIter start, end;
 		void *func = table_get(func_table, new_highlighting);
 		if (func) { //@ this should be an assertion, eventually
@@ -636,10 +660,57 @@ void set_text_highlighting(GtkWidget *tab, const char *new_highlighting)
 	}
 
 	event_trigger_handlers("highlighting-changed", tab);
-	//event_trigger_handlers("doesnotexist", tab);
 }
 
 
+void highlighting_current_line_enable(GtkTextBuffer *text_buffer, const char *color)
+{
+	printf("highlighting_current_line_enable()\n");
+
+	// first disable the old thing if it exists
+	highlighting_current_line_disable(text_buffer);
+
+	gtk_text_buffer_create_tag(text_buffer, "line-highlight",
+		"paragraph-background", color,
+		NULL);
+
+	//highlighting_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL);
+	unsigned long id = g_signal_connect(G_OBJECT(text_buffer),
+		"notify::cursor-position", G_CALLBACK(highlighting_text_buffer_cursor_position_changed), NULL);
+	g_object_set_data(G_OBJECT(text_buffer), "highlighting-cursor-position-changed", (void *) id);
+}
+
+
+void highlighting_current_line_disable(GtkTextBuffer *text_buffer)
+{
+	printf("highlighting_current_line_disable()\n");
+
+	GtkTextTagTable *table = gtk_text_buffer_get_tag_table(text_buffer);
+	GtkTextTag* p = gtk_text_tag_table_lookup(table, "line-highlight");
+	if (p) {
+		gtk_text_tag_table_remove(table, p);
+	}
+
+	unsigned long id = (unsigned long) g_object_get_data(G_OBJECT(text_buffer), "highlighting-cursor-position-changed");
+	// g_signal_handler_disconnect: assertion 'handler_id > 0' failed
+	if (id > 0) {
+		g_signal_handler_disconnect(text_buffer, id);
+	}
+}
+
+void highlighting_current_line_enable_or_disable(struct Node *settings, GtkTextBuffer *text_buffer)
+{
+	const char *value = settings_get_value(settings, "highlighting/line-highlighting-color");
+	if (value) {
+		printf("enable line-highlighting\n");
+		highlighting_current_line_enable(text_buffer, value);
+	} else {
+		printf("disable line-highlighting\n");
+		highlighting_current_line_disable(text_buffer);
+	}
+}
+
+/*
 void set_current_line_highlighting(GtkTextBuffer *text_buffer, int to_what)
 {
 	printf("highlighting_init_current_line()\n");
@@ -647,10 +718,6 @@ void set_current_line_highlighting(GtkTextBuffer *text_buffer, int to_what)
 	if (to_what == ON) {
 		// current line highlighting ON for the text buffer
 
-/*
-		gtk_text_buffer_create_tag(text_buffer,
-			"line-highlight", "paragraph-background", settings.line_highlight_color, NULL);
-*/
 		{ //@ we dont check if the tag already exists
 			const char *value = settings_get_value(new_settings, "highlighting/line-highlighting-color");
 			gtk_text_buffer_create_tag(text_buffer, "line-highlight",
@@ -680,7 +747,7 @@ void set_current_line_highlighting(GtkTextBuffer *text_buffer, int to_what)
 		}
 	}
 }
-
+*/
 
 void on_highlighting_selected(GtkMenuItem *item, gpointer data)
 {
@@ -696,54 +763,75 @@ void on_highlighting_changed(GtkWidget *tab)
 {
 	printf("on_highlighting_changed()\n");
 
-	// update the button
-
+	// update the button label
 	const char *highlighting = (const char *) tab_retrieve_widget(tab, CURRENT_TEXT_HIGHLIGHTING);
 	assert(highlighting); // we assume that highlighting is set
-	GtkWidget *button_label = (GtkWidget *) tab_retrieve_widget(tab, HIGHLIGHTING_BUTTON_LABEL);
+	GtkWidget *button_label = (GtkWidget *) tab_retrieve_widget(tab, HIGHLIGHTING_MENU_BUTTON_LABEL);
 	gtk_label_set_text(GTK_LABEL(button_label), highlighting);
 }
 
 
-// a widget that changes and reflects current highlighting language
-GtkWidget *create_highlighting_selection_button(GtkWidget *tab)
+GtkWidget *new_highlighting_selection_menu(GtkWidget *tab, struct Node *settings)
 {
-	printf("create_highlighting_selection_button()\n");
+	printf("new_highlighting_selection_menu()\n");
 
-	GtkWidget *hl_label = gtk_label_new("abc");
-	//GtkWidget *hl_label = gtk_label_new(NULL);
-	GtkWidget *hl_menu_button = gtk_menu_button_new();
-	gtk_container_add(GTK_CONTAINER(hl_menu_button), hl_label);
-	add_class(hl_menu_button, "code-highlighting-menu-button");
-
-	tab_add_widget_4_retrieval(tab, HIGHLIGHTING_BUTTON_LABEL, (void *) hl_label);
-	
 	GtkWidget *menu = gtk_menu_new();
 
 	add_menu_item(GTK_MENU(menu), "None", G_CALLBACK(on_highlighting_selected), (void *) tab);
-	/*
-	for (int i = 0; i < languages->index; ++i) {
-		const char *language_name = languages->data[i]->name;
-		//printf("todo: create menu item for \"%s\"\n", language_name);
-		add_menu_item(GTK_MENU(menu), language_name, G_CALLBACK(on_highlighting_selected), (void *) tab);
-	}
-	*/
-	struct Node *languages = get_node(new_settings, "highlighting/languages");
-	for (int i = 0; i < languages->nodes->i_end; ++i) {
+	struct Node *languages = get_node(settings, "highlighting/languages");
+	for (int i = 0; languages && i < languages->nodes->i_end; ++i) {
 		const char *language_name = ((struct Node *)languages->nodes->data[i])->name;
 		add_menu_item(GTK_MENU(menu), language_name, G_CALLBACK(on_highlighting_selected), (void *) tab);
 	}
 
 	gtk_widget_show_all(menu);
 
-	gtk_menu_button_set_popup(GTK_MENU_BUTTON(hl_menu_button), menu);
-	//gtk_menu_button_set_direction(GTK_MENU_BUTTON(hl_menu_button), GTK_ARROW_UP);
+	return menu;
+}
+
+
+// a widget that changes and reflects current highlighting language
+GtkWidget *highlighting_new_menu_button(GtkWidget *tab, struct Node *settings)
+{
+	printf("create_highlighting_selection_button()\n");
+
+	//GtkWidget *label = gtk_label_new("abc");
+	GtkWidget *label = gtk_label_new(NULL);
+	GtkWidget *menu_button = gtk_menu_button_new();
+	gtk_container_add(GTK_CONTAINER(menu_button), label);
+	add_class(menu_button, "code-highlighting-menu-button");
+
+	GtkWidget *menu = new_highlighting_selection_menu(tab, settings);
+	gtk_menu_button_set_popup(GTK_MENU_BUTTON(menu_button), menu);
+	//gtk_menu_button_set_direction(GTK_MENU_BUTTON(menu_button), GTK_ARROW_UP);
 
 	//register_highlighting_changed_event_handler(tab, (void *) on_highlighting_changed);
 	event_register_handler("highlighting-changed", (void *) on_highlighting_changed, tab);
 	//event_register_handler("doesnotexist", (void *) on_highlighting_changed, tab);
 
-	return hl_menu_button;
+	tab_add_widget_4_retrieval(tab, HIGHLIGHTING_MENU_BUTTON, (void *) menu_button);
+	tab_add_widget_4_retrieval(tab, HIGHLIGHTING_MENU_BUTTON_LABEL, (void *) label);
+	tab_add_widget_4_retrieval(tab, HIGHLIGHTING_MENU, (void *) menu);
+
+	return menu_button;
+}
+
+
+// if the settings are updated, this brings highlighting-selection-menu up-to-date
+void highlighting_update_menu(GtkWidget *tab, struct Node *settings)
+{
+	printf("highlighting_update_selection_menu()\n");
+
+	GtkWidget *old_menu = (GtkWidget *) tab_retrieve_widget(tab, HIGHLIGHTING_MENU);
+	GtkWidget *menu_button = (GtkWidget *) tab_retrieve_widget(tab, HIGHLIGHTING_MENU_BUTTON);
+	//GtkWidget *menu_button_label = (GtkWidget *) tab_retrieve_widget(tab, HIGHLIGHTING_MENU_BUTTON_LABEL);
+	assert(old_menu && menu_button);
+
+	gtk_widget_destroy(old_menu); //@ this?
+	GtkWidget *new_menu = new_highlighting_selection_menu(tab, settings);
+	gtk_menu_button_set_popup(GTK_MENU_BUTTON(menu_button), new_menu); // I have not consulted the docs
+
+	tab_add_widget_4_retrieval(tab, HIGHLIGHTING_MENU, (void *) new_menu);
 }
 
 

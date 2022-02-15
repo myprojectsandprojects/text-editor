@@ -65,7 +65,7 @@ and just stick to classes.
 	font: Cascadia Mono 12;
 	font: Source Code Pro SemiBold 12;
 	*/
-	font: Courier 10 Pitch Bold 13;
+	font: Courier 10 Pitch Regular 13;
 }
 
 /*
@@ -87,7 +87,8 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
-	border: solid 1px black;
+	/*border: solid 1px black;*/
+	border: solid 1px rgb(200, 200, 200);
 	border-radius: 0;
 	background: white;
 	color: black;
@@ -117,7 +118,7 @@ and just stick to classes.
 	background: rgb(254, 218, 73);
 }
 
-
+/*
 .code-highlighting-menu-button
 {
 	background: rgb(41, 87, 116);
@@ -128,7 +129,7 @@ and just stick to classes.
 {
 	background: rgb(51, 97, 126);
 }
-
+*/
 
 .app-window
 {
@@ -141,7 +142,8 @@ and just stick to classes.
 {
 	background: white;
 	/*color: black;*/
-	border: solid 1px black;
+	/*border: solid 1px black;*/
+	border: solid 1px rgb(200, 200, 200);
 }
 
 .main-notebook tab
@@ -164,14 +166,15 @@ and just stick to classes.
 }
 
 .status-bar {
-	background: rgb(21, 67, 96);
-	color: white;
+	border-top: solid 1px rgb(200, 200, 200);
+	background: white;
+	color: black;
 	/*	padding: 10px 10px 10px 10px;*/ /* no effect */
 }
 
 /* No effect in GTK 3.18.9 */
 /*GtkPaned {background: background: rgb(85, 85, 95);}*/
-
+/*
 .home-dir-button
 {
 	background: rgb(246, 121, 82);
@@ -190,7 +193,7 @@ and just stick to classes.
 .parent-dir-button:hover
 {
 	background: rgb(35, 223, 109);
-}
+}*/
 
 .root-dir-label
 {
@@ -202,7 +205,8 @@ and just stick to classes.
 {
 	background: white;
 	color: black;
-	border: solid 1px black;
+	/*border: solid 1px black;*/
+	border: solid 1px rgb(200, 200, 200);
 	border-radius: 0;
 }
 
@@ -230,7 +234,8 @@ and just stick to classes.
 .search-in-files
 {
 	/*background: rgb(255, 255, 210);*/
-	border: solid 1px black;
+	/*border: solid 1px black;*/
+	border: solid 1px rgb(200, 200, 200);
 	border-radius: 0;
 }
 

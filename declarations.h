@@ -23,10 +23,13 @@ enum WidgetName{
 	FILEPATH_LABEL,
 	AUTOCOMPLETE_WORDS,
 	CURRENT_TEXT_HIGHLIGHTING,
-	HIGHLIGHTING_BUTTON_LABEL,
+	HIGHLIGHTING_MENU_BUTTON,
+	HIGHLIGHTING_MENU_BUTTON_LABEL,
+	HIGHLIGHTING_MENU,
 	HIGHLIGHTING_CHANGED_EVENT_HANDLERS,
-	HIGHLIGHTING_FUNC,
 	HIGHLIGHTING_CHANGED_EVENT_HANDLERS_INDEX,
+	HIGHLIGHTING_FUNC,
+	HIGHLIGHTING_TAGS,
 	GOTO_MARK,
 	N_WIDGETS
 };
@@ -97,14 +100,7 @@ struct CList {
 struct CList *new_list(void);
 void list_append(struct CList *l, void *item);
 void *list_pop_last(struct CList *l);
-
-struct Node {
-	const char *name;
-	struct CList *nodes; // if this is NULL, then node is a leaf-node and name stores the value
-};
-
-struct Node *get_node(struct Node *root, const char *apath);
-const char *settings_get_value(struct Node *settings, const char *path);
+bool list_delete_item(struct CList *l, void *item);
 
 #define INITIAL_SIZE 3
 
@@ -142,6 +138,15 @@ void list_add(struct List<T> *l, T item) {
 	l->index += 1;
 }
 
+struct Node {
+	const char *name;
+	struct CList *nodes; // if this is NULL, then node is a leaf-node and name stores the value
+};
+
+struct Node *get_node(struct Node *root, const char *apath);
+const char *settings_get_value(struct Node *settings, const char *path);
+
+// we dont check for duplicates
 struct Table {
 	struct List<const char *> *names;
 	struct List<void *> *values;
@@ -183,11 +188,17 @@ void actually_undo_last_action(GtkWidget *tab);
 
 void init_highlighting(void);
 void set_text_highlighting(GtkWidget *tab, const char *new_highlighting);
+/*
 #define ON 0
 #define OFF 1
 void set_current_line_highlighting(GtkTextBuffer *text_buffer, int to_what);
-GtkWidget *create_highlighting_selection_button(GtkWidget *tab);
-void parse_text_tags_file(void);
+*/
+void highlighting_current_line_enable_or_disable(struct Node *new_settings, GtkTextBuffer *text_buffer);
+void highlighting_current_line_enable(GtkTextBuffer *text_buffer, struct Node *settings);
+void highlighting_current_line_disable(GtkTextBuffer *text_buffer);
+GtkWidget *highlighting_new_menu_button(GtkWidget *tab, struct Node *settings);
+void highlighting_update_menu(GtkWidget *tab, struct Node *settings);
+//void parse_text_tags_file(void);
 
 
 /* strings.c: */
