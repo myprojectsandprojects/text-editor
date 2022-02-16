@@ -838,7 +838,8 @@ GtkWidget *create_tab(const char *file_name)
 	//@ what type of highlighting to use should be decided based on whats found
 	// in the settings-file. each language entry in the settings-file should specify the extensions somehow
 	// so maybe a function like: select_highlighting_based_on_file_extension(const char *file_name) then?
-	set_text_highlighting(tab, "None");
+	select_highlighting_based_on_file_extension(tab, new_settings, file_name);
+	//set_text_highlighting(tab, "None");
 	/*
 	set_text_highlighting(tab, NONE);
 	if (file_name) {

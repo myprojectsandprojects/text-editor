@@ -196,6 +196,7 @@ void actually_undo_last_action(GtkWidget *tab);
 /* highlighting.c: */
 
 void init_highlighting(void);
+void select_highlighting_based_on_file_extension(GtkWidget *tab, struct Node *new_settings, const char *file_name);
 void set_text_highlighting(GtkWidget *tab, const char *new_highlighting);
 /*
 #define ON 0
@@ -215,7 +216,8 @@ void highlighting_update_menu(GtkWidget *tab, struct Node *settings);
 char *get_slice_by(char **p_s, char ch);
 char **slice_by(const char *s, char c);
 char *get_parent_path(const char *path);
-int is_beginning_of(const char *needle, const char *haystack);
+int is_beginning_of(const char *needle, const char *haystack); //@ fix inconsistent style
+bool ends_with(const char *h, const char *n);
 char *str_replace(const char *h, const char *n, const char *r);
 int copy_string(const char *src, char *dst, int src_i, int dst_i, int n);
 char *get_word_with_allocate(char **pstr);

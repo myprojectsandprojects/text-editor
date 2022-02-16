@@ -21,6 +21,11 @@ highlighting
 	{
 		C
 		{
+			file-extensions
+			{
+				.c {}
+				.h {}
+			}
 			tags
 			{
 				comment
@@ -65,6 +70,10 @@ highlighting
 		}
 		CSS
 		{
+			file-extensions
+			{
+				.css {}
+			}
 			tags {}
 		}
 	}

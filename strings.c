@@ -189,6 +189,19 @@ int is_beginning_of(const char *needle, const char *haystack)
 	return strstr(haystack, needle) == haystack;
 }
 
+bool ends_with(const char *h, const char *n)
+{
+	int i = strlen(h) - strlen(n);
+	if (i < 0) {
+		return false;
+	}
+	const char *p = &h[i];
+	if (strcmp(p, n) == 0) {
+		return true;
+	}
+	return false;
+}
+
 
 char *get_slice_by_version2(char **original, char ch)
 {

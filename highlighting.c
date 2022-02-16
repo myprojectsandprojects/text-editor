@@ -275,6 +275,46 @@ void init_highlighting(void)
 	table_store(func_table, "Css", (void *) css_highlight);
 }
 
+void select_highlighting_based_on_file_extension
+	(GtkWidget *tab, struct Node *new_settings, const char *file_name)
+{
+	printf("select_highlighting_based_on_file_extension()\n");
+	//printf("file name: %s\n", file_name);
+
+	if (!file_name) {
+		set_text_highlighting(tab, "None");
+		return;
+	}
+
+	struct Node *languages = get_node(new_settings, "highlighting/languages");
+	assert(languages);
+	const char *language = NULL;
+	for (int i = 0; !language && i < languages->nodes->i_end; ++i) {
+		struct Node *n_language = (struct Node *) languages->nodes->data[i];
+		const char *name = n_language->name;
+		printf("%s\n", name);
+		
+		struct Node *extensions = get_node(n_language, "file-extensions");
+		assert(extensions);
+		for (int i = 0; i < extensions->nodes->i_end; ++i) {
+			struct Node *n_extension = (struct Node *) extensions->nodes->data[i];
+			const char *extension = n_extension->name;
+			//printf("\t%s\n", extension);
+			// "css" or ".css"
+			if (ends_with(file_name, extension)) {
+				language = name;
+				break;
+			}
+		}
+	}
+
+	if (language) {
+		set_text_highlighting(tab, language);
+	} else {
+		set_text_highlighting(tab, "None");
+	}
+}
+
 void create_tags(GtkWidget *tab, const char *language)
 {
 	printf("create_tags()\n");
