@@ -845,6 +845,84 @@ gboolean delete_inside(GdkEventKey *key_event)
 	return TRUE;
 }
 
+gboolean select_inside(GdkEventKey *key_event)
+{
+	printf("select_inside()\n");
+
+	GtkTextBuffer *text_buffer =
+		(GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
+	if (!text_buffer) return FALSE;
+
+	GtkTextIter i;
+	get_cursor_position(text_buffer, NULL, &i, NULL);
+
+	bool parenthesis_found_open,
+		parenthesis_found_close,
+		curlybrace_found_open,
+		curlybrace_found_close;
+	parenthesis_found_open = parenthesis_found_close = curlybrace_found_open = curlybrace_found_close = false;
+	int parenthesis_nestedness, curlybrace_nestedness;
+	curlybrace_nestedness = parenthesis_nestedness = 0;
+
+	GtkTextIter start, end;
+	start = end = i;
+
+	while (gtk_text_iter_backward_char(&start)) {
+		if (gtk_text_iter_get_char(&start) == ')') {
+			parenthesis_nestedness += 1;
+		} else if (gtk_text_iter_get_char(&start) == '(') {
+			if (parenthesis_nestedness > 0) {
+				parenthesis_nestedness -= 1;
+			} else {
+				parenthesis_found_open = true;
+				gtk_text_iter_forward_char(&start);
+				break;
+			}
+		} else if (gtk_text_iter_get_char(&start) == '}') {
+			curlybrace_nestedness += 1;
+		} else if (gtk_text_iter_get_char(&start) == '{') {
+			if (curlybrace_nestedness > 0) {
+				curlybrace_nestedness -= 1;
+			} else {
+				curlybrace_found_open = true;
+				gtk_text_iter_forward_char(&start);
+				break;
+			}
+		}
+	}
+	curlybrace_nestedness = parenthesis_nestedness = 0;
+
+	do {
+		if (gtk_text_iter_get_char(&end) == '(') {
+			parenthesis_nestedness += 1;
+		} else if (gtk_text_iter_get_char(&end) == ')') {
+			if (parenthesis_nestedness > 0) {
+				parenthesis_nestedness -= 1;
+			} else {
+				parenthesis_found_close = true;
+				break;
+			}
+		} else if (gtk_text_iter_get_char(&end) == '{') {
+			curlybrace_nestedness += 1;
+		} else if (gtk_text_iter_get_char(&end) == '}') {
+			if (curlybrace_nestedness > 0) {
+				curlybrace_nestedness -= 1;
+			} else {
+				curlybrace_found_close = true;
+				break;
+			}
+		}
+	} while (gtk_text_iter_forward_char(&end));
+
+	if (parenthesis_found_open && parenthesis_found_close && gtk_text_iter_compare(&start, &end) != 0
+		|| curlybrace_found_open && curlybrace_found_close && gtk_text_iter_compare(&start, &end) != 0)
+	{
+		gtk_text_buffer_select_range(text_buffer, &start, &end);
+	}
+
+	return TRUE;
+}
+
 
 gboolean move_cursor_start_line(GdkEventKey *key_event)
 {
@@ -964,24 +1042,242 @@ gboolean move_cursor_end_line_shift(GdkEventKey *key_event)
 gboolean move_cursor_start_word(GdkEventKey *key_event)
 {
 	printf("move_cursor_start_word()\n");
+
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
+
+	GtkTextIter i;
+
+	get_cursor_position(buffer, NULL, &i, NULL);
+
+	//gboolean u = g_unichar_isalnum('ä');
+	//int a = isalnum('ä');
+	//printf("a: %d, u: %d\n", a, u); // a: 0, u: 1
+
+	gunichar c = gtk_text_iter_get_char(&i);
+
+	if (!g_unichar_isalnum(c) && c != '_') {
+		gtk_text_iter_backward_char(&i);
+		c = gtk_text_iter_get_char(&i);
+		if (!g_unichar_isalnum(c) && c != '_') {
+			// we are not "inside" a "word"
+			printf("we are NOT \"inside\" a \"word\"\n");
+			return TRUE;
+		}
+	}
+
+	//printf("we are \"inside\" a \"word\"\n");
+	while (gtk_text_iter_backward_char(&i)) {
+		c = gtk_text_iter_get_char(&i);
+		if (!g_unichar_isalnum(c) && c != '_') {
+			gtk_text_iter_forward_char(&i);
+			break;
+		}
+	}
+
+	gtk_text_buffer_place_cursor(buffer, &i);
+
+	return TRUE;
+}
+
+gboolean move_cursor_start_word_shift(GdkEventKey *key_event)
+{
+	printf("move_cursor_start_word()\n");
+
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
+
+	GtkTextIter i, insertion, bound;
+
+	get_cursor_position(buffer, NULL, &i, NULL);
+
+	bound = i;
+
+	//gboolean u = g_unichar_isalnum('ä');
+	//int a = isalnum('ä');
+	//printf("a: %d, u: %d\n", a, u); // a: 0, u: 1
+
+	gunichar c = gtk_text_iter_get_char(&i);
+
+	if (!g_unichar_isalnum(c) && c != '_') {
+		gtk_text_iter_backward_char(&i);
+		c = gtk_text_iter_get_char(&i);
+		if (!g_unichar_isalnum(c) && c != '_') {
+			// we are not "inside" a "word"
+			printf("we are NOT \"inside\" a \"word\"\n");
+			return TRUE;
+		}
+	}
+
+	//printf("we are \"inside\" a \"word\"\n");
+	while (gtk_text_iter_backward_char(&i)) {
+		c = gtk_text_iter_get_char(&i);
+		if (!g_unichar_isalnum(c) && c != '_') {
+			gtk_text_iter_forward_char(&i);
+			break;
+		}
+	}
+
+	insertion = i;
+	gtk_text_buffer_select_range(buffer, &insertion, &bound);
+
 	return TRUE;
 }
 
 gboolean move_cursor_end_word(GdkEventKey *key_event)
 {
 	printf("move_cursor_end_word()\n");
+
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
+
+	GtkTextIter i;
+
+	get_cursor_position(buffer, NULL, &i, NULL);
+
+	//gboolean u = g_unichar_isalnum('ä');
+	//int a = isalnum('ä');
+	//printf("a: %d, u: %d\n", a, u); // a: 0, u: 1
+
+	gunichar c = gtk_text_iter_get_char(&i);
+
+	if (!g_unichar_isalnum(c) && c != '_') {
+		return TRUE;
+	}
+
+	while (gtk_text_iter_forward_char(&i)) {
+		c = gtk_text_iter_get_char(&i);
+		if (!g_unichar_isalnum(c) && c != '_') {
+			break;
+		}
+	}
+
+	gtk_text_buffer_place_cursor(buffer, &i);
+
 	return TRUE;
 }
 
+gboolean move_cursor_end_word_shift(GdkEventKey *key_event)
+{
+	printf("move_cursor_end_word()\n");
+
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
+
+	GtkTextIter i, insertion, bound;
+
+	get_cursor_position(buffer, NULL, &i, NULL);
+	bound = i;
+
+	//gboolean u = g_unichar_isalnum('ä');
+	//int a = isalnum('ä');
+	//printf("a: %d, u: %d\n", a, u); // a: 0, u: 1
+
+	gunichar c = gtk_text_iter_get_char(&i);
+
+	if (!g_unichar_isalnum(c) && c != '_') {
+		return TRUE;
+	}
+
+	while (gtk_text_iter_forward_char(&i)) {
+		c = gtk_text_iter_get_char(&i);
+		if (!g_unichar_isalnum(c) && c != '_') {
+			break;
+		}
+	}
+
+	insertion = i;
+	gtk_text_buffer_select_range(buffer, &insertion, &bound);
+
+	return TRUE;
+}
+
+// eventually we would like to deal with '()', '{}', '[]' and maybe '<>'
+// '<>' are also used as less than and greater than operators
 gboolean move_cursor_opening(GdkEventKey *key_event)
 {
 	printf("move_cursor_opening()\n");
+
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
+
+	GtkTextIter i;
+	get_cursor_position(buffer, NULL, &i, NULL);
+
+	int nestedness = 0;
+	while (gtk_text_iter_backward_char(&i)) {
+		gunichar c = gtk_text_iter_get_char(&i);
+		if (c == '}') {
+			nestedness += 1;
+		} else if (c == '{') {
+			if (nestedness > 0) {
+				nestedness -= 1;
+			} else {
+				gtk_text_buffer_place_cursor(buffer, &i);
+				gboolean v = gtk_text_view_get_cursor_visible(view);
+				printf("cursor visibility: %d\n", v);
+				// should scroll ONLY if neccessary?
+				gtk_text_view_scroll_to_iter(view, &i, 0.0, TRUE, 0.0, 0.1);
+				break;
+			}
+		}
+	}
+
 	return TRUE;
 }
 
 gboolean move_cursor_closing(GdkEventKey *key_event)
 {
 	printf("move_cursor_closing()\n");
+
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
+
+	GtkTextIter i;
+	get_cursor_position(buffer, NULL, &i, NULL);
+
+	int nestedness = 0;
+	while (gtk_text_iter_forward_char(&i)) {
+		gunichar c = gtk_text_iter_get_char(&i);
+		if (c == '{') {
+			nestedness += 1;
+		} else if (c == '}') {
+			if (nestedness > 0) {
+				nestedness -= 1;
+			} else {
+				gtk_text_buffer_place_cursor(buffer, &i);
+				// should scroll ONLY if neccessary?
+				gtk_text_view_scroll_to_iter(view, &i, 0.0, TRUE, 0.0, 0.1);
+				break;
+			}
+		}
+	}
+
+	
 	return TRUE;
 }
 

@@ -76,7 +76,9 @@ gboolean move_cursor_start_line_shift(GdkEventKey *key_event);
 gboolean move_cursor_end_line(GdkEventKey *key_event);
 gboolean move_cursor_end_line_shift(GdkEventKey *key_event);
 gboolean move_cursor_start_word(GdkEventKey *key_event);
+gboolean move_cursor_start_word_shift(GdkEventKey *key_event);
 gboolean move_cursor_end_word(GdkEventKey *key_event);
+gboolean move_cursor_end_word_shift(GdkEventKey *key_event);
 gboolean move_cursor_opening(GdkEventKey *key_event);
 gboolean move_cursor_closing(GdkEventKey *key_event);
 gboolean move_lines_up(GdkEventKey *key_event);
@@ -87,6 +89,7 @@ gboolean change_line(GdkEventKey *key_event);
 gboolean delete_end_of_line(GdkEventKey *key_event);
 gboolean delete_word(GdkEventKey *key_event);
 gboolean delete_inside(GdkEventKey *key_event);
+gboolean select_inside(GdkEventKey *key_event);
 void get_cursor_position(GtkTextBuffer *buffer, GtkTextMark **pm, GtkTextIter *pi, gint *po);
 
 /* fileio.c: */
