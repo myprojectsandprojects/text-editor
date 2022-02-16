@@ -43,7 +43,7 @@ static gboolean init(GtkTextView **pview, GtkTextBuffer **pbuffer)
 void get_cursor_position(GtkTextBuffer *buffer,
 	GtkTextMark **pm, GtkTextIter *pi, gint *po)
 {
-	printf("get_cursor_position()\n");
+	LOG_MSG("get_cursor_position()\n");
 
 	GtkTextMark *m;
 	GtkTextIter i;
@@ -712,7 +712,6 @@ gboolean delete_inside(GdkEventKey *key_event)
 {
 	printf("delete_inside()\n");
 
-/*
 	GtkTextBuffer *text_buffer =
 		(GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
 	if (!text_buffer) return FALSE;
@@ -722,7 +721,7 @@ gboolean delete_inside(GdkEventKey *key_event)
 	//gunichar c = gtk_text_iter_get_char(&i);
 	//printf("*** character at cursor: %c\n", c);
 
-
+/*
 	// lets try doublequotes
 	// this feature only makes sense if the language is C!
 	// take this line of code: "gtk_text_iter_get_char(&k) == '"'" -- there is a single doublequote here
@@ -779,7 +778,6 @@ gboolean delete_inside(GdkEventKey *key_event)
 	}
 */
 
-/*
 	bool parenthesis_found_open,
 		parenthesis_found_close,
 		curlybrace_found_open,
@@ -843,7 +841,7 @@ gboolean delete_inside(GdkEventKey *key_event)
 	{
 		gtk_text_buffer_delete(text_buffer, &start, &end);
 	}
-	*/
+
 	return TRUE;
 }
 
@@ -877,6 +875,39 @@ gboolean move_cursor_start_line(GdkEventKey *key_event)
 	return TRUE;
 }
 
+gboolean move_cursor_start_line_shift(GdkEventKey *key_event)
+{
+	printf("move_cursor_start_line_shift()\n");
+
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
+
+	GtkTextIter i, insertion, bound;
+
+	get_cursor_position(buffer, NULL, &i, NULL);
+
+	bound = i;
+
+	gtk_text_iter_set_line_offset(&i, 0);
+	while (1) {
+		gunichar c = gtk_text_iter_get_char(&i);
+		if (c == ' ' || c == '\t')
+			gtk_text_iter_forward_char(&i);
+		else
+			break;
+	}
+
+	insertion = i;
+
+	gtk_text_buffer_select_range(buffer, &insertion, &bound); // 1st -- insertion, 2nd -- selection bound
+
+	return TRUE;
+}
+
 
 gboolean move_cursor_end_line(GdkEventKey *key_event)
 {
@@ -899,6 +930,58 @@ gboolean move_cursor_end_line(GdkEventKey *key_event)
 
 	gtk_text_buffer_place_cursor(buffer, &i);
 
+	return TRUE;
+}
+
+gboolean move_cursor_end_line_shift(GdkEventKey *key_event)
+{
+	printf("move_cursor_end_line_shift()\n");
+
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	gboolean rv = init(&view, &buffer);
+	if (!rv)
+		return rv;
+
+	GtkTextIter i, insertion, bound;
+
+	get_cursor_position(buffer, NULL, &i, NULL);
+
+	bound = i;
+
+	gtk_text_iter_forward_line(&i);
+	if (!gtk_text_iter_is_end(&i))
+		gtk_text_iter_backward_char(&i);
+
+	insertion = i;
+
+	gtk_text_buffer_select_range(buffer, &insertion, &bound);
+
+	return TRUE;
+}
+
+gboolean move_cursor_start_word(GdkEventKey *key_event)
+{
+	printf("move_cursor_start_word()\n");
+	return TRUE;
+}
+
+gboolean move_cursor_end_word(GdkEventKey *key_event)
+{
+	printf("move_cursor_end_word()\n");
+	return TRUE;
+}
+
+gboolean move_cursor_opening(GdkEventKey *key_event)
+{
+	printf("move_cursor_opening()\n");
+	return TRUE;
+}
+
+gboolean move_cursor_closing(GdkEventKey *key_event)
+{
+	printf("move_cursor_closing()\n");
 	return TRUE;
 }
 

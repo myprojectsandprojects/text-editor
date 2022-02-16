@@ -16,10 +16,56 @@ pixels-below-lines {0}
 
 highlighting
 {
-	/*line-highlighting-color { rgb(240, 240, 240) }*/
+	line-highlighting-color { rgb(240, 240, 240) }
 	languages
 	{
-		one {}
-		three {}
+		C
+		{
+			tags
+			{
+				comment
+				{
+					foreground {rgb(160,160,160)}
+					style {PANGO_STYLE_OBLIQUE} /* PANGO_STYLE_NORMAL, PANGO_STYLE_ITALIC, PANGO_STYLE_OBLIQUE */
+				}
+				identifier
+				{
+					foreground {black}
+				}
+				keyword
+				{
+					foreground {black}
+					weight {bold}
+				}
+				string-literal
+				{
+					foreground {rgb(120,100,100)}
+				}
+				number-literal
+				{
+					foreground {blue}
+				}
+				preprocessor-directive
+				{
+					foreground {rgb(41,175,94)}
+				}
+				type
+				{
+					foreground {steelblue}
+				}
+				operator
+				{
+					foreground {black}
+				}
+				unknown
+				{
+					foreground {red}
+				}
+			}
+		}
+		CSS
+		{
+			tags {}
+		}
 	}
 }

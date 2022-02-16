@@ -1833,10 +1833,14 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	//key_combinations[CTRL][116] = move_cursor_down; // ctrl + <down>
 	add_keycombination_handler(CTRL, 116, move_cursor_down);
 
-	//key_combinations[CTRL][47] = move_cursor_start_line; // ctrl + ö
-	add_keycombination_handler(CTRL, 47, move_cursor_start_line);
-	//key_combinations[CTRL][48] = move_cursor_end_line; // ctrl + ä
-	add_keycombination_handler(CTRL, 48, move_cursor_end_line);
+	add_keycombination_handler(CTRL, 47, move_cursor_start_line); // ctrl + ö
+	add_keycombination_handler(CTRL | SHIFT, 47, move_cursor_start_line_shift); // ctrl + shift + ö
+	add_keycombination_handler(CTRL, 48, move_cursor_end_line); // ctrl + ä
+	add_keycombination_handler(CTRL | SHIFT, 48, move_cursor_end_line_shift); // ctrl + shift + ä
+	add_keycombination_handler(CTRL, 60, move_cursor_start_word); // ctrl + .
+	add_keycombination_handler(CTRL, 61, move_cursor_end_word); // ctrl + -
+	add_keycombination_handler(CTRL, 33, move_cursor_opening); // ctrl + p
+	add_keycombination_handler(CTRL, 34, move_cursor_closing); // ctrl + ü
 
 	//key_combinations[ALT][111] = move_lines_up;
 	add_keycombination_handler(ALT, 111, move_lines_up); // alt + <up arrow>

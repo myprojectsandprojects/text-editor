@@ -153,6 +153,7 @@ and just stick to classes.
 
 .main-notebook tab:active
 {
+	border-top: solid red 1px;
 }
 
 .search-entry
