@@ -6,18 +6,27 @@
 #include "declarations.h"
 
 
-char *trim_whitespace(char *str) {
+char *trim_whitespace(char *str)
+{
+	assert(str);
+
 	int start_name, end_name;
 	int i = 0;
 
-	while ((str[i] == ' ' || str[i] == '\t' || str[i] == '\n') && str[i] != 0)
+	while ((str[i] == ' ' || str[i] == '\t' || str[i] == '\n'))
 		i += 1;
 	start_name = i;
+
+	//@ if str is an empty string, i becomes -1 here
+	// it seems that if we use -1 as an index to access an array
+	// we are reading memory before the array
+	// in this particular case we might be somewhat safe
 	i = strlen(str) - 1;
-	while ((str[i] == ' ' || str[i] == '\t' || str[i] == '\n') && i > start_name)
+
+	while (i > start_name && (str[i] == ' ' || str[i] == '\t' || str[i] == '\n'))
 		i -= 1;
 	end_name = i;
-	str[i + 1] = 0; //@ if we end up with an empty string, we are writing past 0-character (?)
+	str[i + 1] = 0;
 
 	return &str[start_name];
 }

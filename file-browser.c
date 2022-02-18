@@ -75,7 +75,7 @@ static int compare(const void *a, const void *b)
 	return 0;
 }
 
-static void create_nodes_for_dir(
+void create_nodes_for_dir(
 	GtkTreeStore *store,
 	GtkTreeIter *parent,
 	const char *dir_path,
@@ -86,9 +86,11 @@ static void create_nodes_for_dir(
 	--max_depth;
 
 	DIR *dir = opendir(dir_path);
+	/*
 	if (dir == NULL) {
 		printf("create_nodes_for_dir(): opendir() error: errno: %d\n", errno);
 	}
+	*/
 	assert(dir != NULL); // permissions
 
 	char *basenames[1000];
@@ -141,25 +143,18 @@ static void create_nodes_for_dir(
 			COLUMN_IS_EDITABLE, FALSE,
 			-1);
 
-		if (is_dir == TRUE && max_depth > 0) create_nodes_for_dir(store, &iter, entry_path, max_depth);
+		g_object_unref(G_OBJECT(icon)); // !
 
-/*
-		if (S_ISDIR(entry_info.st_mode)) {
-			//@ entry_path is a local thing (allocated on the stack), is it a good idea to pass it as an argument?
-			GtkTreeIter this_node = append_node_to_store(store, parent, folder_icon_path, basenames[j], entry_path);
-			//GtkTreeIter this_node = append_node_to_store(store, parent, NULL, basenames[j], entry_path);
-			if (max_depth > 0) {
-				// okay, we're recursing, so should set some field on the node that says we've already done that
-				// so that when a dir is expanded, we can easily check that field..
-				// maybe more accurate would be to set the field on the parent dir, but then its getting more confusing
-				// and implementation dependant or something.. i dont know
-				create_nodes_for_directory(store, &this_node, entry_path, max_depth);
-			}
-		} else {
-			append_node_to_store(store, parent, file_icon_path, basenames[j], entry_path);
-			//append_node_to_store(store, parent, NULL, basenames[j], entry_path);
-		}
-*/
+		if (is_dir == TRUE && max_depth > 0) create_nodes_for_dir(store, &iter, entry_path, max_depth);
+	}
+
+	// we pass all strings in basenames to gtk_tree_store_set()
+	// hopefully gtk_tree_store_set() doesnt use these strings directly and makes its own copies of them
+	// because we are freeing them here hmm
+	// "The value will be referenced by the store if it is a G_TYPE_OBJECT,
+	// and it will be copied if it is a G_TYPE_STRING or G_TYPE_BOXED."
+	for (int j = 0; j < i; ++j) {
+		free(basenames[j]);
 	}
 }
 

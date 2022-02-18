@@ -56,6 +56,7 @@ void hotloader_register_callback(const char *filepath, GSourceFunc when_changed,
 /* file-browser.c: */
 GtkWidget *create_filebrowser_widget(void);
 GtkTreeStore *create_store(void);
+void create_nodes_for_dir(GtkTreeStore *store, GtkTreeIter *parent, const char *dir_path, int max_depth);
 
 /* search-in-files.c: */
 GtkWidget *create_search_in_files_widget(void);
@@ -227,6 +228,7 @@ char *trim_whitespace(char *str);
 void test_get_parent_path(void);
 void test_str_replace(void);
 void test_get_slice_by(void);
+void test_trim_whitespace(void);
 
 /* autocomplete.c */
 #define MAX_STRS 1000

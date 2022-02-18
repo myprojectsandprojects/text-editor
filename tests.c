@@ -31,6 +31,24 @@ void test_table(void)
 
 /* strings.c */
 
+void test_case_trim_whitespace(const char *original)
+{
+	char *s = strdup(original);
+	printf("\"%s\" -> \"%s\"\n", original, trim_whitespace(s));
+	free(s);
+}
+
+void test_trim_whitespace(void)
+{
+	test_case_trim_whitespace("abc");
+	test_case_trim_whitespace(" abc ");
+	test_case_trim_whitespace("	abc	");
+	test_case_trim_whitespace("	 	abc");
+	test_case_trim_whitespace(" ");
+	test_case_trim_whitespace("");
+	//trim_whitespace(NULL); // assertion fail
+}
+
 // not automated, just a sensibility-check for time being
 void test_get_word_with_allocate(void)
 {

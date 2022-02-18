@@ -44,7 +44,7 @@ const char *settings_file_path = "/home/eero/all/text-editor/themes/settings";
 char *new_settings_file_path = "/home/eero/all/text-editor/themes/new-settings"; // cant be const because hotloader needs a non-const thing
 //char *css_file = "/home/eero/all/text-editor/themes/css";
 
-char *css_file_path = "/home/eero/all/text-editor/themes/css"; // cant be const because we pass it to pthread_create()
+char *css_file_path = "/home/eero/all/text-editor/themes/style.css"; // cant be const because we pass it to pthread_create()
 
 
 struct Settings settings;
@@ -287,6 +287,8 @@ struct Node *new_parse_settings_file(const char *file_path)
 	}
 */
 
+	free(contents);
+
 	return root;
 }
 
@@ -422,8 +424,16 @@ void set_root_dir(const char *path)
 	
 	gtk_label_set_text(GTK_LABEL(root_dir_label), root_dir);
 	refresh_application_title();
+
+	/*
+	// "If the tree_view already has a model set, it will remove it before setting the new model"
+	// ... so i take it to mean that we dont need to explicitly free the model
 	gtk_tree_view_set_model(GTK_TREE_VIEW(file_browser),
 		GTK_TREE_MODEL(create_store()));
+	*/
+	GtkTreeModel *model = gtk_tree_view_get_model(GTK_TREE_VIEW(file_browser));
+	gtk_tree_store_clear(GTK_TREE_STORE(model));
+	create_nodes_for_dir(GTK_TREE_STORE(model), NULL, root_dir, 2);
 }
 
 
@@ -762,6 +772,7 @@ GtkWidget *create_tab(const char *file_name)
 	PangoTabArray *tab_array = pango_tab_array_new(1, TRUE); //@ free?
 	pango_tab_array_set_tab(tab_array, 0, PANGO_TAB_LEFT, position);
 	gtk_text_view_set_tabs(text_view, tab_array);
+	pango_tab_array_free(tab_array);
 
 	add_class(GTK_WIDGET(text_view), "text-view");
 
@@ -835,21 +846,7 @@ GtkWidget *create_tab(const char *file_name)
 	int page = gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, NULL);
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page);
 
-	//@ what type of highlighting to use should be decided based on whats found
-	// in the settings-file. each language entry in the settings-file should specify the extensions somehow
-	// so maybe a function like: select_highlighting_based_on_file_extension(const char *file_name) then?
 	select_highlighting_based_on_file_extension(tab, new_settings, file_name);
-	//set_text_highlighting(tab, "None");
-	/*
-	set_text_highlighting(tab, NONE);
-	if (file_name) {
-		const char *extension = strrchr(file_name, '.');
-		printf("*** extension: %s\n", extension);
-		if (extension && (strcmp(extension, ".c") == 0)) {
-			set_text_highlighting(tab, C);
-		}
-	}
-	*/
 
 	//set_current_line_highlighting(text_buffer, OFF);
 	//set_current_line_highlighting(text_buffer, ON);
@@ -1212,6 +1209,13 @@ gboolean close_tab(GdkEventKey *key_event)
 		return FALSE;
 	}
 	GtkWidget *tab = gtk_notebook_get_nth_page(GTK_NOTEBOOK(notebook), page);
+	struct TabInfo *tab_info = (struct TabInfo *) g_object_get_data(G_OBJECT(tab), "tab-info");
+	assert(tab_info);
+	free((void *) tab_info->title);
+	if (tab_info->file_name) {
+		free((void *) tab_info->file_name);
+	}
+	free(tab_info);
 	gtk_widget_destroy(tab);
 
 	list_delete_item(tabs, tab); // temp
@@ -1408,6 +1412,8 @@ gboolean apply_css_from_file(void *data)
 	//gtk_style_context_add_provider_for_screen(screen, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_FALLBACK);
 	//printf("after gtk_style_context_add_provider_for_screen\n");
 	//gtk_widget_show_all(window);
+
+	g_object_unref(css_file);
 
 	return FALSE; // Dont call again
 }
@@ -2031,6 +2037,10 @@ int main()
 	}
 	return 0;
 */
+/*
+	test_trim_whitespace();
+	return 0;
+*/
 
 	guint major = gtk_get_major_version();
 	guint minor = gtk_get_minor_version();
@@ -2043,6 +2053,7 @@ int main()
 
 	status = g_application_run(G_APPLICATION(app), 0, NULL);
 
-	//g_object_unref(app);
+	g_object_unref(app);
+
 	return status;
 }
