@@ -30,7 +30,7 @@ enum WidgetName{
 	HIGHLIGHTING_CHANGED_EVENT_HANDLERS_INDEX,
 	HIGHLIGHTING_FUNC,
 	HIGHLIGHTING_TAGS,
-	GOTO_MARK,
+	JUMPTO_MARKS,
 	N_WIDGETS
 };
 
@@ -174,6 +174,11 @@ void add_class(GtkWidget *widget, const char *class_name);
 void remove_class(GtkWidget *widget, const char *class_name);
 void add_keycombination_handler(
 	int modifiers, int keycode, gboolean (*handler)(GdkEventKey *key_event));
+
+struct JumpToMarks {
+	int current_mark_i;
+	GtkTextMark *marks[2];
+};
 
 /* search-replace.c */
 GtkWidget *create_search_widget(GtkWidget *tab);

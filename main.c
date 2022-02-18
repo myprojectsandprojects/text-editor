@@ -1553,16 +1553,37 @@ gboolean set_mark(GdkEventKey *key_event)
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
 	if (!tab) return FALSE;
 
-	GtkTextIter iter;
+	GtkTextIter iter_cursor;
 	GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
-	get_cursor_position(text_buffer, NULL, &iter, NULL);
+	get_cursor_position(text_buffer, NULL, &iter_cursor, NULL);
 
+/*
 	GtkTextMark *goto_mark = (GtkTextMark *) tab_retrieve_widget(tab, GOTO_MARK);
 	if (!goto_mark) {
 		goto_mark = gtk_text_buffer_create_mark(text_buffer, "goto-mark", &iter, TRUE);
 		tab_add_widget_4_retrieval(tab, GOTO_MARK, goto_mark);
 	} else {
 		gtk_text_buffer_move_mark(text_buffer, goto_mark, &iter);
+	}
+*/
+
+	struct JumpToMarks *marks = (struct JumpToMarks*) tab_retrieve_widget(tab, JUMPTO_MARKS);
+	if (!marks) {
+		// if this tab doesnt have marks yet, lets create & store them
+		marks = (struct JumpToMarks *) malloc(sizeof(struct JumpToMarks));
+		GtkTextMark *mark1 = gtk_text_buffer_create_mark(text_buffer, NULL, &iter_cursor, TRUE);
+		GtkTextMark *mark2 = gtk_text_buffer_create_mark(text_buffer, NULL, &iter_cursor, TRUE);
+		marks->marks[0] = mark1;
+		marks->marks[1] = mark2;
+		marks->current_mark_i = 0;
+		tab_add_widget_4_retrieval(tab, JUMPTO_MARKS, (void *) marks);
+	} else {
+		GtkTextMark *new_mark = gtk_text_buffer_create_mark(text_buffer, NULL, &iter_cursor, TRUE);
+		gtk_text_buffer_delete_mark(text_buffer, marks->marks[1]);
+		marks->marks[1] = marks->marks[0];
+		marks->marks[0] = new_mark;
+		//marks->current_mark_i = !marks->current_mark_i;
+		marks->current_mark_i = 0;
 	}
 }
 
@@ -1574,15 +1595,18 @@ gboolean go_to_mark(GdkEventKey *key_event)
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
 	if (!tab) return FALSE;
 
-	GtkTextMark *goto_mark = (GtkTextMark *) tab_retrieve_widget(tab, GOTO_MARK);
-	if (!goto_mark) return TRUE; // in case where we havent set the mark yet
+	struct JumpToMarks *marks = (struct JumpToMarks*) tab_retrieve_widget(tab, JUMPTO_MARKS);
+	if (!marks) return TRUE; // in case where we havent set the marks yet
+
+	marks->current_mark_i = !marks->current_mark_i;
+	GtkTextMark *mark = marks->marks[marks->current_mark_i];
 
 	GtkTextIter iter;
 	GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
-	gtk_text_buffer_get_iter_at_mark(text_buffer, &iter, goto_mark);
-	gtk_text_buffer_place_cursor(text_buffer, &iter);
-
 	GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
+
+	gtk_text_buffer_get_iter_at_mark(text_buffer, &iter, mark);
+	gtk_text_buffer_place_cursor(text_buffer, &iter);
 	gtk_text_view_scroll_to_iter(text_view, &iter,
 		0.0,
 		TRUE, // use alignment?
