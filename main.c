@@ -10,6 +10,13 @@
 
 #include "declarations.h"
 
+// It seems to me, and I might be mistaken about this,
+// that GTK *never* deallocates already allocated memory,
+// but it does get reused when possible.
+// So its not neccessarily a sign of a memory leak
+// when memory usage climbs 100MiB+ if you open a large # of tabs for example
+// and does not drop after you close them.
+
 GtkWidget *app_window;
 GtkWidget *nb_container;
 GtkWidget *notebook;
