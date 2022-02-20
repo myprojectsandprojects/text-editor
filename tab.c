@@ -4,7 +4,8 @@
 #include "declarations.h"
 
 
-void *tab_widgets[100][N_WIDGETS];
+#define MAX_TABS 100
+void *tab_widgets[MAX_TABS][N_WIDGETS];
 
 GtkWidget *get_visible_tab(GtkNotebook *notebook)
 {

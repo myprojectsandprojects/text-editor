@@ -638,7 +638,7 @@ void event_trigger_handlers(const char *event_name, GtkWidget *tab)
 	if (strcmp(event_name, "highlighting-changed") == 0) {
 		struct List<void *> *handlers =
 			(struct List<void *> *) tab_retrieve_widget(tab, HIGHLIGHTING_CHANGED_EVENT_HANDLERS);
-		for (int i = 0; i < handlers->index; ++i) {
+		for (int i = 0; handlers && i < handlers->index; ++i) {
 			((void (*) (GtkWidget *)) handlers->data[i])(tab);
 		}
 	} else {

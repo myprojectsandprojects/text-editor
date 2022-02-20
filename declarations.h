@@ -236,14 +236,21 @@ void test_get_slice_by(void);
 void test_trim_whitespace(void);
 
 /* autocomplete.c */
+
 #define MAX_STRS 1000
-struct StrList {
+struct SortedStrs {
 	const char *strs[MAX_STRS];
 	unsigned int counts[MAX_STRS];
-	unsigned int strs_i;
+	unsigned int i;
 };
+struct SortedStrs *sorted_strs_new(void);
+void sorted_strs_free(struct SortedStrs* strs);
+void sorted_strs_print(struct SortedStrs *strs);
+bool sorted_strs_add(struct SortedStrs *strs, const char *str);
+struct SortedStrs *sorted_strs_get_starts_with(struct SortedStrs *strs, const char *starts_with);
+
 void autocomplete_init(GtkNotebook *notebook, GtkApplicationWindow* app_window);
-struct StrList *autocomplete_create_and_store_words(GtkTextBuffer *text_buffer);
+struct SortedStrs *autocomplete_create_and_store_words(GtkTextBuffer *text_buffer);
 gboolean autocomplete_upkey(GdkEventKey *key_event);
 gboolean autocomplete_downkey(GdkEventKey *key_event);
 gboolean do_autocomplete(GdkEventKey *key_event);

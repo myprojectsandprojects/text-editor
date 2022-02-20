@@ -36,40 +36,51 @@ GtkTextIter _start_ident, _end_ident; //@ feels kind of hacky
 int _num_list_items;
 int _index;
 
-struct StrList* create_strlist(void)
+struct SortedStrs *sorted_strs_new(void)
 {
-	struct StrList *p = (struct StrList *) malloc(sizeof(struct StrList));
-	p->strs_i = 0;
+	struct SortedStrs *p = (struct SortedStrs *) malloc(sizeof(struct SortedStrs));
+	p->i = 0;
 	return p;
 }
 
-void print_strs(struct StrList *str_list)
+void sorted_strs_free(struct SortedStrs *strs)
 {
-	for (int i = 0; i < str_list->strs_i; ++i) {
-		printf("(%d) %s\n", str_list->counts[i], str_list->strs[i]);
+	// free strings
+	for (int i = 0; i < strs->i; ++i) {
+		free((void *) strs->strs[i]);
+	}
+
+	// free the struct itself
+	free((void *) strs);
+}
+
+void sorted_strs_print(struct SortedStrs *strs)
+{
+	for (int i = 0; i < strs->i; ++i) {
+		printf("(%d) %s\n", strs->counts[i], strs->strs[i]);
 	}
 }
 
-/* 0 -- false, 1 -- true */
-int add_str(struct StrList *str_list, const char *str)
+// we make a copy of str and store a pointer to that
+bool sorted_strs_add(struct SortedStrs *strs, const char *str)
 {
-	assert(str_list->strs_i <= MAX_STRS);
+	assert(strs->i <= MAX_STRS);
 
 	// do we have space for new strings?
-	if (str_list->strs_i == MAX_STRS) {
-		return 0; // we didnt actually store the string so we let the caller know by returning 'false'
+	if (strs->i == MAX_STRS) {
+		return false; // we didnt actually store the string so we let the caller know by returning 'false'
 	}
 	//printf("adding: %s\n", str);
 /*
-	print_str_list->strs();
+	print_strs->strs();
 	printf("\n");
 */
-	for (int i = 0; i < str_list->strs_i; ++i) {
-		if (strcmp(str, str_list->strs[i]) == 0) {
-			str_list->counts[i] += 1;
+	for (int i = 0; i < strs->i; ++i) {
+		if (strcmp(str, strs->strs[i]) == 0) {
+			strs->counts[i] += 1;
 			int j = i - 1;
 			for (; j >= 0; --j) {
-				if (str_list->counts[i] <= str_list->counts[j]) {
+				if (strs->counts[i] <= strs->counts[j]) {
 					break;
 				}
 			}
@@ -77,37 +88,38 @@ int add_str(struct StrList *str_list, const char *str)
 			if (j < i) {
 				// swap strings
 				//printf("swapping %d with %d\n", i, j);
-				const char *t_str = str_list->strs[i];
-				unsigned int t_count = str_list->counts[i];
-				str_list->strs[i] = str_list->strs[j];
-				str_list->counts[i] = str_list->counts[j];
-				str_list->strs[j] = t_str;
-				str_list->counts[j] = t_count;
+				const char *t_str = strs->strs[i];
+				unsigned int t_count = strs->counts[i];
+				strs->strs[i] = strs->strs[j];
+				strs->counts[i] = strs->counts[j];
+				strs->strs[j] = t_str;
+				strs->counts[j] = t_count;
 			}
-			return 1;
+			return true;
 		}
 	}
 
-	str_list->strs[str_list->strs_i] = str;
-	str_list->counts[str_list->strs_i] = 1;
-	str_list->strs_i += 1;
-	return 1;
+	//strs->strs[strs->i] = str;
+	strs->strs[strs->i] = strdup(str);
+	strs->counts[strs->i] = 1;
+	strs->i += 1;
+	return true;
 }
 
-struct StrList *get_strs(struct StrList *str_list, const char *begins)
+struct SortedStrs *sorted_strs_get_starts_with(struct SortedStrs *strs, const char *starts_with)
 {
-	struct StrList *result = create_strlist();
+	struct SortedStrs *result = sorted_strs_new();
 	int j = 0;
-	for (int i = 0; i < str_list->strs_i; ++i) {
-		//printf("(%d) %s\n", str_list->counts[i], str_list->strs[i]);
-		if (strstr(str_list->strs[i], begins) == str_list->strs[i] && strlen(str_list->strs[i]) > strlen(begins)) {
-			//add_str(result, str_list->strs[i]);
-			result->strs[j] = str_list->strs[i];
-			result->counts[j] = str_list->counts[i];
+	for (int i = 0; i < strs->i; ++i) {
+		//printf("(%d) %s\n", strs->counts[i], strs->strs[i]);
+		if (strstr(strs->strs[i], starts_with) == strs->strs[i] && strlen(strs->strs[i]) > strlen(starts_with)) {
+			//add_str(result, strs->strs[i]);
+			result->strs[j] = strs->strs[i];
+			result->counts[j] = strs->counts[i];
 			++j;
 		}
 	}
-	result->strs_i = j;
+	result->i = j;
 	return result;
 }
 
@@ -136,7 +148,7 @@ void close_suggestions_window(void)
 
 
 static void display_suggestions_window(
-	GtkTextView *text_view, GtkTextIter *location, struct StrList *completions)
+	GtkTextView *text_view, GtkTextIter *location, struct SortedStrs *completions)
 {
 	LOG_MSG("display_suggestions_window()\n");
 
@@ -163,7 +175,7 @@ static void display_suggestions_window(
 	_index = 0;
 
 	GtkWidget *suggestions = gtk_list_box_new();
-	for (int i = 0; i < completions->strs_i; ++i) {
+	for (int i = 0; i < completions->i; ++i) {
 		char n[100];
 		snprintf(n, 100, "(%d)", completions->counts[i]);
 		GtkWidget *l1 = gtk_label_new(n);
@@ -213,11 +225,7 @@ static void display_suggestions_window(
 
 
 static void autocomplete_on_text_buffer_insert_text_after(
-	GtkTextBuffer *text_buffer,
-	GtkTextIter *location,
-	char *text,
-	int len,
-	gpointer user_data)
+	GtkTextBuffer *text_buffer, GtkTextIter *location, char *text, int len, gpointer user_data)
 {
 	LOG_MSG("autocomplete_on_text_buffer_insert_text_after()\n");
 
@@ -285,15 +293,16 @@ static void autocomplete_on_text_buffer_insert_text_after(
 						display_suggestions_window(text_view, location, possible_completions);
 					}
 					*/
-					struct StrList *words = (struct StrList *) tab_retrieve_widget(tab, AUTOCOMPLETE_WORDS);
-					struct StrList *possible_completions = get_strs(words, text);
-					if (possible_completions->strs_i != 0) {
+					struct SortedStrs *words = (struct SortedStrs *) tab_retrieve_widget(tab, AUTOCOMPLETE_WORDS);
+					struct SortedStrs *possible_completions = sorted_strs_get_starts_with(words, text);
+					if (possible_completions->i != 0) {
 						display_suggestions_window(text_view, location, possible_completions);
 						_text_buffer = text_buffer;
 						_start_ident = i;
 						_end_ident = *location;
 					}
-					free(possible_completions); //@ ?
+					// possible_completions contains a list of pointers to the same strings that words do
+					// so we dont want to free them
 				} else {
 					// not at the end of an identifier
 				}
@@ -563,14 +572,17 @@ static void autocomplete_on_notebook_switch_page(
 	/*@ right now, for example: "0x123abc", which is a number literal, gives us "x123abc"
 	and we store it as a word. if thats not what we want, we could also look for number-literals
 	so that we can ignore those characters.. */
-struct StrList *autocomplete_create_and_store_words(GtkTextBuffer *text_buffer)
+struct SortedStrs *autocomplete_create_and_store_words(GtkTextBuffer *text_buffer)
 {
 	LOG_MSG("autocomplete_create_and_store_words()\n");
 
-	struct StrList *words = create_strlist();
+	struct SortedStrs *words = sorted_strs_new();
 	GtkTextIter i;
 
-	int n = 0;
+	// identifiers
+	int num_overall 	= 0;
+	int num_stored 	= 0;
+
 	for (gtk_text_buffer_get_start_iter(text_buffer, &i);
 		!gtk_text_iter_is_end(&i); gtk_text_iter_forward_char(&i)) {
 		gunichar c = gtk_text_iter_get_char(&i);
@@ -582,26 +594,19 @@ struct StrList *autocomplete_create_and_store_words(GtkTextBuffer *text_buffer)
 				if (!g_unichar_isalnum(c) && c != '_') break;
 			}
 			char *ident = gtk_text_buffer_get_text(text_buffer, &ident_start, &i, FALSE);
+			num_overall += 1;
+			bool is_space_left = true;
 			if (strlen(ident) > 1) {
-				//printf("identifier: %s\n", ident);
-				/*
-				words[j] = ident;
-				++j;
-				*/
-				// if no room for new strings then break
-				if (!add_str(words, ident)) {
-					break;
-				}
-				++n;
-				/*
-				if (j - 1 == NUM_WORDS - 1) {
-					break;
-				}
-				*/
+				 is_space_left = sorted_strs_add(words, ident);
 			}
+			free(ident);
+			if (!is_space_left) break;
 		}
 	}
-	LOG_MSG("autocomplete_create_and_store_words: identifiers read: %d\n", n); // we only actually store unique strings
+/*
+	printf("number of identifiers stored: %d\n", words->i);
+	printf("number of identifiers overall: %d\n", num_overall);
+*/
 
 	return words;
 }
@@ -621,7 +626,7 @@ static void autocomplete_init_tab(GtkWidget *tab)
 	g_signal_connect(G_OBJECT(text_buffer), "notify::cursor-position",
 		G_CALLBACK(autocomplete_on_text_buffer_cursor_position_changed), NULL);
 
-	struct StrList *words = autocomplete_create_and_store_words(text_buffer);
+	struct SortedStrs *words = autocomplete_create_and_store_words(text_buffer);
 	tab_add_widget_4_retrieval(tab, AUTOCOMPLETE_WORDS, (void *) words);
 }
 
@@ -645,7 +650,8 @@ void autocomplete_init(GtkNotebook *notebook, GtkApplicationWindow* app_window)
 	_app_window = app_window;
 
 	/* the only reason we want page-removed is to delete the window when the last page/tab is closed. 
-	all other page-remove's always trigger switch-page also.*/
+	all other page-remove's always trigger switch-page also. */
+	// maybe its possible to keep the suggestions-window when switching from one tab to another?
 	g_signal_connect_after(G_OBJECT(notebook), "page-removed",
 		G_CALLBACK(autocomplete_on_notebook_page_removed), NULL);
 

@@ -740,11 +740,11 @@ GtkWidget *create_tab(const char *file_name)
 	//gtk_widget_set_hexpand(tab, TRUE);
 
 	struct TabInfo *tab_info;
-	tab_info = (TabInfo *) malloc(sizeof(struct TabInfo)); //@ free?
+	tab_info = (TabInfo *) malloc(sizeof(struct TabInfo));
 	if (file_name == NULL) {
 		tab_info->file_name = NULL;
 
-		tab_title = (char *) malloc(100); //@ free?
+		tab_title = (char *) malloc(100);
 		snprintf(tab_title, 100, "%s %d", "Untitled", count);
 		tab_info->title = tab_title;
 	} else {
@@ -762,10 +762,6 @@ GtkWidget *create_tab(const char *file_name)
 
 	GtkTextView *text_view = GTK_TEXT_VIEW(gtk_text_view_new());
 	configure_text_view(text_view, new_settings);
-
-	//gtk_text_view_set_pixels_above_lines(text_view, settings.pixels_above_lines);
-	//gtk_text_view_set_pixels_below_lines(text_view, settings.pixels_below_lines);
-	//gtk_text_view_set_left_margin(text_view, settings.left_margin);
 
 	// set_tab_stops_internal() in gtksourceview:
 	gint position = 30;
@@ -795,12 +791,6 @@ GtkWidget *create_tab(const char *file_name)
 	gtk_container_add(GTK_CONTAINER(statusbar_container), separator_label);
 	gtk_container_add(GTK_CONTAINER(statusbar_container), line_number_label);
 
-/*
-	GtkWidget *hl_label = gtk_label_new(NULL);
-	GtkWidget *hl_menu_button = gtk_menu_button_new();
-	gtk_container_add(GTK_CONTAINER(hl_menu_button), hl_label);
-*/
-
 	GtkWidget *status_bar = gtk_grid_new();
 	gtk_grid_set_column_spacing(GTK_GRID(status_bar), 0);
 	GtkWidget *margin = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
@@ -815,8 +805,6 @@ GtkWidget *create_tab(const char *file_name)
 	gtk_grid_attach(GTK_GRID(status_bar), menu_button, 3, 0, 1, 1);
 
 	add_class(status_bar, "status-bar");
-	//add_class(line_nr_value, "line-number-value-label");
-	//add_class(hl_menu_button, "code-highlighting-menu-button");
 
 	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
 
@@ -826,10 +814,6 @@ GtkWidget *create_tab(const char *file_name)
 		free(contents);
 	}
 
-	/*
-	tab_add_widget_4_retrieval(tab, COMMAND_REVEALER, command_revealer);
-	tab_add_widget_4_retrieval(tab, COMMAND_ENTRY, command_entry);
-	*/
 	tab_add_widget_4_retrieval(tab, TEXT_VIEW, text_view);
 	tab_add_widget_4_retrieval(tab, TEXT_BUFFER, text_buffer); //@ haa text-buffer is not a widget! void *?
 	tab_add_widget_4_retrieval(tab, FILEPATH_LABEL, file_path_label);
@@ -848,11 +832,8 @@ GtkWidget *create_tab(const char *file_name)
 
 	select_highlighting_based_on_file_extension(tab, new_settings, file_name);
 
-	//set_current_line_highlighting(text_buffer, OFF);
-	//set_current_line_highlighting(text_buffer, ON);
 	// if the value is set in settings, we should do line highlighting, otherwise not
 	highlighting_current_line_enable_or_disable(new_settings, text_buffer);
-	//highlighting_current_line_enable(text_buffer, new_settings);
 
 	/* We want autocomplete-character's handler for "insert-text"-signal to be the first handler called.  
 	(code-highlighting and undo also register callbacks for this signal.) */
@@ -860,34 +841,7 @@ GtkWidget *create_tab(const char *file_name)
 
 	tab_set_unsaved_changes_to(tab, FALSE);
 
-	/* we create the menu here (after we set buffer contents) because we want to do the initial highlighting while creating the menu */
-	//GtkWidget *menu = gtk_menu_new();
-/*
-	//const char *default_highlighting = "None";
-	const char *default_highlighting = "C";
-	const char *highlightings[] = {
-		"C",
-		"None",
-		NULL
-	};
 
-	int i;
-	for (i = 0; highlightings[i] != NULL; ++i) {
-		//printf("%s\n", languages[i]);
-		GtkWidget *item = gtk_menu_item_new_with_label(highlightings[i]);
-		gtk_menu_attach(GTK_MENU(menu), item, 0, 1, i, i + 1);
-		g_signal_connect(item, "activate", G_CALLBACK(on_highlighting_selected), hl_label);
-
-		if (strcmp(highlightings[i], default_highlighting) == 0) {
-			on_highlighting_selected(GTK_MENU_ITEM(item), hl_label); // set the highlighting
-		}
-	}
-
-	gtk_widget_show_all(menu);
-
-	gtk_menu_button_set_popup(GTK_MENU_BUTTON(hl_menu_button), menu);
-	//gtk_menu_button_set_direction(GTK_MENU_BUTTON(hl_menu_button), GTK_ARROW_UP);
-*/
 	init_undo(tab);
 
 	g_signal_connect(G_OBJECT(text_view), "copy-clipboard", G_CALLBACK(text_view_copy_clipboard), NULL);
@@ -902,19 +856,7 @@ GtkWidget *create_tab(const char *file_name)
 
 	g_signal_connect(G_OBJECT(text_buffer), "changed", G_CALLBACK(text_buffer_changed), NULL);
 	//g_signal_connect_after(G_OBJECT(text_buffer), "changed", G_CALLBACK(text_buffer_changed_after), NULL);
-/*
-	{
-		// so we are doing this to implement up/down scrolling buttons...
-		// this text-mark keeps track of the viewports position
-		// but wouldnt it be easier to query the viewports position in the handler for these buttons directly?
-		// it is possible? am I missing something?
-		GtkTextIter i;
-		gtk_text_buffer_get_start_iter(text_buffer, &i);
-		gtk_text_buffer_create_mark(text_buffer, "scroll-mark", &i, TRUE);
-		GtkAdjustment *adj = gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(text_view));
-		g_signal_connect(adj, "value-changed", G_CALLBACK(on_adjustment_value_changed), NULL);
-	}
-*/
+
 	// I think it makes sense to do this as the very last thing,
 	// because, in theory, update_settings(), which iterates over these tabs,
 	// might be called at any time.
@@ -1209,6 +1151,19 @@ gboolean close_tab(GdkEventKey *key_event)
 		return FALSE;
 	}
 	GtkWidget *tab = gtk_notebook_get_nth_page(GTK_NOTEBOOK(notebook), page);
+
+	// need to do this before freeing the tab-info because tab_retrieve_widget() needs tab-info
+	struct SortedStrs *autocomplete_words = (struct SortedStrs *) tab_retrieve_widget(tab, AUTOCOMPLETE_WORDS);
+	sorted_strs_free(autocomplete_words);
+
+	// test
+	/*
+	GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
+	gtk_widget_destroy(GTK_WIDGET(text_view));
+	*/
+	//GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
+	//g_object_unref(text_buffer);
+
 	struct TabInfo *tab_info = (struct TabInfo *) g_object_get_data(G_OBJECT(tab), "tab-info");
 	assert(tab_info);
 	free((void *) tab_info->title);
@@ -1216,6 +1171,7 @@ gboolean close_tab(GdkEventKey *key_event)
 		free((void *) tab_info->file_name);
 	}
 	free(tab_info);
+
 	gtk_widget_destroy(tab);
 
 	list_delete_item(tabs, tab); // temp
@@ -1367,9 +1323,9 @@ gboolean do_save(GdkEventKey *key_event)
 	tab_set_unsaved_changes_to(tab, FALSE);
 
 	/* autocomplete: we'll update the list of words during each save-op to be more up-to-date */
-	struct StrList *words = autocomplete_create_and_store_words(text_buffer);
-	void *old_words = tab_retrieve_widget(tab, AUTOCOMPLETE_WORDS);
-	free(old_words);
+	struct SortedStrs *words = autocomplete_create_and_store_words(text_buffer);
+	struct SortedStrs *old_words = (struct SortedStrs *) tab_retrieve_widget(tab, AUTOCOMPLETE_WORDS);
+	sorted_strs_free(old_words);
 	tab_add_widget_4_retrieval(tab, AUTOCOMPLETE_WORDS, (void *) words);
 
 	return TRUE;
@@ -2025,11 +1981,12 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 	create_tab(NULL); // re-factor: create_tab() could just create the tab widget, it doesnt have to depend on the notebook at all (?)
 
-	/*GtkWidget *popup_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_decorated(GTK_WINDOW(popup_window), FALSE);
-	gtk_window_set_position(GTK_WINDOW(popup_window), GTK_WIN_POS_CENTER);
-	gtk_window_set_transient_for(GTK_WINDOW(popup_window), GTK_WINDOW(window));
-	gtk_widget_show_all(popup_window);*/
+/*
+	for (int i = 0; i < 90; ++i) {
+		create_tab(strdup("/home/eero/all/test-files/testfile-large"));
+		close_tab(NULL);
+	}
+*/
 }
 
 
