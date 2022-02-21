@@ -1863,6 +1863,9 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(ALT, 32, delete_word); // alt + o
 	add_keycombination_handler(ALT, 31, delete_inside); // alt + i
 
+	add_keycombination_handler(ALT, 61, comment_block); // alt + -
+	add_keycombination_handler(SHIFT | ALT, 61, uncomment_block); // shift + alt + -
+
 	//key_combinations[CTRL][52] = undo_last_action; // ctrl + z
 	add_keycombination_handler(CTRL, 52, undo_last_action);
 

@@ -91,6 +91,8 @@ gboolean delete_end_of_line(GdkEventKey *key_event);
 gboolean delete_word(GdkEventKey *key_event);
 gboolean delete_inside(GdkEventKey *key_event);
 gboolean select_inside(GdkEventKey *key_event);
+gboolean comment_block(GdkEventKey *key_event);
+gboolean uncomment_block(GdkEventKey *key_event);
 void get_cursor_position(GtkTextBuffer *buffer, GtkTextMark **pm, GtkTextIter *pi, gint *po);
 
 /* fileio.c: */

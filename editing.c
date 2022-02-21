@@ -923,6 +923,110 @@ gboolean select_inside(GdkEventKey *key_event)
 	return TRUE;
 }
 
+gboolean comment_block(GdkEventKey *key_event)
+{
+	printf("comment_block()\n");
+
+	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
+	if (!tab) {
+		return FALSE;
+	}
+
+	GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
+
+	GtkTextIter selection_start, selection_end;
+	gboolean is_selection = gtk_text_buffer_get_selection_bounds(text_buffer, &selection_start, &selection_end);
+
+/*
+	if (!is_selection) {
+		return FALSE; // not sure what makes sense here
+	}
+	printf("we have a selection\n");
+*/
+
+	// it seems that "selection_start" is always closer to the beginning of the buffer than end
+	// also seems that "selection_start" and "selection_end" are never equal
+	/*
+	int offset_start 	= gtk_text_iter_get_offset(&selection_start);
+	int offset_end 	= gtk_text_iter_get_offset(&selection_end);
+	printf("start: %d, end: %d\n", offset_start, offset_end);
+	*/
+
+	GtkTextIter iter = selection_start;
+	gtk_text_iter_set_line_offset(&iter, 0);
+
+	GtkTextMark *m_iter = gtk_text_buffer_create_mark(text_buffer, NULL, &iter, TRUE);
+	GtkTextMark *m_selection_end = gtk_text_buffer_create_mark(text_buffer, NULL, &selection_end, TRUE);
+	
+	gtk_text_buffer_insert(text_buffer, &iter, "//", -1);
+	gtk_text_buffer_get_iter_at_mark(text_buffer, &iter, m_iter);
+	gtk_text_buffer_get_iter_at_mark(text_buffer, &selection_end, m_selection_end);
+
+	gtk_text_iter_forward_line(&iter);
+	while (!gtk_text_iter_is_end(&iter) && gtk_text_iter_compare(&iter, &selection_end) <= 0) {
+		gtk_text_buffer_move_mark(text_buffer, m_iter, &iter);
+		gtk_text_buffer_insert(text_buffer, &iter, "//", -1);
+		gtk_text_buffer_get_iter_at_mark(text_buffer, &iter, m_iter);
+		gtk_text_buffer_get_iter_at_mark(text_buffer, &selection_end, m_selection_end);
+
+		gtk_text_iter_forward_line(&iter);
+	}
+
+/*
+	// do it the other way around, see if we still get the invalidated interators
+	//GtkTextIter iter = selection_end;
+	gtk_text_iter_set_line_offset(&selection_end, 0);
+	gtk_text_buffer_insert(text_buffer, &selection_end, "//", -1);
+
+	gtk_text_iter_backward_line(&selection_end);
+	while (gtk_text_iter_compare(&selection_end, &selection_start) > 0) {
+		gtk_text_buffer_insert(text_buffer, &selection_end, "//", -1);
+		gtk_text_iter_backward_line(&selection_end);
+	}
+*/
+	return TRUE;
+}
+
+gboolean uncomment_block(GdkEventKey *key_event)
+{
+	printf("uncomment_block()\n");
+
+	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
+	if (!tab) {
+		return FALSE;
+	}
+
+	GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
+
+	GtkTextIter selection_start, selection_end;
+	gboolean is_selection = gtk_text_buffer_get_selection_bounds(text_buffer, &selection_start, &selection_end);
+
+	GtkTextIter iter = selection_start;
+	gtk_text_iter_set_line_offset(&iter, 0);
+
+	while (!gtk_text_iter_is_end(&iter) && gtk_text_iter_compare(&iter, &selection_end) <= 0) {
+		GtkTextIter range_start, range_end;
+		if (gtk_text_iter_get_char(&iter) == '/') {
+			range_start = iter;
+			if (gtk_text_iter_forward_char(&iter) && gtk_text_iter_get_char(&iter) == '/') {
+				range_end = iter;
+				gtk_text_iter_forward_char(&range_end);
+	
+				GtkTextMark *m_iter = gtk_text_buffer_create_mark(text_buffer, NULL, &iter, TRUE);
+				GtkTextMark *m_selection_end = gtk_text_buffer_create_mark(text_buffer, NULL, &selection_end, TRUE);
+				gtk_text_buffer_delete(text_buffer, &range_start, &range_end);
+				gtk_text_buffer_get_iter_at_mark(text_buffer, &iter, m_iter);
+				gtk_text_buffer_get_iter_at_mark(text_buffer, &selection_end, m_selection_end);
+			}
+		}
+		gtk_text_iter_forward_line(&iter);
+	}
+	
+/*
+	
+*/
+	return TRUE;
+}
 
 gboolean move_cursor_start_line(GdkEventKey *key_event)
 {
