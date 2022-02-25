@@ -35,27 +35,20 @@ char root_dir[ROOT_DIR_SIZE];
 
 extern GtkWidget *root_dir_label;
 
-const char *filebrowser_icon_path = "/home/eero/all/text-editor/icons/for-light-theme/files-20.png";
-const char *searchinfiles_icon_path = "/home/eero/all/text-editor/icons/for-light-theme/search-20.png";
-//const char *unsaved_changes_icon_path = "/home/eero/all/text-editor/icons/my-supercool-icons/is-exclamation-mark-20.png";
-const char *unsaved_changes_icon_path = "/home/eero/all/text-editor/icons/my-supercool-icons/is-exclamation-mark-16.png";
-const char *file_icon_path = "/home/eero/all/text-editor/icons/for-light-theme/file-24.png";
-const char *folder_icon_path = "/home/eero/all/text-editor/icons/for-light-theme/folder-24.png";
-//const char *home_icon_path = "/home/eero/all/text-editor/icons/for-light-theme/house-20-tr.png";
-const char *home_icon_path = "/home/eero/all/text-editor/icons/for-light-theme/house-20.png";
-//const char *parent_dir_icon_path = "/home/eero/all/text-editor/icons/for-light-theme/arrow-20-tr.png";
-const char *parent_dir_icon_path = "/home/eero/all/text-editor/icons/for-light-theme/arrow-20.png";
-const char *search_icon_path = "/home/eero/all/text-editor/icons/for-light-theme/search-20.png";
+const char *filebrowser_icon_path =			"/home/eero/all/text-editor/themes/icons/files.png";
+const char *searchinfiles_icon_path = 		"/home/eero/all/text-editor/themes/icons/search.png";
+const char *unsaved_changes_icon_path = 	"/home/eero/all/text-editor/themes/icons/exclamation-mark.png";
+const char *file_icon_path = 					"/home/eero/all/text-editor/themes/icons/file.png";
+const char *folder_icon_path = 				"/home/eero/all/text-editor/themes/icons/folder.png";
+const char *home_icon_path = 					"/home/eero/all/text-editor/themes/icons/house.png";
+const char *parent_dir_icon_path = 			"/home/eero/all/text-editor/themes/icons/arrow.png";
+const char *search_icon_path = 				"/home/eero/all/text-editor/themes/icons/search.png";
 
 const char *settings_file_path = "/home/eero/all/text-editor/themes/settings";
-char *new_settings_file_path = "/home/eero/all/text-editor/themes/new-settings"; // cant be const because hotloader needs a non-const thing
-//char *css_file = "/home/eero/all/text-editor/themes/css";
-
-char *css_file_path = "/home/eero/all/text-editor/themes/style.css"; // cant be const because we pass it to pthread_create()
+const char *css_file_path = "/home/eero/all/text-editor/themes/style.css";
 
 
-struct Settings settings;
-struct Node *new_settings;
+struct Node *settings;
 
 
 struct CList *tabs; // temp
@@ -128,9 +121,9 @@ void print_nodes(struct Node *node) {
 	print_node(node, 0);
 }
 
-struct Node *new_parse_settings_file(const char *file_path)
+struct Node *parse_settings_file(const char *file_path)
 {
-	printf("new_parse_settings_file()\n");
+	printf("parse_settings_file()\n");
 
 	char *contents = read_file(file_path);
 	assert(contents); //@ i think we should fail gracefully here
@@ -357,29 +350,29 @@ bool list_delete_item(struct CList *l, void *item)
 	return r;
 }
 
-struct Table *table_create(void)
-{
-	struct Table *t = (struct Table *) malloc(sizeof(struct Table));
-	t->names = list_create<const char *>();
-	t->values = list_create<void *>();
-	return t;
-}
-
-void table_store(struct Table *t, const char *name, void *value)
-{
-	list_add(t->names, name);
-	list_add(t->values, value);
-}
-
-void *table_get(struct Table *t, const char *name)
-{
-	for (int i = 0; i < t->names->index; ++i) {
-		if (strcmp(name, t->names->data[i]) == 0) {
-			return t->values->data[i];
-		}
-	}
-	return NULL;
-}
+//struct Table *table_create(void)
+//{
+//	struct Table *t = (struct Table *) malloc(sizeof(struct Table));
+//	t->names = list_create<const char *>();
+//	t->values = list_create<void *>();
+//	return t;
+//}
+//
+//void table_store(struct Table *t, const char *name, void *value)
+//{
+//	list_add(t->names, name);
+//	list_add(t->values, value);
+//}
+//
+//void *table_get(struct Table *t, const char *name)
+//{
+//	for (int i = 0; i < t->names->index; ++i) {
+//		if (strcmp(name, t->names->data[i]) == 0) {
+//			return t->values->data[i];
+//		}
+//	}
+//	return NULL;
+//}
 
 
 /* Well thats an entirely pointless function probably.. */
@@ -701,24 +694,24 @@ void configure_text_view(GtkTextView *text_view, struct Node *settings)
 	printf("configure_text_view()\n");
 
 	{
-		const char *value_str = settings_get_value(new_settings, "pixels-above-lines");
+		const char *value_str = settings_get_value(settings, "pixels-above-lines");
 		assert(value_str);
 		gtk_text_view_set_pixels_above_lines(text_view, atoi(value_str));
 	}
 
 	{
-		const char *value_str = settings_get_value(new_settings, "pixels-below-lines");
+		const char *value_str = settings_get_value(settings, "pixels-below-lines");
 		assert(value_str);
 		gtk_text_view_set_pixels_below_lines(text_view, atoi(value_str));
 	}
 
 	{
-		const char *value_str = settings_get_value(new_settings, "left-margin");
+		const char *value_str = settings_get_value(settings, "left-margin");
 		assert(value_str);
 		gtk_text_view_set_left_margin(text_view, atoi(value_str));
 	}
 
-	const char *value = settings_get_value(new_settings, "wrap-mode");
+	const char *value = settings_get_value(settings, "wrap-mode");
 	assert(value);
 	if (strcmp(value, "GTK_WRAP_NONE") == 0) {
 		gtk_text_view_set_wrap_mode(text_view, GTK_WRAP_NONE);
@@ -768,7 +761,7 @@ GtkWidget *create_tab(const char *file_name)
 
 
 	GtkTextView *text_view = GTK_TEXT_VIEW(gtk_text_view_new());
-	configure_text_view(text_view, new_settings);
+	configure_text_view(text_view, settings);
 
 	// set_tab_stops_internal() in gtksourceview:
 	gint position = 30;
@@ -808,7 +801,7 @@ GtkWidget *create_tab(const char *file_name)
 	gtk_grid_attach(GTK_GRID(status_bar), statusbar_container, 1, 0, 1, 1);
 	gtk_grid_attach(GTK_GRID(status_bar), space, 2, 0, 1, 1);
 
-	GtkWidget *menu_button = highlighting_new_menu_button(tab, new_settings);
+	GtkWidget *menu_button = highlighting_new_menu_button(tab, settings);
 	gtk_grid_attach(GTK_GRID(status_bar), menu_button, 3, 0, 1, 1);
 
 	add_class(status_bar, "status-bar");
@@ -837,10 +830,10 @@ GtkWidget *create_tab(const char *file_name)
 	int page = gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, NULL);
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page);
 
-	select_highlighting_based_on_file_extension(tab, new_settings, file_name);
+	select_highlighting_based_on_file_extension(tab, settings, file_name);
 
 	// if the value is set in settings, we should do line highlighting, otherwise not
-	highlighting_current_line_enable_or_disable(new_settings, text_buffer);
+	highlighting_current_line_enable_or_disable(settings, text_buffer);
 
 	/* We want autocomplete-character's handler for "insert-text"-signal to be the first handler called.  
 	(code-highlighting and undo also register callbacks for this signal.) */
@@ -1381,134 +1374,6 @@ gboolean apply_css_from_file(void *data)
 	return FALSE; // Dont call again
 }
 
-
-void *watch_for_changes(void *data)
-{
-	LOG_MSG("watch_for_changes()\n");
-
-	const char *file_name = (const char *) data;
-	LOG_MSG("watch_for_changes(): watching for changes in: %s\n", file_name);
-
-	int inotify_descriptor = inotify_init();
-	if (inotify_descriptor == -1) {
-		printf("init_inotify() error!\n");
-		return NULL;
-	}
-	
-	int watch_descriptor = inotify_add_watch(inotify_descriptor, file_name, IN_MODIFY);
-	if (watch_descriptor == -1) {
-		printf("inotify_add_watch() error!\n");
-		return NULL;
-	}
-
-	//@ Probably should allocate more memory...
-	char buffer[(sizeof(struct inotify_event) + NAME_MAX + 1)];
-
-	while (1) {
-		ssize_t bytes_read = read(inotify_descriptor, buffer, sizeof(buffer)); //@ can fail
-		//printf("bytes read by read(): %ld\n", bytes_read);
-
-		char *ptr = buffer;
-		while (ptr < buffer + bytes_read) {
-			struct inotify_event *event = (struct inotify_event *) ptr;
-
-			if (event->mask & IN_MODIFY) {
-				printf("file modified!\n");
-/*
-Calling apply_css_from_file() directly crashes the app when modifying the css-file using another editor process. It doesnt happen always though, so it might be necessary to modify the css-file multiple times.
-*/
-				//apply_css_from_file(file_name); 
-				g_timeout_add_seconds(1, apply_css_from_file, data);
-			}
-			ptr += sizeof(struct inotify_event) + event->len;
-		}
-	}
-}
-
-
-//void parse_settings_file(const char *file_path)
-gboolean parse_settings_file(void *data)
-{
-	LOG_MSG("parse_settings_file()\n");
-
-	//char *contents = read_file(file_path);
-	char *contents = read_file(settings_file_path);
-	//printf("parse_settings_file(): contents:\n%s\n", contents);
-
-	#define SIZE 100
-	char *line, *name, *value, copy[SIZE];
-	while (line = get_slice_by(&contents, '\n')) {
-		//printf("line: %s\n", line);
-
-		snprintf(copy, SIZE, "%s", line);
-		name = get_slice_by(&line, ':');
-		value = get_slice_by(&line, ':');
-
-		if (!name || !value) {
-			printf("parse_settings_file(): unrecognized line format: \"%s\"\n", copy);
-			continue;
-		}
-		//printf("name: %s, value: %s\n", name, value);
-
-		if (strcmp(name, "line-highlight") == 0) {
-			snprintf(settings.line_highlight_color, SETTING_VALUE_MAX, "%s", value);
-		} else if (strcmp(name, "comment") == 0) {
-			snprintf(settings.comment_color, SETTING_VALUE_MAX, "%s", value);
-		} else if (strcmp(name, "string") == 0) {
-			snprintf(settings.string_color, SETTING_VALUE_MAX, "%s", value);
-		} else if (strcmp(name, "identifier") == 0) {
-			snprintf(settings.identifier_color, SETTING_VALUE_MAX, "%s", value);
-		} else if (strcmp(name, "number") == 0) {
-			snprintf(settings.number_color, SETTING_VALUE_MAX, "%s", value);
-		} else if (strcmp(name, "operator") == 0) {
-			snprintf(settings.operator_color, SETTING_VALUE_MAX, "%s", value);
-		} else if (strcmp(name, "keyword") == 0) {
-			snprintf(settings.keyword_color, SETTING_VALUE_MAX, "%s", value);
-		} else if (strcmp(name, "type") == 0) {
-			snprintf(settings.type_color, SETTING_VALUE_MAX, "%s", value);
-		} else if (strcmp(name, "preproccessor") == 0) {
-			snprintf(settings.preproccessor_color, SETTING_VALUE_MAX, "%s", value);
-		} else if (strcmp(name, "unknown") == 0) {
-			snprintf(settings.unknown_color, SETTING_VALUE_MAX, "%s", value);
-		} else if (strcmp(name, "pixels-above-lines") == 0) {
-			settings.pixels_above_lines = atoi(value);
-		} else if (strcmp(name, "pixels-below-lines") == 0) {
-			settings.pixels_below_lines = atoi(value);
-		} else if (strcmp(name, "left-margin") == 0) {
-			settings.left_margin = atoi(value);
-		} else {
-			printf("parse_settings_file(): unknown name: %s\n", name);
-		}
-	}
-
-	return FALSE;
-}
-
-gboolean handler1(GdkEventKey *key_event)
-{
-	printf("handler1 called!\n");
-	return FALSE;
-}
-
-gboolean handler2(GdkEventKey *key_event)
-{
-	printf("handler2 called!\n");
-	return FALSE;
-}
-
-gboolean handler3(GdkEventKey *key_event)
-{
-	printf("handler3 called!\n");
-	return FALSE;
-}
-
-gboolean handler4(GdkEventKey *key_event)
-{
-	printf("handler4 called!\n");
-	return FALSE;
-}
-
-
 gboolean set_mark(GdkEventKey *key_event)
 {
 	printf("set_mark()\n");
@@ -1723,9 +1588,9 @@ gboolean update_settings(gpointer user_arg)
 {
 	printf("update_settings()\n");
 	//printf("update_settings: user_arg: %s\n", (const char *) user_arg);
-	struct Node *new_new_settings = new_parse_settings_file(new_settings_file_path);
+	struct Node *new_settings = parse_settings_file(settings_file_path);
 	//@ free old settings
-	new_settings = new_new_settings;
+	settings = new_settings;
 
 	assert(tabs);
 	for (int i = 0; i < tabs->i_end; ++i) {
@@ -1735,7 +1600,7 @@ gboolean update_settings(gpointer user_arg)
 
 		// update text-view
 		GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
-		configure_text_view(text_view, new_settings);
+		configure_text_view(text_view, settings);
 
 
 		// we are trying to update the tags in a very hacky way
@@ -1754,11 +1619,11 @@ gboolean update_settings(gpointer user_arg)
 
 
 		// update highlighting menu
-		highlighting_update_menu(tab, new_settings);
+		highlighting_update_menu(tab, settings);
 
 		// update line highlighting
 		GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
-		highlighting_current_line_enable_or_disable(new_settings, text_buffer);
+		highlighting_current_line_enable_or_disable(settings, text_buffer);
 		
 	}
 
@@ -1781,13 +1646,6 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	assert(home_dir);
 	//printf("home directory: %s\n", home_dir);
 	snprintf(root_dir, ROOT_DIR_SIZE, "%s", home_dir);
-
-/*
-	add_keycombination_handler(CTRL | ALT, 42, handler1); // ctrl + alt + g
-	add_keycombination_handler(CTRL | ALT, 42, handler2);
-	add_keycombination_handler(CTRL | ALT, 42, handler3);
-	//add_keycombination_handler(CTRL | ALT, 42, handler4);
-*/
 
 	add_keycombination_handler(0, 84, scroll_to_cursor_middle); // 84 - numpad "5"
 	add_keycombination_handler(0, 80, scroll_to_cursor_top); // 80 - numpad up
@@ -1893,31 +1751,13 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(CTRL, 44, less_fancy_toggle_notebook);
 
 
-
-	//parse_settings_file(settings_file_path);
-	//parse_settings_file(NULL);
-	new_settings = new_parse_settings_file(new_settings_file_path);
-	//apply_css_from_file((void *) css_file_path);
+	settings = parse_settings_file(settings_file_path);
 	apply_css_from_file(NULL);
 
-	init_highlighting();
-	//parse_text_tags_file();
-
-	/*
-	const char *value = settings_get_value(new_settings, "node/some-node");
-	printf("*** the value is: %s\n", value);
-	*/
-/*
-	pthread_t id;
-	int r = pthread_create(&id, NULL, watch_for_changes, css_file_path);
-	if (r != 0) {
-		printf("pthread_create() error!\n");
-	}
-*/
+//	init_highlighting();
 
 	hotloader_register_callback(css_file_path, apply_css_from_file, NULL);
-	//hotloader_register_callback(settings_file_path, parse_settings_file);
-	hotloader_register_callback(new_settings_file_path, update_settings, NULL);
+	hotloader_register_callback(settings_file_path, update_settings, NULL);
 
 	/*uid_t real_uid = getuid();
 	uid_t effective_uid = geteuid();

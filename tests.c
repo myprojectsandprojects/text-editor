@@ -11,22 +11,22 @@
 
 /* main.c */
 
-void test_table(void)
-{
-	printf("test_table()\n");
-
-	struct Table *t = table_create();
-	int *p = (int *) malloc(sizeof(int));
-	*p = 123;
-	table_store(t, "the number", (void *) p);
-	void *d = table_get(t, "the number");
-	int the_number = *((int *) d);
-	printf("test_table: the number: %d\n", the_number);
-	table_store(t, "the string", (void *) "forty two");
-	d = table_get(t, "the string");
-	const char *the_str = (const char *) d;
-	printf("test_table: the string: %s\n", the_str);
-}
+//void test_table(void)
+//{
+//	printf("test_table()\n");
+//
+//	struct Table *t = table_create();
+//	int *p = (int *) malloc(sizeof(int));
+//	*p = 123;
+//	table_store(t, "the number", (void *) p);
+//	void *d = table_get(t, "the number");
+//	int the_number = *((int *) d);
+//	printf("test_table: the number: %d\n", the_number);
+//	table_store(t, "the string", (void *) "forty two");
+//	d = table_get(t, "the string");
+//	const char *the_str = (const char *) d;
+//	printf("test_table: the string: %s\n", the_str);
+//}
 
 
 /* strings.c */

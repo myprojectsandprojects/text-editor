@@ -158,14 +158,14 @@ struct Node {
 struct Node *get_node(struct Node *root, const char *apath);
 const char *settings_get_value(struct Node *settings, const char *path);
 
-// we dont check for duplicates
-struct Table {
-	struct List<const char *> *names;
-	struct List<void *> *values;
-};
-struct Table *table_create(void);
-void table_store(struct Table *t, const char *name, void *value);
-void *table_get(struct Table *t, const char *name);
+//// we dont check for duplicates
+//struct Table {
+//	struct List<const char *> *names;
+//	struct List<void *> *values;
+//};
+//struct Table *table_create(void);
+//void table_store(struct Table *t, const char *name, void *value);
+//void *table_get(struct Table *t, const char *name);
 
 void add_menu_item(GtkMenu *menu, const char *label, GCallback callback, gpointer data);
 char *get_base_name(const char *file_name);
@@ -204,14 +204,14 @@ void actually_undo_last_action(GtkWidget *tab);
 /* highlighting.c: */
 
 void init_highlighting(void);
-void select_highlighting_based_on_file_extension(GtkWidget *tab, struct Node *new_settings, const char *file_name);
+void select_highlighting_based_on_file_extension(GtkWidget *tab, struct Node *settings, const char *file_name);
 void set_text_highlighting(GtkWidget *tab, const char *new_highlighting);
 /*
 #define ON 0
 #define OFF 1
 void set_current_line_highlighting(GtkTextBuffer *text_buffer, int to_what);
 */
-void highlighting_current_line_enable_or_disable(struct Node *new_settings, GtkTextBuffer *text_buffer);
+void highlighting_current_line_enable_or_disable(struct Node *settings, GtkTextBuffer *text_buffer);
 void highlighting_current_line_enable(GtkTextBuffer *text_buffer, struct Node *settings);
 void highlighting_current_line_disable(GtkTextBuffer *text_buffer);
 GtkWidget *highlighting_new_menu_button(GtkWidget *tab, struct Node *settings);
@@ -286,23 +286,3 @@ void test_get_word_with_allocate(void);
 #else
 	#define LOG_MSG(...) 0
 #endif
-
-
-#define SETTING_VALUE_MAX 100
-
-struct Settings {
-	int pixels_above_lines;
-	int pixels_below_lines;
-	int left_margin;
-
-	char line_highlight_color[SETTING_VALUE_MAX];
-	char comment_color[SETTING_VALUE_MAX];
-	char string_color[SETTING_VALUE_MAX];
-	char identifier_color[SETTING_VALUE_MAX];
-	char number_color[SETTING_VALUE_MAX];
-	char operator_color[SETTING_VALUE_MAX];
-	char keyword_color[SETTING_VALUE_MAX];
-	char type_color[SETTING_VALUE_MAX];
-	char preproccessor_color[SETTING_VALUE_MAX];
-	char unknown_color[SETTING_VALUE_MAX];
-};

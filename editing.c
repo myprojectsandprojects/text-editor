@@ -1022,9 +1022,6 @@ gboolean uncomment_block(GdkEventKey *key_event)
 		gtk_text_iter_forward_line(&iter);
 	}
 	
-/*
-	
-*/
 	return TRUE;
 }
 

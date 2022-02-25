@@ -6,28 +6,33 @@
 #include "declarations.h"
 
 
-struct Attribute {
-	char *name;
-	char *value;
+//struct Table *func_table; // maps highlighting languages to highlighting functions
+
+void c_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end);
+void css_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end);
+typedef void (*Highlighter) (GtkTextBuffer *, GtkTextIter *, GtkTextIter *);
+struct TableEntry {
+	const char *name;				// highlighting name
+	Highlighter highlighter;		// function that does the highlighting
 };
-
-struct Tag {
-	char *name;
-	struct List<struct Attribute *> *attributes;
+struct TableEntry highlighters[] = {
+	{"C", c_highlight},
+	{"CSS", css_highlight},
 };
+const int highlighters_num_entries = sizeof(highlighters) / sizeof(struct TableEntry);
 
-struct Language {
-	char *name;
-	struct List<struct Tag *> *tags;
-};
+Highlighter highlighters_get_func(const char *name)
+{
+	for (int i = 0; i < highlighters_num_entries; ++i) {
+		if (strcmp(name, highlighters[i].name) == 0) {
+			return highlighters[i].highlighter;
+		}
+	}
+	return NULL;
+}
 
 
-struct List<struct Language *> *languages;
-struct Table *func_table; // maps highlighting languages to highlighting functions
-
-//extern GtkWidget *notebook;
-//extern struct Settings settings;
-extern struct Node *new_settings;
+extern struct Node *settings;
 
 //@ multiple tabs share these global variables... could this be a problem?
 int global_location_offset; // location of last insertion or deletion
@@ -266,6 +271,8 @@ void css_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *
 	printf("css_highlight()\n");
 }
 
+/*
+// do we really have to do this at runtime
 void init_highlighting(void)
 {
 	assert(!func_table);
@@ -274,9 +281,10 @@ void init_highlighting(void)
 	table_store(func_table, "C", (void *) c_highlight);
 	table_store(func_table, "Css", (void *) css_highlight);
 }
+*/
 
 void select_highlighting_based_on_file_extension
-	(GtkWidget *tab, struct Node *new_settings, const char *file_name)
+	(GtkWidget *tab, struct Node *settings, const char *file_name)
 {
 	printf("select_highlighting_based_on_file_extension()\n");
 	//printf("file name: %s\n", file_name);
@@ -286,7 +294,7 @@ void select_highlighting_based_on_file_extension
 		return;
 	}
 
-	struct Node *languages = get_node(new_settings, "highlighting/languages");
+	struct Node *languages = get_node(settings, "highlighting/languages");
 	assert(languages);
 	const char *language = NULL;
 	for (int i = 0; !language && i < languages->nodes->i_end; ++i) {
@@ -326,6 +334,7 @@ void create_tags(GtkWidget *tab, const char *language)
 	// initially, remove_tags() looked up its tags from settings,
 	// but now, as we are doing the hotloading business, we dont know if the tags have changed..
 	// alternatively, we could perhaps remove the tags before updating the settings
+	// or just keep the old settings around until everyrhing is updated, somehow
 	struct CList *tags_list = new_list();
 	//@ free old list
 	tab_add_widget_4_retrieval(tab, HIGHLIGHTING_TAGS, (void *) tags_list);
@@ -333,7 +342,7 @@ void create_tags(GtkWidget *tab, const char *language)
 	const int size = 100;
 	char path[size];
 	snprintf(path, size, "highlighting/languages/%s/tags", language);
-	struct Node *tags = get_node(new_settings, path);
+	struct Node *tags = get_node(settings, path);
 
 	//assert(tags);
 	if (!tags) {
@@ -366,45 +375,9 @@ void create_tags(GtkWidget *tab, const char *language)
 			g_object_set(G_OBJECT(gtk_tag), name->name, value->name, NULL);
 		}
 	}
-	return;
-
-	for (int i = 0; i < languages->index; ++i) {
-		//printf("%s\n", languages->data[i]->name);
-		//const char *language_name = languages->data[i]->name;
-		struct Language *l = languages->data[i];
-		if (strcmp(language, l->name) == 0) {
-			printf("create_tags: found our language!\n");
-			for (int j = 0; j < l->tags->index; ++j) {
-				struct Tag *t = l->tags->data[j];
-				printf("create_tags: creating tag \"%s\"\n", t->name);
-				GtkTextTag *tag = gtk_text_buffer_create_tag(text_buffer, t->name, NULL);
-				for (int k = 0; k < t->attributes->index; ++k) {
-					/*
-					if (strcmp(attributes[i]->property, "style") == 0) {
-						PangoStyle translated_value;
-						if (strcmp(attributes[i]->value, "normal") == 0) {
-							translated_value = PANGO_STYLE_NORMAL;
-						} else if (strcmp(attributes[i]->value, "italic") == 0) {
-							translated_value = PANGO_STYLE_ITALIC;
-						} else if (strcmp(attributes[i]->value, "oblique") == 0) {
-							translated_value = PANGO_STYLE_OBLIQUE;
-						} else {
-							assert(0);
-						}
-						g_object_set(G_OBJECT(t), attributes[i]->property, translated_value, NULL);
-						continue;
-					}
-					*/
-					g_object_set(G_OBJECT(tag), t->attributes->data[k]->name, t->attributes->data[k]->value, NULL);
-				}
-			}
-			return;
-		}
-	}
-	assert(false);
 }
 
-void remove_tags(GtkWidget *tab, const char *language)
+void remove_tags(GtkWidget *tab)
 {
 	printf("remove_tags()\n");
 
@@ -415,42 +388,6 @@ void remove_tags(GtkWidget *tab, const char *language)
 	for (int i = 0; i < tags->i_end; ++i) {
 		gtk_text_tag_table_remove(table, (GtkTextTag *) tags->data[i]);
 	}
-
-	return;
-#if 0
-	const int size = 100;
-	char path[size];
-	snprintf(path, size, "highlighting/languages/%s/tags", language);
-	struct Node *tags = get_node(new_settings, path);
-
-	GtkTextTagTable *table = gtk_text_buffer_get_tag_table(text_buffer);
-
-	for (int i = 0; i < tags->nodes->i_end; ++i) {
-		struct Node *tag = (struct Node *) tags->nodes->data[i];
-		const char *tag_name = tag->name;
-		//printf("removing tag: %s\n", tag_name);
-		GtkTextTag* gtk_tag = gtk_text_tag_table_lookup(table, tag_name);
-	}
-	return;
-
-	for (int i = 0; i < languages->index; ++i) {
-		//printf("%s\n", languages->data[i]->name);
-		//const char *language_name = languages->data[i]->name;
-		struct Language *l = languages->data[i];
-		if (strcmp(language, l->name) == 0) {
-			// found the language
-			GtkTextTagTable *table = gtk_text_buffer_get_tag_table(text_buffer);
-			for (int j = 0; j < l->tags->index; ++j) {
-				const char *tag_name = l->tags->data[j]->name;
-				printf("remove_tags: deleting tag \"%s\"\n", tag_name);
-				GtkTextTag* t = gtk_text_tag_table_lookup(table, tag_name);
-				gtk_text_tag_table_remove(table, t);
-			}
-			return;
-		}
-	}
-	assert(false);
-#endif
 }
 
 /* 
@@ -662,7 +599,7 @@ void set_text_highlighting(GtkWidget *tab, const char *new_highlighting)
 	if (old_highlighting
 	&& strcmp(old_highlighting, "None") != 0
 	&& strcmp(new_highlighting, old_highlighting) != 0) {
-		remove_tags(tab, old_highlighting);
+		remove_tags(tab);
 	}
 
 	if (old_highlighting
@@ -684,13 +621,18 @@ void set_text_highlighting(GtkWidget *tab, const char *new_highlighting)
 	|| strcmp(new_highlighting, "None") != 0 && strcmp(new_highlighting, old_highlighting) != 0)
 	{
 		create_tags(tab, new_highlighting);
+//		void *func = table_get(func_table, new_highlighting);
+//		if (func) { //@ this should be an assertion, eventually
+//			GtkTextIter start, end;
+//			gtk_text_buffer_get_bounds(text_buffer, &start, &end);
+//			((void (*) (GtkTextBuffer *, GtkTextIter *, GtkTextIter *)) func)(text_buffer, &start, &end);
+//		}
+		Highlighter highlighter = highlighters_get_func(new_highlighting);
+		assert(highlighter);
 		GtkTextIter start, end;
-		void *func = table_get(func_table, new_highlighting);
-		if (func) { //@ this should be an assertion, eventually
-			gtk_text_buffer_get_bounds(text_buffer, &start, &end);
-			((void (*) (GtkTextBuffer *, GtkTextIter *, GtkTextIter *)) func)(text_buffer, &start, &end);
-		}
-		tab_add_widget_4_retrieval(tab, HIGHLIGHTING_FUNC, func);
+		gtk_text_buffer_get_bounds(text_buffer, &start, &end);
+		highlighter(text_buffer, &start, &end);
+		tab_add_widget_4_retrieval(tab, HIGHLIGHTING_FUNC, (void *) highlighter);
 	}
 
 	tab_add_widget_4_retrieval(tab, CURRENT_TEXT_HIGHLIGHTING, strdup(new_highlighting));
@@ -749,45 +691,6 @@ void highlighting_current_line_enable_or_disable(struct Node *settings, GtkTextB
 		highlighting_current_line_disable(text_buffer);
 	}
 }
-
-/*
-void set_current_line_highlighting(GtkTextBuffer *text_buffer, int to_what)
-{
-	printf("highlighting_init_current_line()\n");
-
-	if (to_what == ON) {
-		// current line highlighting ON for the text buffer
-
-		{ //@ we dont check if the tag already exists
-			const char *value = settings_get_value(new_settings, "highlighting/line-highlighting-color");
-			gtk_text_buffer_create_tag(text_buffer, "line-highlight",
-				"paragraph-background", value,
-				NULL);
-		}
-
-		//highlighting_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL);
-		unsigned long id = g_signal_connect(G_OBJECT(text_buffer),
-			"notify::cursor-position", G_CALLBACK(highlighting_text_buffer_cursor_position_changed), NULL);
-
-		g_object_set_data(G_OBJECT(text_buffer), "highlighting-cursor-position-changed", (void *) id);
-
-	} else if (to_what == OFF) {
-		// current line highlighting OFF for the text buffer
-
-		GtkTextTagTable *table = gtk_text_buffer_get_tag_table(text_buffer);
-		GtkTextTag* p = gtk_text_tag_table_lookup(table, "line-highligh");
-		if (p) {
-			gtk_text_tag_table_remove(table, p);
-		}
-
-		unsigned long id = (unsigned long) g_object_get_data(G_OBJECT(text_buffer), "highlighting-cursor-position-changed");
-		// g_signal_handler_disconnect: assertion 'handler_id > 0' failed
-		if (id > 0) {
-			g_signal_handler_disconnect(text_buffer, id);
-		}
-	}
-}
-*/
 
 void on_highlighting_selected(GtkMenuItem *item, gpointer data)
 {
@@ -872,120 +775,4 @@ void highlighting_update_menu(GtkWidget *tab, struct Node *settings)
 	gtk_menu_button_set_popup(GTK_MENU_BUTTON(menu_button), new_menu); // I have not consulted the docs
 
 	tab_add_widget_4_retrieval(tab, HIGHLIGHTING_MENU, (void *) new_menu);
-}
-
-
-//@ error handling
-// * if a line from the file has excessive stuff after our stuff, then we dont detect that
-void parse_text_tags_file(void)
-{
-	printf("parse_text_tags_file()\n");
-
-	if (languages) {
-		/*
-		for (int i = 0; i < languages->index; ++i) {
-			printf("%d -> \"%s\"\n", i, languages->data[i]);
-		}
-		*/
-		free(languages); //@ this by no means actually frees anything
-	}
-	languages = list_create<struct Language *>();
-	struct Language *current_language = NULL;
-	struct Tag *current_tag = NULL;
-
-	char *contents = read_file("/home/eero/all/text-editor/themes/text-highlighting-settings");
-	//printf("parse_text_tags_file: contents: %s\n", contents);
-	while (char *line = get_slice_by(&contents, '\n')) {
-		//printf("parse_text_tags_file: line: %s\n", line);
-
-		// count whitespace
-		int whitespace_count;
-		{
-			int i = 0;
-			while (line[i] == ' ' || line[i] == '\t') i += 1;
-			line = &(line[i]);
-			whitespace_count = i;
-		}
-		//printf("*** %s (%d)\n", line, whitespace_count);
-
-		// strip comments and empty lines
-		{
-			int i = 0;
-			while (*(line + i) != '#' && *(line + i) != '\0') i += 1;
-			if (i == 0) {
-				// either an empty line or a comment
-				//printf("*** empty line or a comment\n\n");
-				continue;
-			}
-			line[i] = '\0';
-		}
-
-		char *language_name, *tag_name/*, *property_name, *value*/;
-		char *copy = strdup(line);
-		
-		if (whitespace_count == 0) {
-			// expecting a language name
-			char *language_name = get_word_with_allocate(&line);
-			//printf("*** language name: %s\n\n", language_name);
-			struct Language *l = (struct Language *) malloc(sizeof(struct Language));
-			l->name = language_name;
-			l->tags = list_create<struct Tag *>();
-			list_add(languages, l);
-			current_language = l;
-		} else if (whitespace_count == 1) {
-			// expecting a tag name
-			char *tag_name = get_word_with_allocate(&line);
-			//printf("*** tag name: %s\n\n", tag_name);
-			if (!current_language) {
-				printf("%s -> cant specify a tag without language being specified first\n\n", copy);
-				continue;
-			}
-			struct Tag *t = (struct Tag *) malloc(sizeof(struct Tag));
-			t->name = tag_name;
-			t->attributes = list_create<struct Attribute *>();
-			list_add(current_language->tags, t);
-			current_tag = t;
-		} else if (whitespace_count == 2) {
-			// expecting a property-value pair
-			char *attribute_name = get_word_with_allocate(&line);
-			if(!attribute_name) {
-				printf("%s -> expecting attribute name!\n", copy);
-				continue;
-			}
-			//printf("*** property name: %s\n", attribute_name);
-			char *attribute_value = get_word_with_allocate(&line);
-			if(!attribute_value) {
-				printf("%s -> expecting attribute value!\n", copy);
-				continue;
-			}
-			//printf("*** value: %s\n\n", attribute_value);
-			if (!current_tag) {
-				printf("%s -> cant specify an attribute without tag being specified first\n\n", copy);
-				continue;
-			}
-			struct Attribute *a = (struct Attribute *) malloc(sizeof(struct Attribute));
-			a->name = attribute_name;
-			a->value = attribute_value;
-			list_add(current_tag->attributes, a);
-		} else {
-			// unrecognized number of whitespace characters
-			printf("%s -> unrecognized number of whitespace characters!\n\n", copy);
-		}
-
-		free(copy);
-	}
-
-	/*
-	for (int i = 0; i < languages->index; ++i) {
-		printf("%s\n", languages->data[i]->name);
-		for (int j = 0; j < languages->data[i]->tags->index; ++j) {
-			printf(" %s\n", languages->data[i]->tags->data[j]->name);
-			for (int k = 0; k < languages->data[i]->tags->data[j]->attributes->index; ++k) {
-				printf("  %s, %s\n",
-					languages->data[i]->tags->data[j]->attributes->data[k]->name,
-					languages->data[i]->tags->data[j]->attributes->data[k]->value);
-			}
-		}
-	}
-	*/
 }
