@@ -1,5 +1,4 @@
-
-	/* ~/.local/share/fonts */
+/* ~/.local/share/fonts */
 
 /*
 At first I was thinking about using different levels of specificity by means
@@ -14,8 +13,7 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
-	font: Cousine Regular 13;
-	font: BPMono Regular 13;
+	font: Courier 10 Pitch Regular 13;
 }
 
 /*
@@ -37,14 +35,11 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
-	/*
+	/*border: solid 1px black;*/
 	border: solid 1px rgb(200, 200, 200);
 	border-radius: 0;
-	*/
-	border: none;
-	border-radius: 0;
-	background: #BA9679;
-	color: #1F1D1C;
+	background: white;
+	color: black;
 	padding: 7px;
 }
 
@@ -55,7 +50,7 @@ and just stick to classes.
 .home-dir-button,
 .parent-dir-button
 {
-	background: #e18a38;
+	background: rgb(244, 208, 63);
 	color: black;
 	border: none;
 	border-radius: 0;
@@ -68,64 +63,45 @@ and just stick to classes.
 .home-dir-button:hover,
 .parent-dir-button:hover
 {
-	background: #fb9839;
+	background: rgb(254, 218, 73);
 }
 
-.code-highlighting-menu-button:active,
-.search-in-files-button:active,
-.home-dir-button:active,
-.parent-dir-button:active
+/*
+.code-highlighting-menu-button
 {
-	background: #cd7e33;
+	background: rgb(41, 87, 116);
+	color: white;
 }
 
-.search-in-files-button
+.code-highlighting-menu-button:hover
 {
-	border-right: solid #8a5624 2px;
-	border-bottom: solid #8a5624 2px;
-	/*border-right: solid #2c1c0c 2px;
-	border-bottom: solid #2c1c0c 2px;*/
-	/*border-radius: 6px;*/
+	background: rgb(51, 97, 126);
 }
-
-.search-in-files-button:hover
-{
-	background: #e18a38;
-}
-
-.search-in-files-button:active
-{
-	border: none;
-	border-top: solid #8a5624 2px;
-	border-left: solid #8a5624 2px;
-	/*border-top: solid #2c1c0c 2px;
-	border-left: solid #2c1c0c 2px;*/
-	/*background: #d58336;*/
-}
+*/
 
 .app-window
 {
-	background: #302D2C;
-	color: beige;
+	background: white;
+	color: black;
 	font: Roboto 10;
 }
 
 .main-notebook
 {
-	background: #302D2C;
-	color: beige;
-	border: none;
+	background: white;
+	/*color: black;*/
+	/*border: solid 1px black;*/
+	border: solid 1px rgb(200, 200, 200);
 }
 
 .main-notebook tab
 {
-	background: #302D2C;
 	padding: 10px 16px;
 }
 
 .main-notebook tab:active
 {
-	background: #1F1D1C;
+	border-top: solid red 1px;
 }
 
 .search-entry
@@ -134,14 +110,14 @@ and just stick to classes.
 
 .text-view
 {
-	background: #1F1D1C/*#1A1511*/;
-	color: #BA9679;
+	background: white;
+	color: #000000;
 }
 
 .status-bar {
-	/*border-top: solid 1px rgb(200, 200, 200);*/
-	background: #302D2C;
-	color: beige;
+	border-top: solid 1px rgb(200, 200, 200);
+	background: white;
+	color: black;
 	/*	padding: 10px 10px 10px 10px;*/ /* no effect */
 }
 
@@ -170,47 +146,46 @@ and just stick to classes.
 
 .root-dir-label
 {
-	color: beige;
+	color: black;
 	font: Roboto Bold 11;
 }
 
 .sidebar-notebook
 {
-	background: #302D2C;
-	color: beige;
+	background: white;
+	color: black;
 	/*border: solid 1px black;*/
-	border: none;
+	border: solid 1px rgb(200, 200, 200);
 	border-radius: 0;
 }
 
 .sidebar-notebook tab
 {
-	background: #302D2C;
 	padding: 10px 16px;
 }
 
 .sidebar-notebook tab:active
 {
-	background: #1F1D1C;
 }
 
 .filebrowser
 {
-	background: #1F1D1C;
-	color: beige;
+	background: white;
+	color: black;
 }
 
 .filebrowser row:selected
 {
-	background: #302D2C;
+	background: rgb(240, 240, 240);
 	border: none;
 }
 
 .search-in-files
 {
-	border: none;
+	/*background: rgb(255, 255, 210);*/
+	/*border: solid 1px black;*/
+	border: solid 1px rgb(200, 200, 200);
 	border-radius: 0;
-	background: #1F1D1C;
 }
 
 .search-in-files-phrase-entry
@@ -220,11 +195,14 @@ and just stick to classes.
 .search-in-files-pattern-entry
 {
 }
-
+/*
 .check-button {
-	/* has no effect? */
-}
+	border: solid 3px red;
+	border-radius: 0;
 
+	background: rgb(65, 65, 75);
+}
+*/
 .search-in-files-button
 {
 }
@@ -232,12 +210,12 @@ and just stick to classes.
 .search-in-files-button:hover
 {
 }
-
+/*
 .search-results
 {
-	background: #1F1D1C;
+	background: green;
 }
-
+*/
 .search-result
 {
 	font-weight: bold;
@@ -245,9 +223,8 @@ and just stick to classes.
 
 .suggestions-popup
 {
-	color: #1F1D1C;
-	background: #BA9679;
-	font: Recursive Monospace Regular 13;
+	/*color: rgb(190, 190, 190);*/
+	/*font: Free Mono Bold 11;*/
 }
 
 .openfile-dialog

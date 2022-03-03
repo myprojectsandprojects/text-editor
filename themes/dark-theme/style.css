@@ -1,45 +1,5 @@
+
 	/* ~/.local/share/fonts */
-	/*font: Courier 10 Pitch Bold 13;*/
-	/*font: Courier 10 Pitch 12;*/
-	/*font: Source Code Pro Semi-Bold 12;*/
-	/*font: Source Code Pro Regular 12;*/
-	/*font: Cascadia Mono 12;*/
-	/*font: Cascadia Mono Bold 12;*/
-	/*font: Roboto 12;*/
-	/*font: Roboto Bold 12;*/
-	/*font: Input 12;*/
-	/*font: Input Bold 12;*/
-	/*font: Anonymous Pro 12;*/
-	/*font: Anonymous Pro 13;*/
-	/*font: Inconsolata 12;*/
-	/*font: Inconsolata Bold 11;*/
-	/*font: Bergen Mono 11;*/
-	/*font: Bergen Mono Bold 11;*/
-	/*font: Bp Mono Bold 13;*/
-	/*font: Bp Mono 13;*/
-	/*font: nk57 13;*/
-	/*font: Courier Prime Bold 13;*/
-	/*font: Fira Code Regular 11;*/
-	/*font: Fira Code Medium 11;*/
-	/*font: Fira Code SemiBold 11; */
-	/*font: Fira Code Bold 11;*/
-	/*font: Sudo 16;*/
-	/*font: Sudo Bold 16;*/
-	/*font: Ubuntu Mono 14;*/
-	/*font: Ubuntu Mono Bold 14;*/
-	/*font: Monospace Bold 14;*/
-	/*font: IBM Plex Mono 12;*/
-	/*font: IBM Plex Mono SemiBold 12;*/
-	/*font: IBM Plex Mono Medium 12;*/
-	/*font: Monospace 13;*/
-	/*font: Free Mono Bold 12;*/
-	/*font: Free Mono 13;*/
-	/*font: Oxygen Mono Regular 13;*/
-	/*font: PT Mono Regular 12;*/
-	/*font: Office Code Pro Regular 11;*/
-	/*font: Office Code Pro Medium 12;*/
-	/*font: Office Code Pro Bold 12;*/
-	/*font: Liberation Mono Regular 12;*/
 
 /*
 At first I was thinking about using different levels of specificity by means
@@ -54,7 +14,7 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
-	font: Consolas Regular 14;
+	font: iAWriterMonoS Bold 11;
 }
 
 /*
@@ -76,14 +36,10 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
-	/*
-	border: solid 1px rgb(200, 200, 200);
-	border-radius: 0;
-	*/
 	border: none;
 	border-radius: 0;
 	background: #BA9679;
-	color: #1A1511;
+	color: #1F1D1C;
 	padding: 7px;
 }
 
@@ -94,7 +50,7 @@ and just stick to classes.
 .home-dir-button,
 .parent-dir-button
 {
-	background: #BA9679;
+	background: #e18a38;
 	color: black;
 	border: none;
 	border-radius: 0;
@@ -107,45 +63,64 @@ and just stick to classes.
 .home-dir-button:hover,
 .parent-dir-button:hover
 {
-	background: #DBB18F;
+	background: #fb9839;
 }
 
-/*
-.code-highlighting-menu-button
+.code-highlighting-menu-button:active,
+.search-in-files-button:active,
+.home-dir-button:active,
+.parent-dir-button:active
 {
-	background: rgb(41, 87, 116);
-	color: white;
+	background: #cd7e33;
 }
 
-.code-highlighting-menu-button:hover
+.search-in-files-button
 {
-	background: rgb(51, 97, 126);
+	border-right: solid #8a5624 2px;
+	border-bottom: solid #8a5624 2px;
+	/*border-right: solid #2c1c0c 2px;
+	border-bottom: solid #2c1c0c 2px;*/
+	/*border-radius: 6px;*/
 }
-*/
+
+.search-in-files-button:hover
+{
+	background: #e18a38;
+}
+
+.search-in-files-button:active
+{
+	border: none;
+	border-top: solid #8a5624 2px;
+	border-left: solid #8a5624 2px;
+	/*border-top: solid #2c1c0c 2px;
+	border-left: solid #2c1c0c 2px;*/
+	/*background: #d58336;*/
+}
 
 .app-window
 {
-	background: #2B231C;
+	background: #302D2C;
 	color: beige;
 	font: Roboto 10;
 }
 
 .main-notebook
 {
-	background: #2B231C;
+	background: #302D2C;
 	color: beige;
 	border: none;
 }
 
 .main-notebook tab
 {
-	background: #2B231C;
+	background: #302D2C;
 	padding: 10px 16px;
 }
 
 .main-notebook tab:active
 {
-	background: #1A1511;
+	background: #1F1D1C;
 }
 
 .search-entry
@@ -154,13 +129,13 @@ and just stick to classes.
 
 .text-view
 {
-	background: #1A1511;
+	background: #1F1D1C/*#1A1511*/;
 	color: #BA9679;
 }
 
 .status-bar {
 	/*border-top: solid 1px rgb(200, 200, 200);*/
-	background: #2B231C;
+	background: #302D2C;
 	color: beige;
 	/*	padding: 10px 10px 10px 10px;*/ /* no effect */
 }
@@ -196,7 +171,7 @@ and just stick to classes.
 
 .sidebar-notebook
 {
-	background: #2B231C;
+	background: #302D2C;
 	color: beige;
 	/*border: solid 1px black;*/
 	border: none;
@@ -205,24 +180,24 @@ and just stick to classes.
 
 .sidebar-notebook tab
 {
-	background: #2B231C;
+	background: #302D2C;
 	padding: 10px 16px;
 }
 
 .sidebar-notebook tab:active
 {
-	background: #1A1511;
+	background: #1F1D1C;
 }
 
 .filebrowser
 {
-	background: #1A1511;
+	background: #1F1D1C;
 	color: beige;
 }
 
 .filebrowser row:selected
 {
-	background: #2B231C;
+	background: #302D2C;
 	border: none;
 }
 
@@ -230,7 +205,7 @@ and just stick to classes.
 {
 	border: none;
 	border-radius: 0;
-	background: #1A1511;
+	background: #1F1D1C;
 }
 
 .search-in-files-phrase-entry
@@ -255,7 +230,7 @@ and just stick to classes.
 
 .search-results
 {
-	background: #1A1511;
+	background: #1F1D1C;
 }
 
 .search-result
@@ -265,9 +240,9 @@ and just stick to classes.
 
 .suggestions-popup
 {
-	color: #1A1511;
+	color: #1F1D1C;
 	background: #BA9679;
-	font: Consolas Regular 14;
+	font: iAWriterMonoS Regular 10;
 }
 
 .openfile-dialog
@@ -284,7 +259,7 @@ and just stick to classes.
 .openfile-file-list
 {
 	background: red;
-	font: Source Code Pro Regular 10;
+	font: iAWriterMonoS Regular 10;
 }
 
 .openfile-file-list > *

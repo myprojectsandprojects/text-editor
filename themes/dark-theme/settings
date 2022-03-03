@@ -11,12 +11,12 @@ new stuff easily configurable in here. */
 
 wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
 left-margin {10}
-pixels-above-lines {2}
-pixels-below-lines {2}
+pixels-above-lines {0}
+pixels-below-lines {0}
 
 highlighting
 {
-	line-highlighting-color { #2B231C }
+	line-highlighting-color {#302D2C}
 	languages
 	{
 		C
@@ -31,7 +31,7 @@ highlighting
 			{
 				comment
 				{
-					foreground {#574638}
+					foreground {rgb(41,175,94)/*#706965*/}
 					/*style {PANGO_STYLE_OBLIQUE}*/ /* PANGO_STYLE_NORMAL, PANGO_STYLE_ITALIC, PANGO_STYLE_OBLIQUE */
 				}
 				identifier
@@ -53,11 +53,11 @@ highlighting
 				}
 				preprocessor-directive
 				{
-					foreground {rgb(41,175,94)}
+					foreground {#A282BF}
 				}
 				type
 				{
-					foreground {steelblue}
+					foreground {#7994AB}
 				}
 				operator
 				{
