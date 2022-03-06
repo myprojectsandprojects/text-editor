@@ -1180,21 +1180,40 @@ gboolean close_tab(GdkEventKey *key_event)
 }
 
 
-gboolean switch_tab(GdkEventKey *key_event)
-{
+gboolean tab_navigate_next(GdkEventKey *key_event) {
+	printf("tab_navigate_next()\n");
+
 	int n_pages = gtk_notebook_get_n_pages(GTK_NOTEBOOK(notebook));
-	//printf("switch_tab(): n_pages: %d\n", n_pages);
 	int current_page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook)); // returns -1 if no pages, starts counting from 0
-	//printf("switch_tab(): page_n: %d\n", current_page);
 
 	if (n_pages < 2) {
-		printf("switch_tab(): less than 2 tabs open -> nowhere to go...\n");
+		printf("tab_navigate_next(): less than 2 tabs open -> nowhere to go...\n");
 		return TRUE;
 	}
 
 	int last_page = n_pages - 1;
 	int target_page = current_page + 1;
 	if (target_page > last_page) target_page = 0;
+
+	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), target_page);
+
+	return TRUE;
+}
+
+gboolean tab_navigate_previous(GdkEventKey *key_event) {
+	printf("tab_navigate_previous()\n");
+
+	int n_pages = gtk_notebook_get_n_pages(GTK_NOTEBOOK(notebook));
+	int current_page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook)); // returns -1 if no pages, starts counting from 0
+
+	if (n_pages < 2) {
+		printf("tab_navigate_next(): less than 2 tabs open -> nowhere to go...\n");
+		return TRUE;
+	}
+
+	int last_page = n_pages - 1;
+	int target_page = current_page - 1;
+	if (target_page < 0) target_page = last_page;
 
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), target_page);
 
@@ -1290,6 +1309,8 @@ gboolean undo_last_action(GdkEventKey *key_event)
 
 gboolean do_save(GdkEventKey *key_event)
 {
+	LOG_MSG("do_save()\n");
+
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
 	if (tab == NULL) {
 		printf("no tabs open -> doing nothing\n");
@@ -1334,6 +1355,8 @@ gboolean do_save(GdkEventKey *key_event)
 
 gboolean do_open(GdkEventKey *key_event)
 {
+	LOG_MSG("do_open()\n");
+
 	const char *file_name; // We get NULL if user closed the dialog without choosing a file.
 	if ((file_name = get_file_name_from_user(GTK_FILE_CHOOSER_ACTION_OPEN)) != NULL) {
 		create_tab(file_name);
@@ -1731,13 +1754,12 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(CTRL, 57, create_empty_tab);
 	//key_combinations[CTRL][58] = close_tab; // ctrl + m
 	add_keycombination_handler(CTRL, 58, close_tab);
-	//key_combinations[CTRL][45] = switch_tab; // ctrl + k
-	add_keycombination_handler(CTRL, 45, switch_tab);
 
-	//key_combinations[CTRL][39] = do_save; // ctrl + s
-	add_keycombination_handler(CTRL, 39, do_save);
-	//key_combinations[CTRL][32] = do_open; // ctrl + o
-	add_keycombination_handler(CTRL, 32, do_open);
+	add_keycombination_handler(CTRL, 21, tab_navigate_next); // ctrl + "the key left from backspace"
+	add_keycombination_handler(CTRL, 20, tab_navigate_previous); // ctrl + "the key left from the key left from backspace"
+
+	add_keycombination_handler(CTRL, 39, do_save); // ctrl + s
+	add_keycombination_handler(CTRL, 32, do_open); // ctrl + o
 
 	//key_combinations[CTRL][41] = toggle_search_entry; // ctrl + f
 	add_keycombination_handler(CTRL, 41, toggle_search_entry);

@@ -14,7 +14,7 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
-	font: JetBrainsMonoNL Medium 12;
+	font: JetBrainsMonoNL Medium 11;
 }
 
 /*
@@ -239,13 +239,13 @@ and just stick to classes.
 }
 
 .suggestions-popup-list > * {
-	font: JetBrainsMonoNL Medium 12;
+	font: JetBrainsMonoNL Medium 10;
 	/*
 	color: black;
 	background: white;
 	*/
 	background: 	#d7aa80;
-	color: 			#1F1D1C;
+	color: 		#1F1D1C;
 }
 .suggestions-popup-list > *:selected {
 	/*
@@ -253,7 +253,7 @@ and just stick to classes.
 	background: black;
 	*/
 	background: 	#1F1D1C;
-	color: 			#d7aa80;
+	color: 		#d7aa80;
 }
 
 .openfile-dialog
