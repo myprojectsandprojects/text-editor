@@ -16,7 +16,7 @@ pixels-below-lines {1}
 
 highlighting
 {
-	line-highlighting-color { rgb(240, 240, 240) }
+	line-highlighting-color {#302D2C}
 	languages
 	{
 		C
@@ -31,37 +31,37 @@ highlighting
 			{
 				comment
 				{
-					foreground {rgb(160,160,160)}
-					style {PANGO_STYLE_OBLIQUE} /* PANGO_STYLE_NORMAL, PANGO_STYLE_ITALIC, PANGO_STYLE_OBLIQUE */
+					foreground {rgb(41,175,94)/*#706965*/}
+					/*style {PANGO_STYLE_OBLIQUE}*/ /* PANGO_STYLE_NORMAL, PANGO_STYLE_ITALIC, PANGO_STYLE_OBLIQUE */
 				}
 				identifier
 				{
-					foreground {black}
+					foreground {#d7aa80}
 				}
 				keyword
 				{
-					foreground {black}
-					weight {bold}
+					foreground {#c6c6c6}
+					/*weight {bold}*/
 				}
 				string-literal
 				{
-					foreground {rgb(120,100,100)}
+					foreground {#ababab}
 				}
 				number-literal
 				{
-					foreground {blue}
+					foreground {#63c9b8}
 				}
 				preprocessor-directive
 				{
-					foreground {rgb(41,175,94)}
+					foreground {#A282BF}
 				}
 				type
 				{
-					foreground {steelblue}
+					foreground {#80ADD7}
 				}
 				operator
 				{
-					foreground {black}
+					foreground {#BA9679}
 				}
 				unknown
 				{

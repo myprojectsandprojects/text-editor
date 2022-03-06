@@ -163,7 +163,6 @@ static void display_suggestions_window(
 		"key-press-event", G_CALLBACK(autocomplete_on_window_key_press), NULL);
 */
 	//gtk_style_context_add_class (gtk_widget_get_style_context(_suggestions_window), "suggestions-popup");
-	add_class(_suggestions_window, "suggestions-popup");
 
 	{
 		int width = 1;
@@ -175,6 +174,7 @@ static void display_suggestions_window(
 	_index = 0;
 
 	GtkWidget *suggestions = gtk_list_box_new();
+	add_class(suggestions, "suggestions-popup-list");
 	for (int i = 0; i < completions->i; ++i) {
 		char n[100];
 		snprintf(n, 100, "(%d)", completions->counts[i]);
