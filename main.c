@@ -123,7 +123,7 @@ void print_nodes(struct Node *node) {
 
 struct Node *parse_settings_file(const char *file_path)
 {
-	printf("parse_settings_file()\n");
+	LOG_MSG("parse_settings_file()\n");
 
 	char *contents = read_file(file_path);
 	assert(contents); //@ i think we should fail gracefully here
@@ -691,7 +691,7 @@ void on_adjustment_value_changed(GtkAdjustment *adj, gpointer user_data)
 //@ should inform the user and/or use default values
 void configure_text_view(GtkTextView *text_view, struct Node *settings)
 {
-	printf("configure_text_view()\n");
+	LOG_MSG("configure_text_view()\n");
 
 	{
 		const char *value_str = settings_get_value(settings, "pixels-above-lines");
@@ -1681,10 +1681,8 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(0, 91, set_mark); // numpad delete
 	add_keycombination_handler(0, 90, go_to_mark); // numpad 0
 
-	//key_combinations[0][23] = handle_tab; // <tab>
-	add_keycombination_handler(0, 23, handle_tab);
-	//key_combinations[SHIFT][23] = handle_tab; // <tab> + shift
-	add_keycombination_handler(SHIFT, 23, handle_tab);
+	add_keycombination_handler(0, 23, handle_tab); // <tab>
+	add_keycombination_handler(SHIFT, 23, handle_tab); // <tab> + shift
 	add_keycombination_handler(0, 36, do_search);// <enter>
 
 	add_keycombination_handler(0, 9, autocomplete_close_popup); // escape
@@ -1704,10 +1702,8 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	key_combinations[SHIFT|CTRL][114] = move_cursor_right;
 */
 
-	//key_combinations[CTRL][111] = move_cursor_up; // ctrl + <up>
-	add_keycombination_handler(CTRL, 111, move_cursor_up);
-	//key_combinations[CTRL][116] = move_cursor_down; // ctrl + <down>
-	add_keycombination_handler(CTRL, 116, move_cursor_down);
+	add_keycombination_handler(CTRL, 111, move_cursor_up); // ctrl + <up>
+	add_keycombination_handler(CTRL, 116, move_cursor_down); // ctrl + <down>
 
 	add_keycombination_handler(CTRL, 47, move_cursor_start_line); // ctrl + ö
 	add_keycombination_handler(CTRL | SHIFT, 47, move_cursor_start_line_shift); // ctrl + shift + ö
@@ -1721,25 +1717,15 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(CTRL, 34, move_cursor_closing); // ctrl + ü
 	add_keycombination_handler(CTRL, 31, select_inside); // ctrl + ü
 
-	//key_combinations[ALT][111] = move_lines_up;
 	add_keycombination_handler(ALT, 111, move_lines_up); // alt + <up arrow>
-	//key_combinations[ALT][116] = move_lines_down;
 	add_keycombination_handler(ALT, 116, move_lines_down); // alt + <down arrow>
-	//key_combinations[ALT][113] = move_token_left;
 	add_keycombination_handler(ALT, 113, move_token_left); // alt + <left arrow>
-	//key_combinations[ALT][114] = move_token_right;
 	add_keycombination_handler(ALT, 114, move_token_right); // alt + <right arrow>
-	//key_combinations[ALT][35] = insert_line_before;
 	add_keycombination_handler(ALT, 35, insert_line_before); // alt + õ (35)
-	//key_combinations[ALT][51] = insert_line_after;
 	add_keycombination_handler(ALT, 51, insert_line_after); // alt + ' (51)
-	//key_combinations[ALT][40] = duplicate_line;
 	add_keycombination_handler(ALT, 40, duplicate_line); // alt + d
-	//key_combinations[ALT][119] = delete_line;
 	add_keycombination_handler(ALT, 119, delete_line); // alt + <delete>
-	//key_combinations[ALT][34] = change_line;
 	add_keycombination_handler(ALT, 34, change_line); // alt + ü
-	//key_combinations[ALT][33] = delete_end_of_line;
 	add_keycombination_handler(ALT, 33, delete_end_of_line); // alt + p
 	add_keycombination_handler(ALT, 32, delete_word); // alt + o
 	add_keycombination_handler(ALT, 31, delete_inside); // alt + i
@@ -1747,13 +1733,10 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(ALT, 61, comment_block); // alt + -
 	add_keycombination_handler(SHIFT | ALT, 61, uncomment_block); // shift + alt + -
 
-	//key_combinations[CTRL][52] = undo_last_action; // ctrl + z
-	add_keycombination_handler(CTRL, 52, undo_last_action);
+	add_keycombination_handler(CTRL, 52, undo_last_action); // ctrl + z
 
-	//key_combinations[CTRL][57] = create_empty_tab; // ctrl + n
-	add_keycombination_handler(CTRL, 57, create_empty_tab);
-	//key_combinations[CTRL][58] = close_tab; // ctrl + m
-	add_keycombination_handler(CTRL, 58, close_tab);
+	add_keycombination_handler(CTRL, 57, create_empty_tab); // ctrl + n
+	add_keycombination_handler(CTRL, 58, close_tab); // ctrl + m
 
 	add_keycombination_handler(CTRL, 21, tab_navigate_next); // ctrl + "the key left from backspace"
 	add_keycombination_handler(CTRL, 20, tab_navigate_previous); // ctrl + "the key left from the key left from backspace"
@@ -1761,16 +1744,11 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(CTRL, 39, do_save); // ctrl + s
 	add_keycombination_handler(CTRL, 32, do_open); // ctrl + o
 
-	//key_combinations[CTRL][41] = toggle_search_entry; // ctrl + f
-	add_keycombination_handler(CTRL, 41, toggle_search_entry);
-	//key_combinations[CTRL][27] = toggle_replace_entry; // ctrl + r
-	//key_combinations[CTRL][43] = display_openfile_dialog; // ctrl + h
-	add_keycombination_handler(CTRL, 43, display_openfile_dialog);
+	add_keycombination_handler(CTRL, 41, toggle_search_entry); // ctrl + f
+	add_keycombination_handler(CTRL, 43, display_openfile_dialog); // ctrl + h
 
-	//key_combinations[CTRL][42] = less_fancy_toggle_sidebar; // ctrl + g
-	add_keycombination_handler(CTRL, 42, less_fancy_toggle_sidebar);
-	//key_combinations[CTRL][44] = less_fancy_toggle_notebook; // ctrl + j
-	add_keycombination_handler(CTRL, 44, less_fancy_toggle_notebook);
+	add_keycombination_handler(CTRL, 42, less_fancy_toggle_sidebar); // ctrl + g
+	add_keycombination_handler(CTRL, 44, less_fancy_toggle_notebook); // ctrl + j
 
 
 	settings = parse_settings_file(settings_file_path);

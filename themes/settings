@@ -24,32 +24,45 @@ highlighting {
 				.cpp {}
 			}
 			tags {
+				/*
+				#c1af9c -- light
+				#809d77 -- colder green
+				#abb26d -- warmer green
+				#7c8f8b -- blue
+				#d5b669 -- yellow
+				#da823e -- orange
+				#de4f44 -- red
+				#ac7987 -- purple
+				*/
 				comment {
-					foreground {#abb26d/*rgb(41,175,94)*/}
-					/*style {PANGO_STYLE_OBLIQUE}*/
+					foreground {#c1af9c}
+					/*style {PANGO_STYLE_ITALIC}*/
 					/* PANGO_STYLE_NORMAL, PANGO_STYLE_ITALIC, PANGO_STYLE_OBLIQUE */
 				}
+				type {
+					foreground {#809d77}
+				}
 				identifier {
-					foreground {#c1af9c}
+					foreground {#abb26d}
 				}
 				keyword {
-					foreground {#de4f44}
+					foreground {#7c8f8b}
 					/*weight {bold}*/
 				}
-				string-literal {
-					foreground {#da823e/*#be6f34*//*#e4b973*/}
-				}
-				number-literal {
+				function {
 					foreground {#d5b669}
 				}
-				preprocessor-directive {
-					foreground {#ac7987/*#A282BF*/}
+				string-literal {
+					foreground {#da823e}
 				}
-				type {
-					foreground {#7c8f8b/*#80ADD7*/}
+				number-literal {
+					foreground {#de4f44}
+				}
+				preprocessor-directive {
+					foreground {#ac7987}
 				}
 				operator {
-					foreground {#c1af9c}
+					foreground {#d5b669}
 				}
 				unknown {
 					foreground {red}

@@ -11,10 +11,41 @@ and just stick to classes.
 .text-view,
 .search-entry,
 .search-in-files-phrase-entry,
-.search-in-files-pattern-entry,
-.openfile-entry
+.search-in-files-pattern-entry
 {
-	font: iAWriterMonoS Bold 11;
+	font: CascadiaMono Regular 12;
+	font: OdudoMono Medium 13;
+	font: Liberation Mono Medium 13;
+	font: InputMono Bold 12;
+	font: Cartograph CF Regular 13;
+	font: Courier 10 Pitch Regular 13;
+	font: AverageMono Bold 13;
+	font: AzeretMono Regular 13;
+	font: ComicShanns Regular 14;
+}
+
+/* Rules for all text-entries: */
+.search-entry,
+.search-in-files-phrase-entry,
+.search-in-files-pattern-entry
+{
+	border: solid 1px #484844;
+	border-radius: 0;
+	background: #32322f;
+	color: #c1af9c;
+	padding: 7px;
+}
+
+.search-entry:focus,
+.search-in-files-phrase-entry:focus,
+.search-in-files-pattern-entry:focus
+{
+	/*border: none;*/
+	border: solid 1px #de4f44;
+	border-radius: 0;
+	background: #32322f;
+	color: #c1af9c;
+	padding: 7px;
 }
 
 /*
@@ -23,24 +54,10 @@ and just stick to classes.
 .text-view:selected,
 .search-entry:selected,
 .search-in-files-phrase-entry:selected,
-.search-in-files-pattern-entry:selected,
-.openfile-entry:selected
+.search-in-files-pattern-entry:selected
 {
 	color: white;
 	background: red;
-}
-
-/* Rules for all text-entries: */
-.search-entry,
-.search-in-files-phrase-entry,
-.search-in-files-pattern-entry,
-.openfile-entry
-{
-	border: none;
-	border-radius: 0;
-	background: #BA9679;
-	color: #1F1D1C;
-	padding: 7px;
 }
 
 
@@ -107,36 +124,32 @@ and just stick to classes.
 
 .main-notebook
 {
-	background: #302D2C;
+	background: #32322f;
 	color: beige;
 	border: none;
 }
 
 .main-notebook tab
 {
-	background: #302D2C;
+	background: #32322f;
 	padding: 10px 16px;
 }
 
 .main-notebook tab:active
 {
-	background: #1F1D1C;
-}
-
-.search-entry
-{
+	background: #272725;
 }
 
 .text-view
 {
-	background: #1F1D1C/*#1A1511*/;
-	color: #BA9679;
+	background: 	#272725;
+	/*color: 		#ccaa8b;*/
+	color: 		#c1af9c;
 }
 
 .status-bar {
-	/*border-top: solid 1px rgb(200, 200, 200);*/
-	background: #302D2C;
-	color: beige;
+	background: #32322f;
+	color: white;
 	/*	padding: 10px 10px 10px 10px;*/ /* no effect */
 }
 
@@ -186,18 +199,18 @@ and just stick to classes.
 
 .sidebar-notebook tab:active
 {
-	background: #1F1D1C;
+	background: #272725;
 }
 
 .filebrowser
 {
-	background: #1F1D1C;
+	background: #272725;
 	color: beige;
 }
 
 .filebrowser row:selected
 {
-	background: #302D2C;
+	background: #32322f;
 	border: none;
 }
 
@@ -205,7 +218,7 @@ and just stick to classes.
 {
 	border: none;
 	border-radius: 0;
-	background: #1F1D1C;
+	background: #272725;
 }
 
 .search-in-files-phrase-entry
@@ -230,7 +243,7 @@ and just stick to classes.
 
 .search-results
 {
-	background: #1F1D1C;
+	background: #272725;
 }
 
 .search-result
@@ -238,28 +251,49 @@ and just stick to classes.
 	font-weight: bold;
 }
 
-.suggestions-popup
-{
-	color: #1F1D1C;
-	background: #BA9679;
-	font: iAWriterMonoS Regular 10;
+.suggestions-popup-list > * {
+	font: Fira Mono Medium 11;
+	/*
+	color: black;
+	background: white;
+	*/
+	background: 	#ccaa8b;
+	color: 		#272725;
+}
+.suggestions-popup-list > *:selected {
+	/*
+	color: white;
+	background: black;
+	*/
+	background: 	#272725;
+	color: 		#ccaa8b;
 }
 
 .openfile-dialog
 {
 	background: rgb(255, 165, 0);
-	color: black;
 }
 
-.openfile-entry
+.openfile-entry, .openfile-entry:focus
 {
+	color: black;
 	background: rgb(255, 190, 25); /* lighter orangeish */
+	font: Fira Mono Medium 12;
+	border: solid 1px #484844;
+	border-radius: 0;
+	padding: 7px;
+}
+
+.openfile-entry:selected
+{
+	color: white;
+	background: red;
 }
 
 .openfile-file-list
 {
 	background: red;
-	font: iAWriterMonoS Regular 10;
+	font: Fira Mono Regular 11;
 }
 
 .openfile-file-list > *
