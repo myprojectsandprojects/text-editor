@@ -693,6 +693,8 @@ void configure_text_view(GtkTextView *text_view, struct Node *settings)
 {
 	LOG_MSG("configure_text_view()\n");
 
+//	gtk_text_view_set_cursor_visible(text_view, FALSE);
+
 	{
 		const char *value_str = settings_get_value(settings, "pixels-above-lines");
 		assert(value_str);
@@ -1701,6 +1703,12 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	key_combinations[SHIFT|CTRL][113] = move_cursor_left;
 	key_combinations[SHIFT|CTRL][114] = move_cursor_right;
 */
+	// We'll overwrite the default handlers, because we want to do better
+	// eventually we want a shorter jump and a longer jump
+	add_keycombination_handler(CTRL, 113, cursor_jump_left);
+	add_keycombination_handler(CTRL, 114, cursor_jump_right);
+	add_keycombination_handler(CTRL | SHIFT, 113, cursor_jump_left);
+	add_keycombination_handler(CTRL | SHIFT, 114, cursor_jump_right);
 
 	add_keycombination_handler(CTRL, 111, move_cursor_up); // ctrl + <up>
 	add_keycombination_handler(CTRL, 116, move_cursor_down); // ctrl + <down>
@@ -1753,8 +1761,6 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 	settings = parse_settings_file(settings_file_path);
 	apply_css_from_file(NULL);
-
-//	init_highlighting();
 
 	hotloader_register_callback(css_file_path, apply_css_from_file, NULL);
 	hotloader_register_callback(settings_file_path, update_settings, NULL);

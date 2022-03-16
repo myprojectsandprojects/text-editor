@@ -79,7 +79,6 @@ void c_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *en
 			break;
 		}
 	}
-	printf("c_highlight(): 1\n");
 
 	while (gtk_text_iter_forward_char(end)) {
 		//@ what if ';' is inside a comment?
@@ -90,7 +89,6 @@ void c_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *en
 			break;
 		}
 	}
-	printf("c_highlight(): 2\n");
 
 	char *text = gtk_text_buffer_get_text(text_buffer, start, end, FALSE);
 	printf("********* highlighting: \"%s\"\n", text);
@@ -591,14 +589,23 @@ void highlighting_text_buffer_cursor_position_changed(GObject *object, GParamSpe
 {
 	LOG_MSG("highlighting_text_buffer_cursor_position_changed()\n");
 
-	// Line highlighting -- it messes up code highlighting.
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
 	int position;
 	g_object_get(G_OBJECT(text_buffer), "cursor-position", &position, NULL);
 	GtkTextIter i;
 	gtk_text_buffer_get_iter_at_offset(GTK_TEXT_BUFFER(text_buffer), &i, position);
-	GtkTextIter start, end, start_buffer, end_buffer;
+
+	GtkTextIter start_buffer, end_buffer;
 	gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
+
+//	// lets try something
+//	GtkTextIter j1, j2;
+//	j1 = j2 = i;
+//	gtk_text_iter_forward_char(&j2);
+//	gtk_text_buffer_remove_tag_by_name(text_buffer, "cursor-highlight", &start_buffer, &end_buffer);
+//	gtk_text_buffer_apply_tag_by_name(text_buffer, "cursor-highlight", &j1, &j2);
+
+	GtkTextIter start, end;
 	gtk_text_buffer_remove_tag_by_name(text_buffer, "line-highlight", &start_buffer, &end_buffer);
 	gtk_text_iter_set_line_offset(&i, 0);
 	start = i;
@@ -610,6 +617,8 @@ void highlighting_text_buffer_cursor_position_changed(GObject *object, GParamSpe
 }
 
 
+// what about using insert-text-after and delete-range-after signals?
+// then we could get rid of our global_... variables.
 void register_handlers(GtkWidget *tab, GtkTextBuffer *text_buffer)
 {
 	LOG_MSG("register_handlers()\n");
@@ -746,6 +755,9 @@ void highlighting_current_line_enable(GtkTextBuffer *text_buffer, const char *co
 
 	gtk_text_buffer_create_tag(text_buffer, "line-highlight",
 		"paragraph-background", color, NULL);
+
+//	gtk_text_buffer_create_tag(text_buffer, "cursor-highlight",
+//		"paragraph-background", "red", "foreground", "white", NULL);
 
 	highlighting_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL);
 	unsigned long id = g_signal_connect(G_OBJECT(text_buffer),

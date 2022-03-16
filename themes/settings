@@ -43,26 +43,26 @@ highlighting {
 					foreground {#809d77}
 				}
 				identifier {
-					foreground {#abb26d}
+					foreground {#d5b669}
 				}
 				keyword {
 					foreground {#7c8f8b}
 					/*weight {bold}*/
 				}
 				function {
-					foreground {#d5b669}
-				}
-				string-literal {
 					foreground {#da823e}
 				}
+				string-literal {
+					foreground {#abb26d}
+				}
 				number-literal {
-					foreground {#de4f44}
+					foreground {#abb26d}
 				}
 				preprocessor-directive {
 					foreground {#ac7987}
 				}
 				operator {
-					foreground {#d5b669}
+					foreground {#de4f44}
 				}
 				unknown {
 					foreground {red}

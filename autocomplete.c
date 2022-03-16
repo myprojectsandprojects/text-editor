@@ -581,7 +581,7 @@ struct SortedStrs *autocomplete_create_and_store_words(GtkTextBuffer *text_buffe
 
 	// identifiers
 	int num_overall 	= 0;
-	int num_stored 	= 0;
+//	int num_stored 	= 0;
 
 	for (gtk_text_buffer_get_start_iter(text_buffer, &i);
 		!gtk_text_iter_is_end(&i); gtk_text_iter_forward_char(&i)) {

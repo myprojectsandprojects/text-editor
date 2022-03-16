@@ -68,8 +68,10 @@ gboolean delete_line(GdkEventKey *key_event);
 gboolean insert_line_before(GdkEventKey *key_event);
 gboolean insert_line_after(GdkEventKey *key_event);
 void actually_autocomplete_character(GtkTextBuffer *text_buffer, char character);
-gboolean move_cursor_left(GdkEventKey *key_event);
-gboolean move_cursor_right(GdkEventKey *key_event);
+//gboolean move_cursor_left(GdkEventKey *key_event);
+//gboolean move_cursor_right(GdkEventKey *key_event);
+gboolean cursor_jump_left(GdkEventKey *key_event);
+gboolean cursor_jump_right(GdkEventKey *key_event);
 gboolean move_cursor_up(GdkEventKey *key_event);
 gboolean move_cursor_down(GdkEventKey *key_event);
 gboolean move_cursor_start_line(GdkEventKey *key_event);
@@ -203,7 +205,6 @@ void actually_undo_last_action(GtkWidget *tab);
 
 /* highlighting.c: */
 
-void init_highlighting(void);
 void select_highlighting_based_on_file_extension(GtkWidget *tab, struct Node *settings, const char *file_name);
 void set_text_highlighting(GtkWidget *tab, const char *new_highlighting);
 /*
