@@ -1693,25 +1693,17 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(0, 36, do_autocomplete); // enter
 	add_keycombination_handler(0, 23, do_autocomplete); // tab
 
-	//@ cursors blink is off for move_cursor_left() & move_cursor_right()
-	// also comments & identifiers -- not very convenient
-	// not to mention -- if the tab doesnt use highlighting, right?
-	// ... as this functionality relies upon the existence of text-tags in the document-buffer
-/*
-	key_combinations[CTRL][113] = move_cursor_left; // ctrl + <left arrow>
-	key_combinations[CTRL][114] = move_cursor_right; // ctrl + <right arrow>
-	key_combinations[SHIFT|CTRL][113] = move_cursor_left;
-	key_combinations[SHIFT|CTRL][114] = move_cursor_right;
-*/
 	// We'll overwrite the default handlers, because we want to do better
 	// eventually we want a shorter jump and a longer jump
-	add_keycombination_handler(CTRL, 113, cursor_jump_left);
-	add_keycombination_handler(CTRL, 114, cursor_jump_right);
+	add_keycombination_handler(CTRL, 113, cursor_jump_left); // ctrl + <left arrow>
+	add_keycombination_handler(CTRL, 114, cursor_jump_right); // ctrl + <right arrow>
 	add_keycombination_handler(CTRL | SHIFT, 113, cursor_jump_left);
 	add_keycombination_handler(CTRL | SHIFT, 114, cursor_jump_right);
 
 	add_keycombination_handler(CTRL, 111, move_cursor_up); // ctrl + <up>
 	add_keycombination_handler(CTRL, 116, move_cursor_down); // ctrl + <down>
+	add_keycombination_handler(CTRL | SHIFT, 111, move_cursor_up);
+	add_keycombination_handler(CTRL | SHIFT, 116, move_cursor_down);
 
 	add_keycombination_handler(CTRL, 47, move_cursor_start_line); // ctrl + ö
 	add_keycombination_handler(CTRL | SHIFT, 47, move_cursor_start_line_shift); // ctrl + shift + ö

@@ -972,6 +972,9 @@ gboolean comment_block(GdkEventKey *key_event)
 		gtk_text_iter_forward_line(&iter);
 	}
 
+	// if there is selection, then get rid of it
+	gtk_text_buffer_place_cursor(text_buffer, &selection_end);
+
 /*
 	// do it the other way around, see if we still get the invalidated interators
 	//GtkTextIter iter = selection_end;
@@ -1021,6 +1024,9 @@ gboolean uncomment_block(GdkEventKey *key_event)
 		}
 		gtk_text_iter_forward_line(&iter);
 	}
+
+	// if there is selection, then get rid of it
+	gtk_text_buffer_place_cursor(text_buffer, &selection_end);
 	
 	return TRUE;
 }
@@ -1383,59 +1389,59 @@ gboolean move_cursor_closing(GdkEventKey *key_event)
 }
 
 
-gboolean move_cursor_left(GdkEventKey *key_event)
-{
-	printf("move_cursor_left()\n");
-
-	GtkTextView *view;
-	GtkTextBuffer *buffer;
-
-	gboolean rv = init(&view, &buffer);
-	if (!rv)
-		return rv;
-
-	GtkTextIter i, i_prev, i_sel_start, i_sel_end;
-
-	get_cursor_position(buffer, NULL, &i, NULL);
-	//printf("move_cursor_left(): cursor location: %d\n", o_cursor);
-
-	// store the previous location in case we should select (shift)
-	// get_selection_bounds() gives us the selection bounds in the ascending order
-	// we want the bound which is not equal to the cursor
-	if (key_event->state & GDK_SHIFT_MASK) {
-		if (gtk_text_buffer_get_selection_bounds(buffer, &i_sel_start, &i_sel_end)) {
-			if (gtk_text_iter_compare(&i_sel_start, &i) == 0) {
-				// i_sel_start is where the cursor is..
-				i_prev = i_sel_end;
-			} else {
-				// assuming i_sel_end is where the cursor is..
-				i_prev = i_sel_start;
-			}
-		} else {
-			i_prev = i;
-		}
-	}
-
-	gboolean moved = move_to_prev_token(&i);
-	if (!moved) {
-		// didnt find next token
-		//gtk_text_buffer_get_start_iter(&i);
-	}
-
-	// if we have shift, we should select
-	if (key_event->state & GDK_SHIFT_MASK) {
-		printf("move_cursor_left(): we have a shift\n");
-		gtk_text_buffer_select_range(buffer, &i, &i_prev); // 1st insertion, 2nd selection-bound
-	} else {
-		gtk_text_buffer_place_cursor(buffer, &i);
-		//gtk_text_view_set_cursor_visible(view, FALSE);
-		//gtk_text_view_set_cursor_visible(view, TRUE);
-		//gtk_text_view_reset_cursor_blink(view); 3.20 or something..
-	}
-	gtk_text_view_scroll_to_iter(view, &i, 0.0, FALSE, 0.0, 0.0);
-
-	return TRUE;
-}
+//gboolean move_cursor_left(GdkEventKey *key_event)
+//{
+//	printf("move_cursor_left()\n");
+//
+//	GtkTextView *view;
+//	GtkTextBuffer *buffer;
+//
+//	gboolean rv = init(&view, &buffer);
+//	if (!rv)
+//		return rv;
+//
+//	GtkTextIter i, i_prev, i_sel_start, i_sel_end;
+//
+//	get_cursor_position(buffer, NULL, &i, NULL);
+//	//printf("move_cursor_left(): cursor location: %d\n", o_cursor);
+//
+//	// store the previous location in case we should select (shift)
+//	// get_selection_bounds() gives us the selection bounds in the ascending order
+//	// we want the bound which is not equal to the cursor
+//	if (key_event->state & GDK_SHIFT_MASK) {
+//		if (gtk_text_buffer_get_selection_bounds(buffer, &i_sel_start, &i_sel_end)) {
+//			if (gtk_text_iter_compare(&i_sel_start, &i) == 0) {
+//				// i_sel_start is where the cursor is..
+//				i_prev = i_sel_end;
+//			} else {
+//				// assuming i_sel_end is where the cursor is..
+//				i_prev = i_sel_start;
+//			}
+//		} else {
+//			i_prev = i;
+//		}
+//	}
+//
+//	gboolean moved = move_to_prev_token(&i);
+//	if (!moved) {
+//		// didnt find next token
+//		//gtk_text_buffer_get_start_iter(&i);
+//	}
+//
+//	// if we have shift, we should select
+//	if (key_event->state & GDK_SHIFT_MASK) {
+//		printf("move_cursor_left(): we have a shift\n");
+//		gtk_text_buffer_select_range(buffer, &i, &i_prev); // 1st insertion, 2nd selection-bound
+//	} else {
+//		gtk_text_buffer_place_cursor(buffer, &i);
+//		//gtk_text_view_set_cursor_visible(view, FALSE);
+//		//gtk_text_view_set_cursor_visible(view, TRUE);
+//		//gtk_text_view_reset_cursor_blink(view); 3.20 or something..
+//	}
+//	gtk_text_view_scroll_to_iter(view, &i, 0.0, FALSE, 0.0, 0.0);
+//
+//	return TRUE;
+//}
 
 
 //gboolean move_cursor_right(GdkEventKey *key_event)
@@ -1548,7 +1554,7 @@ gboolean cursor_jump_left(GdkEventKey *key_event) {
 	}
 	else
 	{
-		// everything else
+		// everything else?
 	}
 
 	//@ this is not quite correct
@@ -1635,7 +1641,7 @@ gboolean cursor_jump_right(GdkEventKey *key_event) {
 	}
 	else
 	{
-		// everything else
+		// everything else?
 	}
 
 //	if (!gtk_text_iter_is_start(&iter))
@@ -1682,6 +1688,8 @@ gboolean move_cursor_up(GdkEventKey *key_event)
 	GtkTextMark *cursor = gtk_text_buffer_get_mark(text_buffer, "insert");
 	gtk_text_buffer_get_iter_at_mark(text_buffer, &iter, cursor);
 
+	GtkTextIter cursor_pos = iter;
+
 	while (gtk_text_iter_get_char(&iter) == '\n' && !gtk_text_iter_is_start(&iter))
 		gtk_text_iter_backward_char(&iter);
 
@@ -1692,7 +1700,26 @@ gboolean move_cursor_up(GdkEventKey *key_event)
 		gtk_text_buffer_get_start_iter(text_buffer, &iter);
 	}
 
-	gtk_text_buffer_place_cursor(text_buffer, &iter);
+	if (key_event->state & GDK_SHIFT_MASK) {
+		// Check if we already have a selection.
+		// If so, then add to the existing selection
+		GtkTextIter sel_start, sel_end, new_sel_bound;
+		if (gtk_text_buffer_get_selection_bounds(text_buffer, &sel_start, &sel_end)) {
+			if (gtk_text_iter_compare(&sel_start, &cursor_pos) == 0) {
+				// sel_start is where the cursor is
+				new_sel_bound = sel_end;
+			} else {
+				// sel_end is where the cursor is
+				new_sel_bound = sel_start;
+			}
+		} else {
+			new_sel_bound = cursor_pos;
+		}
+		// 1st insertion, 2nd selection-bound
+		gtk_text_buffer_select_range(text_buffer, &iter, &new_sel_bound);
+	} else {
+		gtk_text_buffer_place_cursor(text_buffer, &iter);
+	}
 
 	gtk_text_view_scroll_to_iter(view, &iter, 0.0, FALSE, 0.0, 0.0);
 
@@ -1716,6 +1743,8 @@ gboolean move_cursor_down(GdkEventKey *key_event)
 	GtkTextMark *cursor = gtk_text_buffer_get_mark(text_buffer, "insert");
 	gtk_text_buffer_get_iter_at_mark(text_buffer, &iter, cursor);
 
+	GtkTextIter cursor_pos = iter;
+
 	while (gtk_text_iter_get_char(&iter) == '\n' && !gtk_text_iter_is_end(&iter))
 		gtk_text_iter_forward_char(&iter);
 
@@ -1726,7 +1755,26 @@ gboolean move_cursor_down(GdkEventKey *key_event)
 		gtk_text_buffer_get_end_iter(text_buffer, &iter);
 	}
 
-	gtk_text_buffer_place_cursor(text_buffer, &iter);
+	if (key_event->state & GDK_SHIFT_MASK) {
+		// Check if we already have a selection.
+		// If so, then add to the existing selection
+		GtkTextIter sel_start, sel_end, new_sel_bound;
+		if (gtk_text_buffer_get_selection_bounds(text_buffer, &sel_start, &sel_end)) {
+			if (gtk_text_iter_compare(&sel_start, &cursor_pos) == 0) {
+				// sel_start is where the cursor is
+				new_sel_bound = sel_end;
+			} else {
+				// sel_end is where the cursor is
+				new_sel_bound = sel_start;
+			}
+		} else {
+			new_sel_bound = cursor_pos;
+		}
+		// 1st insertion, 2nd selection-bound
+		gtk_text_buffer_select_range(text_buffer, &iter, &new_sel_bound);
+	} else {
+		gtk_text_buffer_place_cursor(text_buffer, &iter);
+	}
 
 	gtk_text_view_scroll_to_iter(view, &iter, 0.0, FALSE, 0.0, 0.0);
 
