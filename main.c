@@ -1694,11 +1694,20 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(0, 23, do_autocomplete); // tab
 
 	// We'll overwrite the default handlers, because we want to do better
-	// eventually we want a shorter jump and a longer jump
-	add_keycombination_handler(CTRL, 113, cursor_jump_left); // ctrl + <left arrow>
-	add_keycombination_handler(CTRL, 114, cursor_jump_right); // ctrl + <right arrow>
-	add_keycombination_handler(CTRL | SHIFT, 113, cursor_jump_left);
-	add_keycombination_handler(CTRL | SHIFT, 114, cursor_jump_right);
+	// Actually the default worked in the following way (if I remember correctly):
+	// if we go right and:
+	// if the cursor is at the beginning of a word, it jumps to the end of the word
+	// if the cursor is at the end of a word, it jumps to the end of the next word
+	// and I might like that more than what we currently have
+	// Its just that the default "steps into" identifiers, which I dont like.
+	add_keycombination_handler(CTRL, 113, cursor_long_jump_left); // ctrl + <left arrow>
+	add_keycombination_handler(CTRL, 114, cursor_long_jump_right); // ctrl + <right arrow>
+	add_keycombination_handler(CTRL | SHIFT, 113, cursor_long_jump_left);
+	add_keycombination_handler(CTRL | SHIFT, 114, cursor_long_jump_right);
+	add_keycombination_handler(ALT, 113, cursor_short_jump_left); // ctrl + <left arrow>
+	add_keycombination_handler(ALT, 114, cursor_short_jump_right); // ctrl + <right arrow>
+	add_keycombination_handler(ALT | SHIFT, 113, cursor_short_jump_left);
+	add_keycombination_handler(ALT | SHIFT, 114, cursor_short_jump_right);
 
 	add_keycombination_handler(CTRL, 111, move_cursor_up); // ctrl + <up>
 	add_keycombination_handler(CTRL, 116, move_cursor_down); // ctrl + <down>
@@ -1719,8 +1728,8 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 	add_keycombination_handler(ALT, 111, move_lines_up); // alt + <up arrow>
 	add_keycombination_handler(ALT, 116, move_lines_down); // alt + <down arrow>
-	add_keycombination_handler(ALT, 113, move_token_left); // alt + <left arrow>
-	add_keycombination_handler(ALT, 114, move_token_right); // alt + <right arrow>
+//	add_keycombination_handler(ALT, 113, move_token_left); // alt + <left arrow>
+//	add_keycombination_handler(ALT, 114, move_token_right); // alt + <right arrow>
 	add_keycombination_handler(ALT, 35, insert_line_before); // alt + õ (35)
 	add_keycombination_handler(ALT, 51, insert_line_after); // alt + ' (51)
 	add_keycombination_handler(ALT, 40, duplicate_line); // alt + d
