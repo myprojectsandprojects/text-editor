@@ -1341,10 +1341,9 @@ gboolean move_cursor_opening(GdkEventKey *key_event)
 				nestedness -= 1;
 			} else {
 				gtk_text_buffer_place_cursor(buffer, &i);
-				gboolean v = gtk_text_view_get_cursor_visible(view);
-				printf("cursor visibility: %d\n", v);
-				// should scroll ONLY if neccessary?
-				gtk_text_view_scroll_to_iter(view, &i, 0.0, TRUE, 0.0, 0.1);
+//				// should scroll ONLY if necessary?
+//				gtk_text_view_scroll_to_iter(view, &i, 0.0, TRUE, 0.0, 0.1);
+				gtk_text_view_scroll_to_iter(view, &i, 0.0, FALSE, 0.0, 0.0);
 				break;
 			}
 		}
@@ -1377,8 +1376,9 @@ gboolean move_cursor_closing(GdkEventKey *key_event)
 				nestedness -= 1;
 			} else {
 				gtk_text_buffer_place_cursor(buffer, &i);
-				// should scroll ONLY if neccessary?
-				gtk_text_view_scroll_to_iter(view, &i, 0.0, TRUE, 0.0, 0.1);
+//				// should scroll ONLY if necessary?
+//				gtk_text_view_scroll_to_iter(view, &i, 0.0, TRUE, 0.0, 0.1);
+				gtk_text_view_scroll_to_iter(view, &i, 0.0, FALSE, 0.0, 0.0);
 				break;
 			}
 		}
