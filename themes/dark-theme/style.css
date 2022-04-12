@@ -13,15 +13,8 @@ and just stick to classes.
 .search-in-files-phrase-entry,
 .search-in-files-pattern-entry
 {
-	font: CascadiaMono Regular 12;
-	font: OdudoMono Medium 13;
-	font: Liberation Mono Medium 13;
-	font: InputMono Bold 12;
-	font: Cartograph CF Regular 13;
-	font: Courier 10 Pitch Regular 13;
-	font: AverageMono Bold 13;
-	font: AzeretMono Regular 13;
-	font: ComicShanns Regular 14;
+	font: sudo Bold 16;
+	font: Ubuntu Mono Regular 14;
 }
 
 /* Rules for all text-entries: */
@@ -143,8 +136,8 @@ and just stick to classes.
 .text-view
 {
 	background: 	#272725;
-	/*color: 		#ccaa8b;*/
 	color: 		#c1af9c;
+	/*color: 		#ccaa8b;*/
 }
 
 .status-bar {
@@ -252,12 +245,12 @@ and just stick to classes.
 }
 
 .suggestions-popup-list > * {
-	font: Fira Mono Medium 11;
+	font: sudo Bold 14;
 	/*
 	color: black;
 	background: white;
 	*/
-	background: 	#ccaa8b;
+	background: 	#c1af9c;
 	color: 		#272725;
 }
 .suggestions-popup-list > *:selected {
@@ -266,7 +259,7 @@ and just stick to classes.
 	background: black;
 	*/
 	background: 	#272725;
-	color: 		#ccaa8b;
+	color: 		#c1af9c;
 }
 
 .openfile-dialog
@@ -278,7 +271,7 @@ and just stick to classes.
 {
 	color: black;
 	background: rgb(255, 190, 25); /* lighter orangeish */
-	font: Fira Mono Medium 12;
+	font: sudo Bold 16;
 	border: solid 1px #484844;
 	border-radius: 0;
 	padding: 7px;
@@ -293,7 +286,7 @@ and just stick to classes.
 .openfile-file-list
 {
 	background: red;
-	font: Fira Mono Regular 11;
+	font: sudo Regular 14;
 }
 
 .openfile-file-list > *

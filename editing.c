@@ -1384,7 +1384,6 @@ gboolean move_cursor_closing(GdkEventKey *key_event)
 		}
 	}
 
-	
 	return TRUE;
 }
 

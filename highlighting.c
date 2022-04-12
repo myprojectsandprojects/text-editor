@@ -65,10 +65,21 @@ void c_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *en
 {
 	printf("c_highlight()\n");
 
+	// make sure we have all the tags we expect.
+	//@ eventually we need descent error-handling here
 	GtkTextTagTable *table = gtk_text_buffer_get_tag_table(text_buffer);
-	GtkTextTag *comment_tag = gtk_text_tag_table_lookup(table, "comment");
-	GtkTextTag *string_tag = gtk_text_tag_table_lookup(table, "string-literal");
-	assert(comment_tag);
+	GtkTextTag *comment_tag 			= gtk_text_tag_table_lookup(table, "comment");
+	GtkTextTag *string_tag 				= gtk_text_tag_table_lookup(table, "string-literal");
+	GtkTextTag *preprocessor_tag 		= gtk_text_tag_table_lookup(table, "preprocessor-directive");
+	GtkTextTag *operator_tag 			= gtk_text_tag_table_lookup(table, "operator");
+	GtkTextTag *function_tag 			= gtk_text_tag_table_lookup(table, "function");
+	GtkTextTag *identifier_tag 		= gtk_text_tag_table_lookup(table, "identifier");
+	GtkTextTag *number_tag 				= gtk_text_tag_table_lookup(table, "number-literal");
+	GtkTextTag *keyword_tag 			= gtk_text_tag_table_lookup(table, "keyword");
+	GtkTextTag *type_tag 				= gtk_text_tag_table_lookup(table, "type");
+	GtkTextTag *unknown_tag 			= gtk_text_tag_table_lookup(table, "unknown");
+	assert(comment_tag); assert(string_tag); assert(preprocessor_tag); assert(operator_tag); assert(function_tag);
+	assert(identifier_tag); assert(number_tag); assert(keyword_tag); assert(type_tag); assert(unknown_tag);
 
 	while (gtk_text_iter_backward_char(start)) {
 		//@ what if ';' is inside a comment/string?
@@ -122,7 +133,8 @@ void c_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *en
 				gtk_text_iter_forward_chars(&iter, 2);
 			}
 			gtk_text_buffer_remove_all_tags(text_buffer, &begin, &iter);
-			gtk_text_buffer_apply_tag_by_name(text_buffer, "comment", &begin, &iter);
+//			gtk_text_buffer_apply_tag_by_name(text_buffer, "comment", &begin, &iter);
+			gtk_text_buffer_apply_tag(text_buffer, comment_tag, &begin, &iter);
 			gtk_text_iter_backward_char(&iter);
 			continue;
 		}
@@ -131,7 +143,8 @@ void c_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *en
 			GtkTextIter begin = iter;
 			gtk_text_iter_forward_line(&iter);
 			gtk_text_buffer_remove_all_tags(text_buffer, &begin, &iter);
-			gtk_text_buffer_apply_tag_by_name(text_buffer, "comment", &begin, &iter);
+//			gtk_text_buffer_apply_tag_by_name(text_buffer, "comment", &begin, &iter);
+			gtk_text_buffer_apply_tag(text_buffer, comment_tag, &begin, &iter);
 			gtk_text_iter_backward_char(&iter);
 			continue;
 		}
@@ -154,7 +167,8 @@ void c_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *en
 			
 			gtk_text_iter_forward_char(&iter);
 			gtk_text_buffer_remove_all_tags(text_buffer, &begin, &iter);
-			gtk_text_buffer_apply_tag_by_name(text_buffer, "string-literal", &begin, &iter);
+//			gtk_text_buffer_apply_tag_by_name(text_buffer, "string-literal", &begin, &iter);
+			gtk_text_buffer_apply_tag(text_buffer, string_tag, &begin, &iter);
 			gtk_text_iter_backward_char(&iter);
 			continue;
 		}
@@ -176,7 +190,8 @@ void c_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *en
 			
 			gtk_text_iter_forward_char(&iter);
 			gtk_text_buffer_remove_all_tags(text_buffer, &begin, &iter);
-			gtk_text_buffer_apply_tag_by_name(text_buffer, "string-literal", &begin, &iter);
+//			gtk_text_buffer_apply_tag_by_name(text_buffer, "string-literal", &begin, &iter);
+			gtk_text_buffer_apply_tag(text_buffer, string_tag, &begin, &iter);
 			gtk_text_iter_backward_char(&iter);
 			continue;
 		}
@@ -232,7 +247,8 @@ void c_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *en
 			end_tag = iter;
 
 			gtk_text_buffer_remove_all_tags(text_buffer, &start_tag, &end_tag);
-			gtk_text_buffer_apply_tag_by_name(text_buffer, "preprocessor-directive", &start_tag, &end_tag);
+//			gtk_text_buffer_apply_tag_by_name(text_buffer, "preprocessor-directive", &start_tag, &end_tag);
+			gtk_text_buffer_apply_tag(text_buffer, preprocessor_tag, &start_tag, &end_tag);
 		}
 
 		if (c1 == '+' || c1 == '-' || c1 == '*' || c1 == '/' || c1 == '='
@@ -241,7 +257,8 @@ void c_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *en
 				|| c1 == ';' || c1 == ',' || c1 == '?' || c1 == ':' || c1 == '.' || c1 == '%') {
 			GtkTextIter begin = iter;
 			gtk_text_iter_forward_char(&iter);
-			gtk_text_buffer_apply_tag_by_name(text_buffer, "operator", &begin, &iter);
+//			gtk_text_buffer_apply_tag_by_name(text_buffer, "operator", &begin, &iter);
+			gtk_text_buffer_apply_tag(text_buffer, operator_tag, &begin, &iter);
 			gtk_text_iter_backward_char(&iter);
 
 			// it could also be an arithmetic operator
@@ -254,10 +271,18 @@ void c_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *en
 
 			if (possible_type_identifier[0]) {
 				if (c1 == '(') {
-					gtk_text_buffer_apply_tag_by_name(text_buffer, "function", &i1, &i2);
-//					printf("*** %s is a function-call\n", possible_type_identifier);
+//					const char *tag_name = "function";
+//					GtkTextTag *tag = gtk_text_tag_table_lookup(table, tag_name);
+//					if (tag) {
+//						gtk_text_buffer_apply_tag(text_buffer, tag, &i1, &i2);
+//					} else {
+//						printf("*** error ***: text-tag doesnt exist: %s\n", tag_name);
+//					}
+//					gtk_text_buffer_apply_tag_by_name(text_buffer, "function", &i1, &i2);
+					gtk_text_buffer_apply_tag(text_buffer, function_tag, &i1, &i2);
 				} else {
-					gtk_text_buffer_apply_tag_by_name(text_buffer, "identifier", &i1, &i2);
+//					gtk_text_buffer_apply_tag_by_name(text_buffer, "identifier", &i1, &i2);
+					gtk_text_buffer_apply_tag(text_buffer, identifier_tag, &i1, &i2);
 				}
 				possible_type_identifier[0] = 0;
 			} 
@@ -270,7 +295,8 @@ void c_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *en
 				c1 = gtk_text_iter_get_char(&iter);
 				if(!g_unichar_isalnum(c1) && c1 != '.') break;
 			}
-			gtk_text_buffer_apply_tag_by_name(text_buffer, "number-literal", &begin, &iter);
+//			gtk_text_buffer_apply_tag_by_name(text_buffer, "number-literal", &begin, &iter);
+			gtk_text_buffer_apply_tag(text_buffer, number_tag, &begin, &iter);
 			gtk_text_iter_backward_char(&iter);
 			continue;
 		}
@@ -304,7 +330,8 @@ void c_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *en
 			for (int i = 0; keywords[i] != NULL; ++i) {
 				if (strcmp(identifier, keywords[i]) == 0) {
 //					printf("*** %s is a keyword\n", identifier);
-					gtk_text_buffer_apply_tag_by_name(text_buffer, "keyword", &begin, &iter);
+//					gtk_text_buffer_apply_tag_by_name(text_buffer, "keyword", &begin, &iter);
+					gtk_text_buffer_apply_tag(text_buffer, keyword_tag, &begin, &iter);
 					found = true;
 					break;
 				}
@@ -322,10 +349,12 @@ void c_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *en
 
 			if (possible_type_identifier[0] != 0) {
 				// if no1 has zeroed the previous identifier, we take it to be the type of the current identifier
-				gtk_text_buffer_apply_tag_by_name(text_buffer, "type", &i1, &i2);
+//				gtk_text_buffer_apply_tag_by_name(text_buffer, "type", &i1, &i2);
+				gtk_text_buffer_apply_tag(text_buffer, type_tag, &i1, &i2);
 //				printf("*** %s is a type\n", possible_type_identifier);
 				possible_type_identifier[0] = 0;
-				gtk_text_buffer_apply_tag_by_name(text_buffer, "identifier", &begin, &iter);
+//				gtk_text_buffer_apply_tag_by_name(text_buffer, "identifier", &begin, &iter);
+				gtk_text_buffer_apply_tag(text_buffer, identifier_tag, &begin, &iter);
 //				printf("*** %s is an identifier\n", identifier);
 			} else {
 //				gtk_text_buffer_apply_tag_by_name(text_buffer, "identifier", &begin, &iter);
@@ -347,7 +376,8 @@ void c_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *en
 			} while (c1 != ' ' && c1 != '\t' && c1 != '\n' && c1 != 0);*/
 			
 			gtk_text_iter_forward_char(&iter);
-			gtk_text_buffer_apply_tag_by_name(text_buffer, "unknown", &begin, &iter);
+//			gtk_text_buffer_apply_tag_by_name(text_buffer, "unknown", &begin, &iter);
+			gtk_text_buffer_apply_tag(text_buffer, unknown_tag, &begin, &iter);
 			gtk_text_iter_backward_char(&iter);
 		}
 	}
