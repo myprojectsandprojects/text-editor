@@ -40,7 +40,7 @@ highlighting
 				}
 				keyword
 				{
-					foreground {Maroon}
+					foreground {/*Maroon*/}
 					weight {bold}
 				}
 				string-literal
@@ -62,6 +62,7 @@ highlighting
 				operator
 				{
 					foreground {black}
+					/*weight{bold}*/
 				}
 				unknown
 				{
@@ -69,7 +70,7 @@ highlighting
 				}
 				function
 				{
-					foreground {red}
+					foreground {black/*Maroon*/}
 				}
 			}
 		}

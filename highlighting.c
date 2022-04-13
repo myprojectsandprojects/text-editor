@@ -66,7 +66,7 @@ void c_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *en
 	printf("c_highlight()\n");
 
 	// make sure we have all the tags we expect.
-	//@ eventually we need descent error-handling here
+	//@ eventually we need proper error-handling here
 	GtkTextTagTable *table = gtk_text_buffer_get_tag_table(text_buffer);
 	GtkTextTag *comment_tag 			= gtk_text_tag_table_lookup(table, "comment");
 	GtkTextTag *string_tag 				= gtk_text_tag_table_lookup(table, "string-literal");
