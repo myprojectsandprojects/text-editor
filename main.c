@@ -37,7 +37,7 @@ extern GtkWidget *root_dir_label;
 
 const char *filebrowser_icon_path =			"/home/eero/all/text-editor/themes/icons/files.png";
 const char *searchinfiles_icon_path = 		"/home/eero/all/text-editor/themes/icons/search.png";
-const char *unsaved_changes_icon_path = 	"/home/eero/all/text-editor/themes/icons/exclamation-mark.png";
+const char *unsaved_changes_icon_path = 		"/home/eero/all/text-editor/themes/icons/exclamation-mark.png";
 const char *file_icon_path = 					"/home/eero/all/text-editor/themes/icons/file.png";
 const char *folder_icon_path = 				"/home/eero/all/text-editor/themes/icons/folder.png";
 const char *home_icon_path = 					"/home/eero/all/text-editor/themes/icons/house.png";
@@ -713,7 +713,7 @@ void configure_text_view(GtkTextView *text_view, struct Node *settings)
 		gtk_text_view_set_left_margin(text_view, atoi(value_str));
 	}
 
-	const char *value = settings_get_value(settings, "wrap-mode");
+	const char *value = settings_get_value(settings, "*\n\nwrap-mode");
 	assert(value);
 	if (strcmp(value, "GTK_WRAP_NONE") == 0) {
 		gtk_text_view_set_wrap_mode(text_view, GTK_WRAP_NONE);
