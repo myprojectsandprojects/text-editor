@@ -10,6 +10,7 @@
 
 
 extern GtkWidget *notebook;
+extern struct Node *settings;
 
 
 const char *print_action2take(int action2take)
@@ -366,6 +367,15 @@ gboolean do_search(GdkEventKey *key_event)
 			break;
 	}
 
+	GtkTextSearchFlags search_flags = (GtkTextSearchFlags) 0;
+	{
+		const char *case_sensitivity = settings_get_value(settings, "search-case-sensitivity");
+		assert(case_sensitivity);
+		if (strcmp(case_sensitivity, "false") == 0) {
+			search_flags = (GtkTextSearchFlags) (((int) search_flags) | GTK_TEXT_SEARCH_CASE_INSENSITIVE);
+		}
+	}
+
 	if (action_2_take == SEARCH) {
 		assert(search_str);
 		GtkTextIter search_iter, match_start, match_end;
@@ -377,7 +387,7 @@ gboolean do_search(GdkEventKey *key_event)
 		gboolean found;
 		DO_SEARCH:
 		found = gtk_text_iter_forward_search(&search_iter, search_str,
-			GTK_TEXT_SEARCH_CASE_INSENSITIVE, &match_start, &match_end, NULL);
+			search_flags, &match_start, &match_end, NULL);
 
 		if (found == TRUE) {
 			gtk_text_view_scroll_to_iter(text_view, &match_start, 0.0, TRUE, 0.0, 0.5); // middle
@@ -409,7 +419,7 @@ gboolean do_search(GdkEventKey *key_event)
 
 		GtkTextIter match_start, match_end;
 		while (gtk_text_iter_forward_search(&iter, search_str, 
-				GTK_TEXT_SEARCH_CASE_INSENSITIVE, &match_start, &match_end, &end))
+				search_flags, &match_start, &match_end, &end))
 		{
 			gtk_text_buffer_move_mark(text_buffer, m1, &match_start);
 			gtk_text_buffer_move_mark(text_buffer, m2, &match_end);

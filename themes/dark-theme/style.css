@@ -13,8 +13,8 @@ and just stick to classes.
 .search-in-files-phrase-entry,
 .search-in-files-pattern-entry
 {
-	font: sudo Bold 16;
 	font: Ubuntu Mono Regular 14;
+	font: sudo Bold 16;
 }
 
 /* Rules for all text-entries: */

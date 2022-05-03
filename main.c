@@ -713,7 +713,7 @@ void configure_text_view(GtkTextView *text_view, struct Node *settings)
 		gtk_text_view_set_left_margin(text_view, atoi(value_str));
 	}
 
-	const char *value = settings_get_value(settings, "*\n\nwrap-mode");
+	const char *value = settings_get_value(settings, "wrap-mode");
 	assert(value);
 	if (strcmp(value, "GTK_WRAP_NONE") == 0) {
 		gtk_text_view_set_wrap_mode(text_view, GTK_WRAP_NONE);

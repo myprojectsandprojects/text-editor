@@ -15,6 +15,7 @@ and just stick to classes.
 {
 	font: Sudo Regular 15;
 	font: Sudo Medium 14;
+	font: Sudo Medium 13.5;
 }
 
 /* Rules for all text-entries: */
@@ -66,8 +67,8 @@ and just stick to classes.
 .home-dir-button,
 .parent-dir-button
 {
-	background: #990000;
-	color: white;
+	background: #32cc78;
+	color: #092616;
 	border: none;
 	border-radius: 0;
 	padding: 10px;
@@ -78,7 +79,7 @@ and just stick to classes.
 .home-dir-button:hover,
 .parent-dir-button:hover
 {
-	background: #bf0000;
+	background: #3eff96;
 }
 
 /*
@@ -98,7 +99,7 @@ and just stick to classes.
 {
 	background: #05170d;
 	color: #32cc78;
-	font: Sudo Regular 10;
+	font: Sudo Medium 10;
 }
 
 .main-notebook
@@ -163,7 +164,7 @@ and just stick to classes.
 .root-dir-label
 {
 	/*color: #32cc78;*/
-	font: Sudo Medium 14;
+	font: Sudo Medium 10;
 }
 
 .sidebar-notebook
@@ -225,12 +226,12 @@ and just stick to classes.
 .search-in-files-button:hover
 {
 }
-/*
+
 .search-results
 {
-	background: green;
+	background: #092616;
 }
-*/
+
 .search-result
 {
 	font-weight: bold;

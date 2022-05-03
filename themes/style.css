@@ -1,4 +1,5 @@
-/* ~/.local/share/fonts */
+
+	/* ~/.local/share/fonts */
 
 /*
 At first I was thinking about using different levels of specificity by means
@@ -10,12 +11,11 @@ and just stick to classes.
 .text-view,
 .search-entry,
 .search-in-files-phrase-entry,
-.search-in-files-pattern-entry,
-.openfile-entry
+.search-in-files-pattern-entry
 {
-	font: Sudo Regular 15;
-	font: Sudo Medium 14;
-	font: Sudo Medium 13.5;
+	font: sudo Bold 15;
+	font: Ubuntu Mono Bold 13;
+	font: Ubuntu Mono Regular 15;
 }
 
 /* Rules for all text-entries: */
@@ -23,10 +23,10 @@ and just stick to classes.
 .search-in-files-phrase-entry,
 .search-in-files-pattern-entry
 {
-	border: solid 1px #0d331e;
+	border: solid 1px #484844;
 	border-radius: 0;
-	background: #0d331e;
-	color: #2cb369;
+	background: #32322f;
+	color: #c1af9c;
 	padding: 7px;
 }
 
@@ -34,17 +34,12 @@ and just stick to classes.
 .search-in-files-phrase-entry:focus,
 .search-in-files-pattern-entry:focus
 {
-	/*border: solid 1px black;*/
-	color: #3eff96;
-	border: solid 1px red;
+	/*border: none;*/
+	border: solid 1px #de4f44;
 	border-radius: 0;
-}
-
-.openfile-entry
-{
-	border: solid 1px black;
-	border-radius: 0;
-	color: black;
+	background: #32322f;
+	color: #c1af9c;
+	padding: 7px;
 }
 
 /*
@@ -53,10 +48,9 @@ and just stick to classes.
 .text-view:selected,
 .search-entry:selected,
 .search-in-files-phrase-entry:selected,
-.search-in-files-pattern-entry:selected,
-.openfile-entry:selected
+.search-in-files-pattern-entry:selected
 {
-	color: #3bf28e;
+	color: white;
 	background: red;
 }
 
@@ -67,10 +61,11 @@ and just stick to classes.
 .home-dir-button,
 .parent-dir-button
 {
-	background: #32cc78;
-	color: #092616;
+	background: #e18a38;
+	color: black;
 	border: none;
 	border-radius: 0;
+	font: Roboto 10;
 	padding: 10px;
 }
 
@@ -79,62 +74,75 @@ and just stick to classes.
 .home-dir-button:hover,
 .parent-dir-button:hover
 {
-	background: #3eff96;
+	background: #fb9839;
 }
 
-/*
-.code-highlighting-menu-button
+.code-highlighting-menu-button:active,
+.search-in-files-button:active,
+.home-dir-button:active,
+.parent-dir-button:active
 {
-	background: rgb(41, 87, 116);
-	color: white;
+	background: #cd7e33;
 }
 
-.code-highlighting-menu-button:hover
+.search-in-files-button
 {
-	background: rgb(51, 97, 126);
+	border-right: solid #8a5624 2px;
+	border-bottom: solid #8a5624 2px;
+	/*border-right: solid #2c1c0c 2px;
+	border-bottom: solid #2c1c0c 2px;*/
+	/*border-radius: 6px;*/
 }
-*/
+
+.search-in-files-button:hover
+{
+	background: #e18a38;
+}
+
+.search-in-files-button:active
+{
+	border: none;
+	border-top: solid #8a5624 2px;
+	border-left: solid #8a5624 2px;
+	/*border-top: solid #2c1c0c 2px;
+	border-left: solid #2c1c0c 2px;*/
+	/*background: #d58336;*/
+}
 
 .app-window
 {
-	background: #05170d;
-	color: #32cc78;
-	font: Sudo Medium 10;
+	background: #302D2C;
+	color: beige;
+	font: Roboto 10;
 }
 
 .main-notebook
 {
-	background: #05170d;
-	/*color: white;*/
-	/*border: solid 1px black;*/
+	background: #32322f;
+	color: beige;
 	border: none;
 }
 
 .main-notebook tab
 {
+	background: #32322f;
 	padding: 10px 16px;
-	color: white;
-	background: #05170d;
 }
 
 .main-notebook tab:active
 {
-	background: #092616;
-}
-
-.search-entry
-{
+	background: #272725;
 }
 
 .text-view
 {
-	background: #092616;
-	color: #32cc78;
+	background: 	#272725;
+	color: 		#c1af9c;
 }
 
 .status-bar {
-	background: #05170d;
-	/*color: black;*/
+	background: #32322f;
+	color: white;
 	/*	padding: 10px 10px 10px 10px;*/ /* no effect */
 }
 
@@ -163,45 +171,47 @@ and just stick to classes.
 
 .root-dir-label
 {
-	/*color: #32cc78;*/
-	font: Sudo Medium 10;
+	color: beige;
+	font: Roboto Bold 11;
 }
 
 .sidebar-notebook
 {
-	background: #05170d;
-	color: #32cc78;
+	background: #302D2C;
+	color: beige;
+	/*border: solid 1px black;*/
 	border: none;
 	border-radius: 0;
 }
 
 .sidebar-notebook tab
 {
+	background: #302D2C;
 	padding: 10px 16px;
 }
 
 .sidebar-notebook tab:active
 {
-	background: #092616;
+	background: #272725;
 }
 
 .filebrowser
 {
-	color: #32cc78;
-	background: #092616;
+	background: #272725;
+	color: beige;
 }
 
 .filebrowser row:selected
 {
-	background: #0d331e;
+	background: #32322f;
 	border: none;
 }
 
 .search-in-files
 {
-	background: #092616;
 	border: none;
 	border-radius: 0;
+	background: #272725;
 }
 
 .search-in-files-phrase-entry
@@ -211,14 +221,11 @@ and just stick to classes.
 .search-in-files-pattern-entry
 {
 }
-/*
-.check-button {
-	border: solid 3px red;
-	border-radius: 0;
 
-	background: rgb(65, 65, 75);
+.check-button {
+	/* has no effect? */
 }
-*/
+
 .search-in-files-button
 {
 }
@@ -229,7 +236,7 @@ and just stick to classes.
 
 .search-results
 {
-	background: #092616;
+	background: #272725;
 }
 
 .search-result
@@ -237,27 +244,49 @@ and just stick to classes.
 	font-weight: bold;
 }
 
-.suggestions-popup
-{
-	/*color: rgb(190, 190, 190);*/
-	/*font: Free Mono Bold 11;*/
+.suggestions-popup-list > * {
+	font: sudo Bold 14;
+	/*
+	color: black;
+	background: white;
+	*/
+	background: 	#c1af9c;
+	color: 		#272725;
+}
+.suggestions-popup-list > *:selected {
+	/*
+	color: white;
+	background: black;
+	*/
+	background: 	#272725;
+	color: 		#c1af9c;
 }
 
 .openfile-dialog
 {
 	background: rgb(255, 165, 0);
-	color: black;
 }
 
-.openfile-entry
+.openfile-entry, .openfile-entry:focus
 {
+	color: black;
 	background: rgb(255, 190, 25); /* lighter orangeish */
+	font: sudo Bold 16;
+	border: solid 1px #484844;
+	border-radius: 0;
+	padding: 7px;
+}
+
+.openfile-entry:selected
+{
+	color: white;
+	background: red;
 }
 
 .openfile-file-list
 {
 	background: red;
-	font: Source Code Pro Regular 10;
+	font: sudo Regular 14;
 }
 
 .openfile-file-list > *
