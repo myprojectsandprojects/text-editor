@@ -367,6 +367,9 @@ gboolean do_search(GdkEventKey *key_event)
 			break;
 	}
 
+	// maybe it would be a better idea to let the user specify the search flags directly
+	// because then we would comply with the convention of using documented GTK-stuff in the settings-file
+	// instead of arbitrarily inventing our own stuff
 	GtkTextSearchFlags search_flags = (GtkTextSearchFlags) 0;
 	{
 		const char *case_sensitivity = settings_get_value(settings, "search-case-sensitivity");
