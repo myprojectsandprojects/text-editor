@@ -44,7 +44,8 @@ const char *home_icon_path = 					"/home/eero/all/text-editor/themes/icons/house
 const char *parent_dir_icon_path = 			"/home/eero/all/text-editor/themes/icons/arrow.png";
 const char *search_icon_path = 				"/home/eero/all/text-editor/themes/icons/search.png";
 
-const char *settings_file_path = "/home/eero/all/text-editor/themes/settings";
+//const char *settings_file_path = "/home/eero/all/text-editor/themes/settings";
+const char *settings_file_path = "/home/eero/all/text-editor/themes/settings-simple";
 const char *css_file_path = "/home/eero/all/text-editor/themes/style.css";
 
 
@@ -66,8 +67,8 @@ struct Node *get_node(struct Node *root, const char *apath) {
 		//printf("segment: %s\n", segment);
 		bool found = false;
 		struct Node *n;
-		for (int i = 0; i < node->nodes->i_end; ++i) {
-			n = (struct Node *) node->nodes->data[i];
+		for (int i = 0; i < node->nodes.count; ++i) {
+			n = (struct Node *) node->nodes.data[i];
 			//printf("looking at: %s\n", n->name);
 			if (strcmp(n->name, segment) == 0) {
 				found = true;
@@ -95,7 +96,7 @@ const char *settings_get_value(struct Node *settings, const char *path) {
 	const char *result = NULL;
 	struct Node *node = get_node(settings, path);
 	if (node) {
-		result = ((struct Node *) node->nodes->data[0])->name; // first child-node stores the value as its name
+		result = ((struct Node *) node->nodes.data[0])->name; // first child-node stores the value as its name
 	}
 	return result;
 }
@@ -112,8 +113,8 @@ void print_node(struct Node *node, int depth) {
 
 	printf("%s%s\n", indent, node->name);
 
-	for (int i = 0; i < node->nodes->i_end; ++i) {
-		print_node((struct Node *) node->nodes->data[i], depth + 1);
+	for (int i = 0; i < node->nodes.count; ++i) {
+		print_node((struct Node *) node->nodes.data[i], depth + 1);
 	}
 }
 
@@ -141,7 +142,8 @@ struct Node *parse_settings_file(const char *file_path)
 
 	struct Node *root = (struct Node *) malloc(sizeof(struct Node));
 	root->name = "Root";
-	root->nodes = new_list();
+//	root->nodes = new_list();
+	array_init(&(root->nodes));
 
 	node_path[path_index++] = root;
 
@@ -193,9 +195,11 @@ struct Node *parse_settings_file(const char *file_path)
 			
 			struct Node *n = (struct Node *) malloc(sizeof(struct Node));
 			n->name = strdup(node_name);
-			n->nodes = new_list();
+//			n->nodes = new_list();
+			array_init(&(n->nodes));
 
-			list_append(node_path[path_index - 1]->nodes, n);
+//			list_append(node_path[path_index - 1]->nodes, n);
+			array_add(&(node_path[path_index-1]->nodes), n);
 			
 			node_path[path_index++] = n;
 			//list_add()
@@ -224,9 +228,11 @@ struct Node *parse_settings_file(const char *file_path)
 
 			struct Node *n = (struct Node *) malloc(sizeof(struct Node));
 			n->name = strdup(node_name);
-			n->nodes = new_list();
+//			n->nodes = new_list();
+			array_init(&(n->nodes));
 
-			list_append(node_path[path_index - 1]->nodes, n);
+//			list_append(node_path[path_index - 1]->nodes, n);
+			array_add(&(node_path[path_index-1]->nodes), n);
 			
 			path_index -= 1;
 			/*
@@ -728,6 +734,47 @@ void configure_text_view(GtkTextView *text_view, struct Node *settings)
 	}
 }
 
+static void set_highlighting_based_on_file_extension(GtkWidget *tab, Node *settings, const char *file_name){
+	printf("set_highlighting_based_on_file_extension()\n");
+
+	if(!file_name || *file_name == '\0'){ // NULL or ""
+		highlighting_set(tab, "None");
+		return;
+	}
+
+	const char *extension = basename_get_extension(filepath_get_basename(file_name));
+
+	const char *language_found = NULL;
+	Node *languages = get_node(settings, "languages");
+//	assert(languages);
+	if(!languages){
+		highlighting_set(tab, "None");
+		return;
+	}
+
+	for (int i = 0; !language_found && i < languages->nodes.count; ++i) {
+		Node *language = (Node *) languages->nodes.data[i];
+		
+		Node *extensions = get_node(language, "file-extensions");
+		if (!extensions) continue;
+
+		for (int i = 0; i < extensions->nodes.count; ++i) {
+			Node *n = (Node *) extensions->nodes.data[i];
+
+			if(strcmp(n->name, extension) == 0){
+				language_found = language->name;
+				break;
+			}
+		}
+	}
+
+	if (language_found) {
+		highlighting_set(tab, language_found);
+	} else {
+		highlighting_set(tab, "None");
+	}
+}
+
 GtkWidget *create_tab(const char *file_name)
 {
 	static int count = 1;
@@ -803,7 +850,7 @@ GtkWidget *create_tab(const char *file_name)
 	gtk_grid_attach(GTK_GRID(status_bar), statusbar_container, 1, 0, 1, 1);
 	gtk_grid_attach(GTK_GRID(status_bar), space, 2, 0, 1, 1);
 
-	GtkWidget *menu_button = highlighting_new_menu_button(tab, settings);
+	GtkWidget *menu_button = create_highlighting_selection_button(tab, settings);
 	gtk_grid_attach(GTK_GRID(status_bar), menu_button, 3, 0, 1, 1);
 
 	add_class(status_bar, "status-bar");
@@ -819,7 +866,7 @@ GtkWidget *create_tab(const char *file_name)
 	tab_add_widget_4_retrieval(tab, TEXT_VIEW, text_view);
 	tab_add_widget_4_retrieval(tab, TEXT_BUFFER, text_buffer); //@ haa text-buffer is not a widget! void *?
 	tab_add_widget_4_retrieval(tab, FILEPATH_LABEL, file_path_label);
-	
+
 	GtkWidget *wgt_search = create_search_widget(tab);
 
 	gtk_container_add(GTK_CONTAINER(scrolled_window), GTK_WIDGET(text_view));
@@ -832,10 +879,14 @@ GtkWidget *create_tab(const char *file_name)
 	int page = gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, NULL);
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page);
 
-	select_highlighting_based_on_file_extension(tab, settings, file_name);
+//	select_highlighting_based_on_file_extension(tab, settings, file_name);
+//
+//	// if the value is set in settings, we should do line highlighting, otherwise not
+//	highlighting_current_line_enable_or_disable(settings, text_buffer);
 
-	// if the value is set in settings, we should do line highlighting, otherwise not
-	highlighting_current_line_enable_or_disable(settings, text_buffer);
+	highlighting_init(tab, settings); //@ get rid of this
+
+	set_highlighting_based_on_file_extension(tab, settings, file_name);
 
 	/* We want autocomplete-character's handler for "insert-text"-signal to be the first handler called.  
 	(code-highlighting and undo also register callbacks for this signal.) */
@@ -853,8 +904,7 @@ GtkWidget *create_tab(const char *file_name)
 	//g_signal_connect(G_OBJECT(text_view), "populate-popup", G_CALLBACK(on_text_view_populate_popup), NULL);
 
 	text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, line_number_label);
-	g_signal_connect(G_OBJECT(text_buffer),
-		"notify::cursor-position", G_CALLBACK(text_buffer_cursor_position_changed), line_number_label);
+	g_signal_connect(G_OBJECT(text_buffer), "notify::cursor-position", G_CALLBACK(text_buffer_cursor_position_changed), line_number_label);
 
 	g_signal_connect(G_OBJECT(text_buffer), "changed", G_CALLBACK(text_buffer_changed), NULL);
 	//g_signal_connect_after(G_OBJECT(text_buffer), "changed", G_CALLBACK(text_buffer_changed_after), NULL);
@@ -942,8 +992,7 @@ char *get_base_name(const char *file_name)
 /* these should be initialized to 0's by default: */
 gboolean (*key_combinations[SIZE_MODIFIERS][SIZE_KEYCODES][MAX_HANDLERS])(GdkEventKey *key_event);
 
-void add_keycombination_handler(
-	int modifiers, int keycode, gboolean (*handler)(GdkEventKey *key_event))
+void add_keycombination_handler(int modifiers, int keycode, gboolean (*handler)(GdkEventKey *key_event))
 {
 	LOG_MSG("add_keycombination_handler(): modifiers: %d, keycode: %d\n",
 		modifiers, keycode);
@@ -1099,7 +1148,7 @@ Setting margins and paddings in css has no effect whatsoever, not even error mes
 
 void refresh_application_title(void)
 {
-	printf("refresh_application_title()\n");
+	LOG_MSG("refresh_application_title()\n");
 
 	#define BUFFER_SIZE 100
 	char app_title[BUFFER_SIZE];
@@ -1628,27 +1677,27 @@ gboolean update_settings(gpointer user_arg)
 		configure_text_view(text_view, settings);
 
 
-		// we are trying to update the tags in a very hacky way
-		char *highlighting = (char *) tab_retrieve_widget(tab, CURRENT_TEXT_HIGHLIGHTING);
-		assert(highlighting);
-
-		// the string that "highlighting" points to is freed by "set_text_highlighting()"
-		highlighting = strdup(highlighting);
-
-		//printf("highlighting before: %s\n", highlighting);
-		set_text_highlighting(tab, "None");
-		//printf("highlighting after: %s\n", highlighting);
-		set_text_highlighting(tab, highlighting);
-
-		free(highlighting);
-
-
-		// update highlighting menu
-		highlighting_update_menu(tab, settings);
-
-		// update line highlighting
-		GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
-		highlighting_current_line_enable_or_disable(settings, text_buffer);
+//		// we are trying to update the tags in a very hacky way
+//		char *highlighting = (char *) tab_retrieve_widget(tab, CURRENT_TEXT_HIGHLIGHTING);
+//		assert(highlighting);
+//
+//		// the string that "highlighting" points to is freed by "set_text_highlighting()"
+//		highlighting = strdup(highlighting);
+//
+//		//printf("highlighting before: %s\n", highlighting);
+//		set_text_highlighting(tab, "None");
+//		//printf("highlighting after: %s\n", highlighting);
+//		set_text_highlighting(tab, highlighting);
+//
+//		free(highlighting);
+//
+//
+//		// update highlighting menu
+//		highlighting_update_menu(tab, settings);
+//
+//		// update line highlighting
+//		GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
+//		highlighting_current_line_enable_or_disable(settings, text_buffer);
 		
 	}
 
@@ -1764,7 +1813,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	apply_css_from_file(NULL);
 
 	hotloader_register_callback(css_file_path, apply_css_from_file, NULL);
-	hotloader_register_callback(settings_file_path, update_settings, NULL);
+//	hotloader_register_callback(settings_file_path, update_settings, NULL);
 
 	/*uid_t real_uid = getuid();
 	uid_t effective_uid = geteuid();
@@ -1853,32 +1902,6 @@ int main()
 
 	int status;
 	GtkApplication *app;
-
-	//test_str_replace();
-	//test_parse_str();
-	//test_get_slice_by();
-	//test_get_word_with_allocate();
-	//test_table();
-
-/*
-	struct CList *l = new_list();
-	for (int i = 0; i < 10; ++i) {
-		int *p = (int *) malloc(sizeof(int));
-		*p = i;
-		list_append(l, (void *) p);
-	}
-	list_delete_item(l, l->data[2]);
-	list_delete_item(l, l->data[l->i_end - 1]);
-	list_delete_item(l, l->data[0]);
-	for (int i = 0; i < l->i_end; ++i) {
-		printf("%d\n", *((int *) l->data[i]));
-	}
-	return 0;
-*/
-/*
-	test_trim_whitespace();
-	return 0;
-*/
 
 	guint major = gtk_get_major_version();
 	guint minor = gtk_get_minor_version();

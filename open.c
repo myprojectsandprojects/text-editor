@@ -141,8 +141,7 @@ void on_openfile_entry_changed
 	//printf("results: %s\n", results);
 
 	gettimeofday(&end, NULL);
-	// I think we are talking about micro- here, not milli-?
-	printf("It took %ld milliseconds\n",
+	printf("It took %ld microseconds\n",
 		1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec));
 
 
@@ -242,8 +241,12 @@ gboolean on_open_window_keypress_event(GtkWidget *open_window,
 
 		struct stat file_info;
 		if (lstat(label_text, &file_info) == -1) {
-			printf("on_open_window_keypress_event(): lstat() error!\n");
-			return TRUE;
+			/*
+			Currently, if lstat() fails, it might mean that the file doesnt exist anymore, because our database of filenames is not up-to-date. Having to manually update the database, like we do, is obvious nonsense.@
+			*/
+//			printf("on_open_window_keypress_event(): lstat() error!\n");
+//			return TRUE;
+			assert(false);
 		}
 		
 		if (S_ISREG(file_info.st_mode)) {

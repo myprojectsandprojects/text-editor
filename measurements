@@ -1,0 +1,115 @@
+---
+c_highlight:
+---
+
+"manual" utf8-character iteration, token generating:
+c_highlight(): took  15 720 561  microseconds
+c_highlight(): took  15 657 626  microseconds
+c_highlight(): took  15 740 011  microseconds
+
+initial most straighforward:
+it took  1 794 306  milliseconds
+it took  1 861 213  milliseconds
+it took  1 950 097  milliseconds
+
+generating unknown tokens, storing offsets:
+time elapsed: 1 791 182
+time elapsed: 1 838 887
+time elapsed: 1 882 000
+
+generating unknown tokens, storing iterators directly, using CList:
+time elapsed: 1 639 454
+time elapsed: 1 692 219
+time elapsed: 1 766 458
+
+generating unknown tokens, storing iterators directly, using List of Token *:
+time elapsed: 1 681 819
+time elapsed: 1 657 876
+time elapsed: 1 724 759
+
+generating unknown tokens, storing iterators directly, using List of Token:
+time elapsed: 1 675 328
+time elapsed: 1 653 582
+time elapsed: 1 675 329
+
+generating unknown tokens, storing iterators directly, using List of Token, not malloc'ing a token:
+time elapsed: 1 638 062
+time elapsed: 1 649 284
+time elapsed: 1 698 439
+
+generating unknown tokens, storing iterators directly, using List of Token, not malloc'ing a token, 1 million bytes initial list size:
+time elapsed: 1 633 641
+time elapsed: 1 668 436
+time elapsed: 1 663 570
+
+
+
+not storing tokens:
+time elapsed: 1 655 942
+time elapsed: 1 715 885
+time elapsed: 1 748 783
+
+not storing tokens (all-c):
+	time elapsed: 1 146 666
+
+	time elapsed: 1 133 231
+	time elapsed: 1 253 338
+	time elapsed: 1 201 315
+
+	time elapsed: 1 158 975
+	time elapsed: 1 184 893
+	time elapsed: 1 203 885
+
+
+
+storing tokens (all-c) template list:
+	time elapsed: 1 100 824
+	time elapsed: 1 195 205
+	time elapsed: 1 126 355
+
+storing tokens (all-c), Array<Token *>
+	time elapsed: 1 125 486
+	time elapsed: 1 170 410
+	time elapsed: 1 185 790
+
+storing tokens (all-c), Array<Token>
+	time elapsed: 1 200 645
+	time elapsed: 1 200 581
+	time elapsed: 1 206 641
+
+	time elapsed: 1 181 162
+	time elapsed: 1 193 086
+	time elapsed: 1 207 892
+
+	time elapsed: 1 190 191
+	time elapsed: 1 239 397
+	time elapsed: 1 215 273
+
+	no allocations:
+	time elapsed: 1 144 979
+	time elapsed: 1 193 269
+	time elapsed: 1 159 411
+
+	no allocations, no copying
+	time elapsed: 1 109 370
+	time elapsed: 1 171 527
+	time elapsed: 1 197 889
+
+	time elapsed: 1 150 477
+	time elapsed: 1 170 563
+	time elapsed: 1 181 935
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

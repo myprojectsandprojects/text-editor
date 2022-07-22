@@ -13,9 +13,7 @@ and just stick to classes.
 .search-in-files-phrase-entry,
 .search-in-files-pattern-entry
 {
-	font: sudo Bold 15;
-	font: Ubuntu Mono Bold 13;
-	font: Ubuntu Mono Regular 15;
+	font: Comic Shanns Medium 12;
 }
 
 /* Rules for all text-entries: */
@@ -131,12 +129,14 @@ and just stick to classes.
 
 .main-notebook tab:active
 {
-	background: #272725;
+	/*background: #272725;*/
+	background: #212121;
 }
 
 .text-view
 {
-	background: 	#272725;
+	/*background: 	#272725;*/
+	background: 	#212121;
 	color: 		#c1af9c;
 }
 

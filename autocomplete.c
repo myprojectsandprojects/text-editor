@@ -583,8 +583,7 @@ struct SortedStrs *autocomplete_create_and_store_words(GtkTextBuffer *text_buffe
 	int num_overall 	= 0;
 //	int num_stored 	= 0;
 
-	for (gtk_text_buffer_get_start_iter(text_buffer, &i);
-		!gtk_text_iter_is_end(&i); gtk_text_iter_forward_char(&i)) {
+	for (gtk_text_buffer_get_start_iter(text_buffer, &i); !gtk_text_iter_is_end(&i); gtk_text_iter_forward_char(&i)) {
 		gunichar c = gtk_text_iter_get_char(&i);
 		//printf("character: %c (%d)\n", c, c);
 		if (g_unichar_isalpha(c) || c == '_') {

@@ -8,6 +8,8 @@
 // struct List stuff needs this, but I dont quite understand that:
 #include <stdlib.h>
 
+#include "lib.h" // declares functions defined in lib.c and provides some useful macros
+
 
 /* tab.c */
 enum WidgetName{
@@ -22,14 +24,15 @@ enum WidgetName{
 	STATUS_MESSAGE_LABEL,
 	FILEPATH_LABEL,
 	AUTOCOMPLETE_WORDS,
-	CURRENT_TEXT_HIGHLIGHTING,
-	HIGHLIGHTING_MENU_BUTTON,
+//	CURRENT_TEXT_HIGHLIGHTING,
+//	HIGHLIGHTING_MENU_BUTTON,
 	HIGHLIGHTING_MENU_BUTTON_LABEL,
-	HIGHLIGHTING_MENU,
-	HIGHLIGHTING_CHANGED_EVENT_HANDLERS,
-	HIGHLIGHTING_CHANGED_EVENT_HANDLERS_INDEX,
-	HIGHLIGHTING_FUNC,
-	HIGHLIGHTING_TAGS,
+//	HIGHLIGHTING_MENU,
+//	HIGHLIGHTING_CHANGED_EVENT_HANDLERS,
+//	HIGHLIGHTING_CHANGED_EVENT_HANDLERS_INDEX,
+//	HIGHLIGHTING_FUNC,
+//	HIGHLIGHTING_TAGS,
+	HIGHLIGHTER,
 	JUMPTO_MARKS,
 	N_WIDGETS
 };
@@ -99,11 +102,6 @@ gboolean comment_block(GdkEventKey *key_event);
 gboolean uncomment_block(GdkEventKey *key_event);
 void get_cursor_position(GtkTextBuffer *buffer, GtkTextMark **pm, GtkTextIter *pi, gint *po);
 
-/* fileio.c: */
-char *read_file(const char *filename);
-void write_file(const char *filename, const char *contents);
-
-
 /* main.c: */
 
 #define CLIST_INITIAL_SIZE 3
@@ -118,7 +116,7 @@ void list_append(struct CList *l, void *item);
 void *list_pop_last(struct CList *l);
 bool list_delete_item(struct CList *l, void *item);
 
-#define INITIAL_SIZE 3
+#define INITIAL_SIZE 1000000
 
 template <typename T> struct List {
 	T *data; // pointer to dynamically allocated array of any type
@@ -156,11 +154,12 @@ void list_add(struct List<T> *l, T item) {
 
 struct Node {
 	const char *name;
-	struct CList *nodes; // if this is NULL, then node is a leaf-node and name stores the value
+//	struct CList *nodes; // if this is NULL, then node is a leaf-node and name stores the value
+	Array<Node *> nodes;
 };
 
-struct Node *get_node(struct Node *root, const char *apath);
-const char *settings_get_value(struct Node *settings, const char *path);
+Node *get_node(Node *root, const char *apath);
+const char *settings_get_value(Node *settings, const char *path);
 
 //// we dont check for duplicates
 //struct Table {
@@ -204,23 +203,30 @@ int parse_str(const char *str2parse,
 void init_undo(GtkWidget *tab);
 void actually_undo_last_action(GtkWidget *tab);
 
+/* highlighting-simple.cpp: */
+void highlighting_init(GtkWidget *tab, Node *settings);
+void highlighting_set(GtkWidget *tab, const char *highlighting_type);
+void print_tags(GtkTextBuffer *text_buffer);
+GtkWidget *create_highlighting_selection_button(GtkWidget *tab, Node *settings);
 
 /* highlighting.c: */
+//void select_highlighting_based_on_file_extension(GtkWidget *tab, struct Node *settings, const char *file_name);
+//void set_text_highlighting(GtkWidget *tab, const char *new_highlighting);
+//void highlighting_current_line_enable_or_disable(struct Node *settings, GtkTextBuffer *text_buffer);
+//void highlighting_current_line_enable(GtkTextBuffer *text_buffer, struct Node *settings);
+//void highlighting_current_line_disable(GtkTextBuffer *text_buffer);
+//GtkWidget *highlighting_new_menu_button(GtkWidget *tab, struct Node *settings);
+//void highlighting_update_menu(GtkWidget *tab, struct Node *settings);
+//void print_tags(GtkTextBuffer *text_buffer);
 
-void select_highlighting_based_on_file_extension(GtkWidget *tab, struct Node *settings, const char *file_name);
-void set_text_highlighting(GtkWidget *tab, const char *new_highlighting);
-/*
-#define ON 0
-#define OFF 1
-void set_current_line_highlighting(GtkTextBuffer *text_buffer, int to_what);
-*/
-void highlighting_current_line_enable_or_disable(struct Node *settings, GtkTextBuffer *text_buffer);
-void highlighting_current_line_enable(GtkTextBuffer *text_buffer, struct Node *settings);
-void highlighting_current_line_disable(GtkTextBuffer *text_buffer);
-GtkWidget *highlighting_new_menu_button(GtkWidget *tab, struct Node *settings);
-void highlighting_update_menu(GtkWidget *tab, struct Node *settings);
-//void parse_text_tags_file(void);
+/* highlighting-c.cpp*/
+void c_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end);
 
+/* highlighting-cpp.cpp: */
+void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end);
+
+/* highlighting-rust.cpp: */
+void rust_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end);
 
 /* strings.c: */
 
