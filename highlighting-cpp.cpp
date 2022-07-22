@@ -107,20 +107,42 @@ typedef struct {
 void get_range(GtkTextBuffer *text_buffer, GtkTextIter *location, GtkTextIter *start, GtkTextIter *end){
 	printf("get_range()\n");
 
-	*start = *location;
+	GtkTextIter token_start, token_end;
+
+	token_start = *location;
 //	gtk_text_iter_backward_char(start);
-	while (gtk_text_iter_backward_char(start)) {
-		if (gtk_text_iter_begins_tag(start, NULL)) {
+	while (gtk_text_iter_backward_char(&token_start)) {
+		if (gtk_text_iter_begins_tag(&token_start, NULL)) {
 			break;
 		}
 	}
 
-	*end = *location;
-	while (gtk_text_iter_forward_char(end)) {
-		if (gtk_text_iter_ends_tag(end, NULL)) {
+	token_end = *location;
+	while (gtk_text_iter_forward_char(&token_end)) {
+		if (gtk_text_iter_ends_tag(&token_end, NULL)) {
 			break;
 		}
 	}
+
+	GtkTextIter semicolon_start, semicolon_end;
+
+	semicolon_start = *location;
+//	gtk_text_iter_backward_char(start);
+	while (gtk_text_iter_backward_char(&semicolon_start)) {
+		if (gtk_text_iter_get_char(&semicolon_start) == ';') {
+			break;
+		}
+	}
+
+	semicolon_end = *location;
+	while (gtk_text_iter_forward_char(&semicolon_end)) {
+		if (gtk_text_iter_get_char(&semicolon_end) == ';') {
+			break;
+		}
+	}
+
+	*start = (gtk_text_iter_compare(&token_start, &semicolon_start) < 0) ? token_start : semicolon_start;
+	*end = (gtk_text_iter_compare(&token_end, &semicolon_end) > 0) ? token_end : semicolon_end;
 }
 
 void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end){
