@@ -49,8 +49,7 @@ void actually_autocomplete_character(GtkTextBuffer *text_buffer, char character)
 }
 */
 
-/* options... */
-#define QUOTE_SELECTED_TEXT 1
+static bool replace_selected_text;
 
 char *deleted_text;
 
@@ -60,8 +59,12 @@ Perhaps it would be easier to do autocompleting when handling key-combinations. 
 void on_text_buffer_begin_user_action_4_autocomplete_character(
 	GtkTextBuffer *text_buffer, gpointer data)
 {
+	printf("on_text_buffer_begin_user_action_4_autocomplete_character()\n");
 	LOG_MSG("on_text_buffer_begin_user_action_4_autocomplete_character()\n");
-	deleted_text = NULL;
+	if(deleted_text){
+		free(deleted_text);
+		deleted_text = NULL;
+	}
 }
 
 
@@ -72,6 +75,7 @@ void on_text_buffer_delete_range_4_autocomplete_character(
 	gpointer data)
 {
 	LOG_MSG("on_text_buffer_delete_range_4_autocomplete_character()\n");
+	printf("on_text_buffer_delete_range_4_autocomplete_character()\n");
 
 	deleted_text = gtk_text_buffer_get_text(text_buffer, start, end, FALSE);
 
@@ -81,85 +85,133 @@ void on_text_buffer_insert_text_4_autocomplete_character(GtkTextBuffer *text_buf
 	GtkTextIter *location, char *inserted_text, int length, gpointer data)
 {
 	LOG_MSG("on_text_buffer_insert_text_4_autocomplete_character()\n");
+	printf("on_text_buffer_insert_text_4_autocomplete_character()\n");
 
-	if (length > 1) {
-		return;
-	}
+	if (length == 1) {
+		char ch = inserted_text[0];
 
-	GtkTextIter start, end;
-	gboolean is_selection = gtk_text_buffer_get_selection_bounds(text_buffer, &start, &end); // gboolean
-	if (is_selection) {
-		char *text = gtk_text_buffer_get_text(text_buffer, &start, &end, FALSE);
-	}
-
-	char ch = inserted_text[0];
-	//char completed_text[3];
-
-	switch (ch) {
-		case '(':
-			gtk_text_buffer_insert(text_buffer, location, "()", -1);
-			gtk_text_iter_backward_char(location);
-			gtk_text_buffer_place_cursor(text_buffer, location);
-			break;
-		case '\"':
-			if (QUOTE_SELECTED_TEXT && deleted_text) {
-				char to_insert[100];
-				snprintf(to_insert, 100, "\"%s\"", deleted_text);
-				int o1 = gtk_text_iter_get_offset(location);
-				int o2 = o1 + strlen(to_insert);
-				gtk_text_buffer_insert(text_buffer, location, to_insert, -1);
-				//printf("...offsets: %d -> %d\n", o1, o2);
-				GtkTextIter i1, i2;
-				gtk_text_buffer_get_iter_at_offset(text_buffer, &i1, o1);
-				gtk_text_buffer_get_iter_at_offset(text_buffer, &i2, o2);
-				gtk_text_buffer_select_range(text_buffer, &i1, &i2);
-			} else {
-				gtk_text_buffer_insert(text_buffer, location, "\"\"", -1);
-				gtk_text_iter_backward_char(location);
-				gtk_text_buffer_place_cursor(text_buffer, location);
-			}
-			break;
-		case '\'':
-			if (QUOTE_SELECTED_TEXT && deleted_text) {
-				char to_insert[100];
-				snprintf(to_insert, 100, "\'%s\'", deleted_text);
-				int o1 = gtk_text_iter_get_offset(location);
-				int o2 = o1 + strlen(to_insert);
-				gtk_text_buffer_insert(text_buffer, location, to_insert, -1);
-				//printf("...offsets: %d -> %d\n", o1, o2);
-				GtkTextIter i1, i2;
-				gtk_text_buffer_get_iter_at_offset(text_buffer, &i1, o1);
-				gtk_text_buffer_get_iter_at_offset(text_buffer, &i2, o2);
-				gtk_text_buffer_select_range(text_buffer, &i1, &i2);
-
+		switch (ch) {
+			
+			case '\"':
+				if(replace_selected_text){
+					gtk_text_buffer_insert(text_buffer, location, "\"\"", -1);
+					gtk_text_iter_backward_char(location);
+					gtk_text_buffer_place_cursor(text_buffer, location);
+				}else{
+					char to_insert[100];
+					snprintf(to_insert, 100, "\"%s\"", deleted_text);
+					int o1 = gtk_text_iter_get_offset(location);
+					int o2 = o1 + strlen(to_insert);
+					gtk_text_buffer_insert(text_buffer, location, to_insert, -1);
+					//printf("...offsets: %d -> %d\n", o1, o2);
+					GtkTextIter i1, i2;
+					gtk_text_buffer_get_iter_at_offset(text_buffer, &i1, o1);
+					gtk_text_buffer_get_iter_at_offset(text_buffer, &i2, o2);
+					gtk_text_buffer_select_range(text_buffer, &i1, &i2);
+				}
+	
 				g_signal_stop_emission_by_name(text_buffer, "insert-text");
-				return;
-			} else {
-				gtk_text_buffer_insert(text_buffer, location, "\'\'", -1);
-				gtk_text_iter_backward_char(location);
-				gtk_text_buffer_place_cursor(text_buffer, location);
-			}
-			break;
-		case '[':
-			gtk_text_buffer_insert(text_buffer, location, "[]", -1);
-			gtk_text_iter_backward_char(location);
-			gtk_text_buffer_place_cursor(text_buffer, location);
-			break;
-		case '{':
-			gtk_text_buffer_insert(text_buffer, location, "{}", -1);
-			gtk_text_iter_backward_char(location);
-			gtk_text_buffer_place_cursor(text_buffer, location);
-			break;
-		default:
-			return; // do nothing
+				break;
+			case '\'':
+				if(replace_selected_text){
+					gtk_text_buffer_insert(text_buffer, location, "''", -1);
+					gtk_text_iter_backward_char(location);
+					gtk_text_buffer_place_cursor(text_buffer, location);
+				}else{
+					char to_insert[100];
+					snprintf(to_insert, 100, "'%s'", deleted_text);
+					int o1 = gtk_text_iter_get_offset(location);
+					int o2 = o1 + strlen(to_insert);
+					gtk_text_buffer_insert(text_buffer, location, to_insert, -1);
+					//printf("...offsets: %d -> %d\n", o1, o2);
+					GtkTextIter i1, i2;
+					gtk_text_buffer_get_iter_at_offset(text_buffer, &i1, o1);
+					gtk_text_buffer_get_iter_at_offset(text_buffer, &i2, o2);
+					gtk_text_buffer_select_range(text_buffer, &i1, &i2);
+				}
+	
+				g_signal_stop_emission_by_name(text_buffer, "insert-text");
+				break;
+			case '(':
+				if(replace_selected_text){
+					gtk_text_buffer_insert(text_buffer, location, "()", -1);
+					gtk_text_iter_backward_char(location);
+					gtk_text_buffer_place_cursor(text_buffer, location);
+				}else{
+					char to_insert[100];
+					snprintf(to_insert, 100, "(%s)", deleted_text);
+					int o1 = gtk_text_iter_get_offset(location);
+					int o2 = o1 + strlen(to_insert);
+					gtk_text_buffer_insert(text_buffer, location, to_insert, -1);
+					//printf("...offsets: %d -> %d\n", o1, o2);
+					GtkTextIter i1, i2;
+					gtk_text_buffer_get_iter_at_offset(text_buffer, &i1, o1);
+					gtk_text_buffer_get_iter_at_offset(text_buffer, &i2, o2);
+					gtk_text_buffer_select_range(text_buffer, &i1, &i2);
+				}
+	
+				g_signal_stop_emission_by_name(text_buffer, "insert-text");
+				break;
+			case '{':
+				if(replace_selected_text){
+					gtk_text_buffer_insert(text_buffer, location, "{}", -1);
+					gtk_text_iter_backward_char(location);
+					gtk_text_buffer_place_cursor(text_buffer, location);
+				}else{
+					char to_insert[100];
+					snprintf(to_insert, 100, "{%s}", deleted_text);
+					int o1 = gtk_text_iter_get_offset(location);
+					int o2 = o1 + strlen(to_insert);
+					gtk_text_buffer_insert(text_buffer, location, to_insert, -1);
+					//printf("...offsets: %d -> %d\n", o1, o2);
+					GtkTextIter i1, i2;
+					gtk_text_buffer_get_iter_at_offset(text_buffer, &i1, o1);
+					gtk_text_buffer_get_iter_at_offset(text_buffer, &i2, o2);
+					gtk_text_buffer_select_range(text_buffer, &i1, &i2);
+				}
+	
+				g_signal_stop_emission_by_name(text_buffer, "insert-text");
+				break;
+			case '[':
+				if(replace_selected_text){
+					gtk_text_buffer_insert(text_buffer, location, "[]", -1);
+					gtk_text_iter_backward_char(location);
+					gtk_text_buffer_place_cursor(text_buffer, location);
+				}else{
+					char to_insert[100];
+					snprintf(to_insert, 100, "[%s]", deleted_text);
+					int o1 = gtk_text_iter_get_offset(location);
+					int o2 = o1 + strlen(to_insert);
+					gtk_text_buffer_insert(text_buffer, location, to_insert, -1);
+					//printf("...offsets: %d -> %d\n", o1, o2);
+					GtkTextIter i1, i2;
+					gtk_text_buffer_get_iter_at_offset(text_buffer, &i1, o1);
+					gtk_text_buffer_get_iter_at_offset(text_buffer, &i2, o2);
+					gtk_text_buffer_select_range(text_buffer, &i1, &i2);
+				}
+	
+				g_signal_stop_emission_by_name(text_buffer, "insert-text");
+				break;
+		}
 	}
 
-	g_signal_stop_emission_by_name(text_buffer, "insert-text");
+	// When text is pasted into the text buffer, "begin-user-action" is not signaled (probably because we overwrote this handler?), which means that "deleted_text" is not cleared. This results in buggy behaviour.
+	if(deleted_text){
+		free(deleted_text);
+		deleted_text = NULL;
+	}
 }
 
-void init_autocomplete_character(GtkTextBuffer *text_buffer)
+void init_autocomplete_character(GtkTextBuffer *text_buffer, Node *settings)
 {
 	LOG_MSG("init_autocomplete_character()\n");
+
+	replace_selected_text = false; // it probably already is "false"
+	const char *value = settings_get_value(settings, "autocomplete-character/replace-selected-text");
+	if(value)
+		replace_selected_text = (strcmp(value, "true") == 0) ? true : false;
+	else
+		display_error("Setting \"autocomplete-character/replace-selected-text\" doesnt seem to be set in the settings file.", "Reverting to default value then: false");
 
 	g_signal_connect(G_OBJECT(text_buffer),
 		"insert-text", G_CALLBACK(on_text_buffer_insert_text_4_autocomplete_character), NULL);

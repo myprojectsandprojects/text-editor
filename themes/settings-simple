@@ -21,6 +21,11 @@ pixels-above-lines {4}
 pixels-below-lines {4}
 */
 
+autocomplete-character
+{
+	replace-selected-text {false} /* For example, whether to replace the selected text or to enclose it within a pair of doublequotes in case a doublequote was typed. Same applies to all other autocompleted characters. */
+}
+
 languages
 {
 	C
@@ -35,6 +40,7 @@ languages
 	{
 		file-extensions { rs {} }
 	}
+	/*doesnotexist{}*/
 }
 
 /*

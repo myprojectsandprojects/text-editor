@@ -54,6 +54,18 @@ struct Node *settings;
 
 struct CList *tabs; // temp
 
+//@ Its messy to mix values from variables into these messages. Can we improve?
+void display_error(const char *primary_message, const char *secondary_message = NULL){
+	char message[1000]; //@ overflow
+
+	if(secondary_message){
+		snprintf(message, 1000, "\n\033[1;31mError: %s\033[0m\n%s\n\n", primary_message, secondary_message);
+	}else{
+		snprintf(message, 1000, "\n\033[1;31m%s\033[0m\n\n", primary_message);
+	}
+
+	fprintf(stderr, "%s", message);
+}
 
 struct Node *get_node(struct Node *root, const char *apath) {
 	struct Node *result = NULL;
@@ -890,7 +902,7 @@ GtkWidget *create_tab(const char *file_name)
 
 	/* We want autocomplete-character's handler for "insert-text"-signal to be the first handler called.  
 	(code-highlighting and undo also register callbacks for this signal.) */
-	init_autocomplete_character(text_buffer);
+	init_autocomplete_character(text_buffer, settings);
 
 	tab_set_unsaved_changes_to(tab, FALSE);
 

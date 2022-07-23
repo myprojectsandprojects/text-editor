@@ -81,8 +81,13 @@ void highlighting_set(GtkWidget *tab, const char *highlighting){
 	}else{
 		f = get_highlighter(highlighting);
 		if(!f){
-			const char *message = "\n\033[1;31mError: Requested highlighting type (\"%s\") doesnt seem to have a highlighting-function associated with it.\033[0m\nPerhaps you specified a language in the settings-file, but didnt either provide a highlighting-function or didnt mention the highlighting-function in the highlighting-functions-table?\n\n";
-			fprintf(stderr, message, highlighting);
+//			const char *message = "\n\033[1;31mError: Requested highlighting type (\"%s\") doesnt seem to have a highlighting-function associated with it.\033[0m\nPerhaps you specified a language in the settings-file, but didnt either provide a highlighting-function or didnt mention the highlighting-function in the highlighting-functions-table?\n\n";
+//			fprintf(stderr, message, highlighting);
+
+			const int size = 1000;
+			char message[size];
+			snprintf(message, size, "Error: Requested highlighting type (\"%s\") doesnt seem to have a highlighting-function associated with it.", highlighting);
+			display_error(message, "Perhaps you specified a language in the settings-file, but didnt either provide a highlighting-function or didnt mention the highlighting-function in the highlighting-functions-table?");
 	
 			return;
 		}

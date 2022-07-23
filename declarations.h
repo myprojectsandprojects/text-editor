@@ -170,6 +170,7 @@ const char *settings_get_value(Node *settings, const char *path);
 //void table_store(struct Table *t, const char *name, void *value);
 //void *table_get(struct Table *t, const char *name);
 
+void display_error(const char *primary_message, const char *secondary_message);
 void add_menu_item(GtkMenu *menu, const char *label, GCallback callback, gpointer data);
 char *get_base_name(const char *file_name);
 void refresh_application_title(void);
@@ -275,7 +276,7 @@ GtkWidget *create_openfile_widget(void);
 gboolean display_openfile_dialog(GdkEventKey *key_event);
 
 /* autocomplete-character.c */
-void init_autocomplete_character(GtkTextBuffer *text_buffer);
+void init_autocomplete_character(GtkTextBuffer *text_buffer, Node *settings);
 
 /* tests.c */
 void test_table(void);
