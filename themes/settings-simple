@@ -21,9 +21,11 @@ pixels-above-lines {4}
 pixels-below-lines {4}
 */
 
+search-replace {}
+
 autocomplete-character
 {
-	replace-selected-text {false} /* For example, whether to replace the selected text or to enclose it within a pair of doublequotes in case a doublequote was typed. Same applies to all other autocompleted characters. */
+	enclose-selected-text {true} /* For example, whether to replace the selected text or to enclose it within a pair of doublequotes in case a doublequote was typed. Same applies to all other autocompleted characters. */
 }
 
 languages

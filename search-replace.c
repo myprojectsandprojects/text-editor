@@ -10,7 +10,7 @@
 
 
 extern GtkWidget *notebook;
-extern struct Node *settings;
+extern Node *settings;
 
 
 const char *print_action2take(int action2take)

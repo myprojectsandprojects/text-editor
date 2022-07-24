@@ -49,7 +49,7 @@ void actually_autocomplete_character(GtkTextBuffer *text_buffer, char character)
 }
 */
 
-static bool replace_selected_text;
+static bool enclose_selected_text;
 
 char *deleted_text;
 
@@ -91,13 +91,8 @@ void on_text_buffer_insert_text_4_autocomplete_character(GtkTextBuffer *text_buf
 		char ch = inserted_text[0];
 
 		switch (ch) {
-			
 			case '\"':
-				if(replace_selected_text){
-					gtk_text_buffer_insert(text_buffer, location, "\"\"", -1);
-					gtk_text_iter_backward_char(location);
-					gtk_text_buffer_place_cursor(text_buffer, location);
-				}else{
+				if(deleted_text && enclose_selected_text){
 					char to_insert[100];
 					snprintf(to_insert, 100, "\"%s\"", deleted_text);
 					int o1 = gtk_text_iter_get_offset(location);
@@ -108,16 +103,16 @@ void on_text_buffer_insert_text_4_autocomplete_character(GtkTextBuffer *text_buf
 					gtk_text_buffer_get_iter_at_offset(text_buffer, &i1, o1);
 					gtk_text_buffer_get_iter_at_offset(text_buffer, &i2, o2);
 					gtk_text_buffer_select_range(text_buffer, &i1, &i2);
+				}else{
+					gtk_text_buffer_insert(text_buffer, location, "\"\"", -1);
+					gtk_text_iter_backward_char(location);
+					gtk_text_buffer_place_cursor(text_buffer, location);
 				}
 	
 				g_signal_stop_emission_by_name(text_buffer, "insert-text");
 				break;
 			case '\'':
-				if(replace_selected_text){
-					gtk_text_buffer_insert(text_buffer, location, "''", -1);
-					gtk_text_iter_backward_char(location);
-					gtk_text_buffer_place_cursor(text_buffer, location);
-				}else{
+				if(deleted_text && enclose_selected_text){
 					char to_insert[100];
 					snprintf(to_insert, 100, "'%s'", deleted_text);
 					int o1 = gtk_text_iter_get_offset(location);
@@ -128,16 +123,16 @@ void on_text_buffer_insert_text_4_autocomplete_character(GtkTextBuffer *text_buf
 					gtk_text_buffer_get_iter_at_offset(text_buffer, &i1, o1);
 					gtk_text_buffer_get_iter_at_offset(text_buffer, &i2, o2);
 					gtk_text_buffer_select_range(text_buffer, &i1, &i2);
+				}else{
+					gtk_text_buffer_insert(text_buffer, location, "''", -1);
+					gtk_text_iter_backward_char(location);
+					gtk_text_buffer_place_cursor(text_buffer, location);
 				}
 	
 				g_signal_stop_emission_by_name(text_buffer, "insert-text");
 				break;
 			case '(':
-				if(replace_selected_text){
-					gtk_text_buffer_insert(text_buffer, location, "()", -1);
-					gtk_text_iter_backward_char(location);
-					gtk_text_buffer_place_cursor(text_buffer, location);
-				}else{
+				if(deleted_text && enclose_selected_text){
 					char to_insert[100];
 					snprintf(to_insert, 100, "(%s)", deleted_text);
 					int o1 = gtk_text_iter_get_offset(location);
@@ -148,16 +143,16 @@ void on_text_buffer_insert_text_4_autocomplete_character(GtkTextBuffer *text_buf
 					gtk_text_buffer_get_iter_at_offset(text_buffer, &i1, o1);
 					gtk_text_buffer_get_iter_at_offset(text_buffer, &i2, o2);
 					gtk_text_buffer_select_range(text_buffer, &i1, &i2);
+				}else{
+					gtk_text_buffer_insert(text_buffer, location, "()", -1);
+					gtk_text_iter_backward_char(location);
+					gtk_text_buffer_place_cursor(text_buffer, location);
 				}
 	
 				g_signal_stop_emission_by_name(text_buffer, "insert-text");
 				break;
 			case '{':
-				if(replace_selected_text){
-					gtk_text_buffer_insert(text_buffer, location, "{}", -1);
-					gtk_text_iter_backward_char(location);
-					gtk_text_buffer_place_cursor(text_buffer, location);
-				}else{
+				if(deleted_text && enclose_selected_text){
 					char to_insert[100];
 					snprintf(to_insert, 100, "{%s}", deleted_text);
 					int o1 = gtk_text_iter_get_offset(location);
@@ -168,16 +163,16 @@ void on_text_buffer_insert_text_4_autocomplete_character(GtkTextBuffer *text_buf
 					gtk_text_buffer_get_iter_at_offset(text_buffer, &i1, o1);
 					gtk_text_buffer_get_iter_at_offset(text_buffer, &i2, o2);
 					gtk_text_buffer_select_range(text_buffer, &i1, &i2);
+				}else{
+					gtk_text_buffer_insert(text_buffer, location, "{}", -1);
+					gtk_text_iter_backward_char(location);
+					gtk_text_buffer_place_cursor(text_buffer, location);
 				}
 	
 				g_signal_stop_emission_by_name(text_buffer, "insert-text");
 				break;
 			case '[':
-				if(replace_selected_text){
-					gtk_text_buffer_insert(text_buffer, location, "[]", -1);
-					gtk_text_iter_backward_char(location);
-					gtk_text_buffer_place_cursor(text_buffer, location);
-				}else{
+				if(deleted_text && enclose_selected_text){
 					char to_insert[100];
 					snprintf(to_insert, 100, "[%s]", deleted_text);
 					int o1 = gtk_text_iter_get_offset(location);
@@ -188,6 +183,10 @@ void on_text_buffer_insert_text_4_autocomplete_character(GtkTextBuffer *text_buf
 					gtk_text_buffer_get_iter_at_offset(text_buffer, &i1, o1);
 					gtk_text_buffer_get_iter_at_offset(text_buffer, &i2, o2);
 					gtk_text_buffer_select_range(text_buffer, &i1, &i2);
+				}else{
+					gtk_text_buffer_insert(text_buffer, location, "[]", -1);
+					gtk_text_iter_backward_char(location);
+					gtk_text_buffer_place_cursor(text_buffer, location);
 				}
 	
 				g_signal_stop_emission_by_name(text_buffer, "insert-text");
@@ -206,12 +205,12 @@ void init_autocomplete_character(GtkTextBuffer *text_buffer, Node *settings)
 {
 	LOG_MSG("init_autocomplete_character()\n");
 
-	replace_selected_text = false; // it probably already is "false"
-	const char *value = settings_get_value(settings, "autocomplete-character/replace-selected-text");
+	enclose_selected_text = true;
+	const char *value = settings_get_value(settings, "autocomplete-character/enclose-selected-text");
 	if(value)
-		replace_selected_text = (strcmp(value, "true") == 0) ? true : false;
+		enclose_selected_text = (strcmp(value, "true") == 0) ? true : false;
 	else
-		display_error("Setting \"autocomplete-character/replace-selected-text\" doesnt seem to be set in the settings file.", "Reverting to default value then: false");
+		display_error("Setting \"autocomplete-character/enclose-selected-text\" doesnt seem to be set in the settings file.", "Reverting to default value then: true");
 
 	g_signal_connect(G_OBJECT(text_buffer),
 		"insert-text", G_CALLBACK(on_text_buffer_insert_text_4_autocomplete_character), NULL);
