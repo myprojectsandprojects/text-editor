@@ -8,10 +8,8 @@
 //#include "tab.h"
 #include "declarations.h"
 
-
 extern GtkWidget *notebook;
 extern Node *settings;
-
 
 const char *print_action2take(int action2take)
 {
@@ -20,10 +18,7 @@ const char *print_action2take(int action2take)
 	return action2take_strs[action2take];
 }
 
-
-int parse_str(const char *str2parse,
-	int *line_num, char **search_str, char **replace_with_str)
-{
+int parse_str(const char *str2parse, int *line_num, char **search_str, char **replace_with_str){
 	LOG_MSG("parse_str()\n");
 
 	//#define BUFFER_SIZE 100 // how much text can user type into the entry?
@@ -338,34 +333,27 @@ gboolean do_search(GdkEventKey *key_event)
 	GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
 	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
 
-	if (!gtk_widget_is_focus(search_entry)) 
-	{
-		LOG_MSG("\twidget not (in?) focus.. exiting..\n");
-		return FALSE; // we didnt deal with the event that triggered us..
-	}
+	if (!gtk_widget_is_focus(search_entry)) return FALSE;
 
 	const char *text = gtk_entry_get_text(GTK_ENTRY(search_entry)); // "... must not be freed, modified or stored."
-	if (strlen(text) == 0) {
-		return TRUE;
-	}
+	if (strlen(text) == 0) return TRUE;
 
 	/* these will be initialized in parse_str(): */
 	int line_num;
 	char *search_str, *replace_with_str;
 	int action_2_take = parse_str(text, &line_num, &search_str, &replace_with_str);
-	printf("action_2_take: %s\n", print_action2take(action_2_take));
 
-	switch (action_2_take) {
-		case SEARCH:
-			printf("search string: %s\n", search_str);
-			break;
-		case REPLACE:
-			printf("search string: %s, replace string: %s\n", search_str, replace_with_str);
-			break;
-		case GO_TO_LINE:
-			printf("line_num: %d\n", line_num);
-			break;
-	}
+//	switch (action_2_take) {
+//		case SEARCH:
+//			printf("search string: %s\n", search_str);
+//			break;
+//		case REPLACE:
+//			printf("search string: %s, replace string: %s\n", search_str, replace_with_str);
+//			break;
+//		case GO_TO_LINE:
+//			printf("line_num: %d\n", line_num);
+//			break;
+//	}
 
 	// maybe it would be a better idea to let the user specify the search flags directly
 	// because then we would comply with the convention of using documented GTK-stuff in the settings-file
@@ -389,8 +377,7 @@ gboolean do_search(GdkEventKey *key_event)
 
 		gboolean found;
 		DO_SEARCH:
-		found = gtk_text_iter_forward_search(&search_iter, search_str,
-			search_flags, &match_start, &match_end, NULL);
+		found = gtk_text_iter_forward_search(&search_iter, search_str, search_flags, &match_start, &match_end, NULL);
 
 		if (found == TRUE) {
 			gtk_text_view_scroll_to_iter(text_view, &match_start, 0.0, TRUE, 0.0, 0.5); // middle

@@ -285,7 +285,13 @@ void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *
 			GtkTextIter start, end;
 			start = i;
 			while(gtk_text_iter_forward_char(&i)){
-				if(gtk_text_iter_get_char(&i) == '"') break; //@ need to check for backslash
+				gunichar tc = gtk_text_iter_get_char(&i);
+				if(tc == '\\'){
+					// ignore char's preceded by a backslash
+					gtk_text_iter_forward_char(&i);
+					continue;
+				}
+				if(tc == '"') break; //@ need to check for backslash
 			}
 			gtk_text_iter_forward_char(&i);
 			end = i;

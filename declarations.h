@@ -34,6 +34,7 @@ enum WidgetName{
 //	HIGHLIGHTING_TAGS,
 	HIGHLIGHTER,
 	JUMPTO_MARKS,
+	AUTOCOMPLETE_CHARACTER_HANDLER_ID,
 	N_WIDGETS
 };
 
@@ -170,7 +171,14 @@ const char *settings_get_value(Node *settings, const char *path);
 //void table_store(struct Table *t, const char *name, void *value);
 //void *table_get(struct Table *t, const char *name);
 
-void display_error(const char *primary_message, const char *secondary_message);
+// 1 -- bold, 31 -- red, 33 -- yellow
+#define ERROR(message, ...)\
+	fprintf(stderr, "\033[1;31m" message "\033[0m\n", ##__VA_ARGS__);
+// have warnings too?
+#define WARNING(message, ...)\
+	fprintf(stderr, "\033[1;33m" message "\033[0m\n", ##__VA_ARGS__);
+
+//void display_error(const char *primary_message, const char *secondary_message);
 void add_menu_item(GtkMenu *menu, const char *label, GCallback callback, gpointer data);
 char *get_base_name(const char *file_name);
 void refresh_application_title(void);
@@ -276,7 +284,7 @@ GtkWidget *create_openfile_widget(void);
 gboolean display_openfile_dialog(GdkEventKey *key_event);
 
 /* autocomplete-character.c */
-void init_autocomplete_character(GtkTextBuffer *text_buffer, Node *settings);
+void init_autocomplete_character(GtkTextBuffer *text_buffer, Node *settings, GtkWidget *tab);
 
 /* tests.c */
 void test_table(void);
@@ -289,7 +297,7 @@ void test_parse_str(void);
 void test_get_word_with_allocate(void);
 
 
-//#define PRINT_LOG_MESSAGES
+#define PRINT_LOG_MESSAGES
 #ifdef PRINT_LOG_MESSAGES
 	//#define LOG_MSG(...) printf(__VA_ARGS__)
 	#define LOG_MSG(format, ...) printf("[%s:%d] " format, __FILE__, __LINE__, ##__VA_ARGS__)

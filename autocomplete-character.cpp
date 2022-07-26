@@ -87,8 +87,11 @@ void on_text_buffer_insert_text_4_autocomplete_character(GtkTextBuffer *text_buf
 	LOG_MSG("on_text_buffer_insert_text_4_autocomplete_character()\n");
 	printf("on_text_buffer_insert_text_4_autocomplete_character()\n");
 
+		WARNING("inserted text: %s\n", inserted_text)
 	if (length == 1) {
 		char ch = inserted_text[0];
+
+		WARNING("character: %c\n", ch)
 
 		switch (ch) {
 			case '\"':
@@ -201,7 +204,8 @@ void on_text_buffer_insert_text_4_autocomplete_character(GtkTextBuffer *text_buf
 	}
 }
 
-void init_autocomplete_character(GtkTextBuffer *text_buffer, Node *settings)
+//@ If "enclose_selected_text" is false, we dont need to handle "begin-user-action" and "delete-range" signals at all, which makes me think about factoring the whole thing differently?
+void init_autocomplete_character(GtkTextBuffer *text_buffer, Node *settings, GtkWidget *tab)
 {
 	LOG_MSG("init_autocomplete_character()\n");
 
@@ -210,10 +214,14 @@ void init_autocomplete_character(GtkTextBuffer *text_buffer, Node *settings)
 	if(value)
 		enclose_selected_text = (strcmp(value, "true") == 0) ? true : false;
 	else
-		display_error("Setting \"autocomplete-character/enclose-selected-text\" doesnt seem to be set in the settings file.", "Reverting to default value then: true");
+//		display_error("Setting \"autocomplete-character/enclose-selected-text\" doesnt seem to be set in the settings file.", "Reverting to default value then: true");
+		ERROR("Setting \"autocomplete-character/enclose-selected-text\" doesnt seem to be set in the settings file. (Reverting to default value then: true)")
 
-	g_signal_connect(G_OBJECT(text_buffer),
+	gulong id = g_signal_connect(G_OBJECT(text_buffer),
 		"insert-text", G_CALLBACK(on_text_buffer_insert_text_4_autocomplete_character), NULL);
+	tab_add_widget_4_retrieval(tab, AUTOCOMPLETE_CHARACTER_HANDLER_ID, (void *) id); //@ hack
+		// we block the autocomplete-character's "insert-text" handler to prevent it from autocompleting our undos's.
+		// autocomplete-character should only complete user-level insertions, but how do we differentiate between user-level and hmm program-level?
 
 	g_signal_connect(G_OBJECT(text_buffer),
 		"delete-range", G_CALLBACK(on_text_buffer_delete_range_4_autocomplete_character), NULL);

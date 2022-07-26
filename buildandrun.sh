@@ -2,7 +2,7 @@ g++ -g\
 	main.c\
 	tab.c\
 	search-replace.c\
-	undo.c\
+	undo.cpp\
 	editing.c\
 	highlighting-simple.cpp\
 	highlighting-c.cpp\
@@ -14,7 +14,7 @@ g++ -g\
 	autocomplete.c\
 	root-navigation.c\
 	open.c\
-	autocomplete-character.c\
+	autocomplete-character.cpp\
 	hotloader.c\
 	tests.c\
 	lib.cpp\

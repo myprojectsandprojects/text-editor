@@ -45,7 +45,7 @@ const char *parent_dir_icon_path = 			"/home/eero/all/text-editor/themes/icons/a
 const char *search_icon_path = 				"/home/eero/all/text-editor/themes/icons/search.png";
 
 //const char *settings_file_path = "/home/eero/all/text-editor/themes/settings";
-const char *settings_file_path = "/home/eero/all/text-editor/themes/settings-simple";
+const char *settings_file_path = "/home/eero/all/text-editor/themes/settings";
 const char *css_file_path = "/home/eero/all/text-editor/themes/style.css";
 
 
@@ -54,18 +54,18 @@ struct Node *settings;
 
 struct CList *tabs; // temp
 
-//@ Its messy to mix values from variables into these messages. Can we improve?
-void display_error(const char *primary_message, const char *secondary_message = NULL){
-	char message[1000]; //@ overflow
-
-	if(secondary_message){
-		snprintf(message, 1000, "\n\033[1;31mError: %s\033[0m\n%s\n\n", primary_message, secondary_message);
-	}else{
-		snprintf(message, 1000, "\n\033[1;31m%s\033[0m\n\n", primary_message);
-	}
-
-	fprintf(stderr, "%s", message);
-}
+// Its messy to mix values from variables into these messages. Can we improve?
+//void display_error(const char *primary_message, const char *secondary_message = NULL){
+//	char message[1000]; //@ overflow
+//
+//	if(secondary_message){
+//		snprintf(message, 1000, "\n\033[1;31mError: %s\033[0m\n%s\n\n", primary_message, secondary_message);
+//	}else{
+//		snprintf(message, 1000, "\n\033[1;31m%s\033[0m\n\n", primary_message);
+//	}
+//
+//	fprintf(stderr, "%s", message);
+//}
 
 struct Node *get_node(struct Node *root, const char *apath) {
 	struct Node *result = NULL;
@@ -139,8 +139,12 @@ struct Node *parse_settings_file(const char *file_path)
 	LOG_MSG("parse_settings_file()\n");
 
 	char *contents = read_file(file_path);
-	assert(contents); //@ i think we should fail gracefully here
-	//printf("contents:\n%s\n", contents);
+	if(!contents){
+		ERROR("Error: Cant read settings file: \"%s\" (We cant continue. Exiting.)", file_path);
+		exit(1);
+	}
+//	assert(contents);
+//	printf("contents:\n%s\n", contents);
 
 	int start_comment, end_comment;
 	start_comment = -1;
@@ -902,7 +906,7 @@ GtkWidget *create_tab(const char *file_name)
 
 	/* We want autocomplete-character's handler for "insert-text"-signal to be the first handler called.  
 	(code-highlighting and undo also register callbacks for this signal.) */
-	init_autocomplete_character(text_buffer, settings);
+	init_autocomplete_character(text_buffer, settings, tab);
 
 	tab_set_unsaved_changes_to(tab, FALSE);
 

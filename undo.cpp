@@ -267,7 +267,15 @@ void actually_undo_last_action(GtkWidget *tab)
 		GtkTextIter location;
 		gtk_text_buffer_get_iter_at_offset(text_buffer, &location, action->start_offset);
 		ignore = TRUE;
+
+		//@ hack
+		// we block the autocomplete-character's "insert-text" handler to prevent it from autocompleting our undos's.
+		// autocomplete-character should only complete user-level insertions, but how do we differentiate between user-level and hmm program-level?
+//		g_signal_emit_by_name(text_buffer, "begin-user-action");
+		gulong id = (gulong) tab_retrieve_widget(tab, AUTOCOMPLETE_CHARACTER_HANDLER_ID);
+		g_signal_handler_block(text_buffer, id);
 		gtk_text_buffer_insert(text_buffer, &location, action->deleted_text_buffer, -1);
+		g_signal_handler_unblock(text_buffer, id);
 	}
 
 	free(action);

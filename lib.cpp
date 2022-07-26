@@ -9,7 +9,7 @@ char *read_file(const char *filename) {
 
 	file = fopen(filename, "r");
 	if(file == NULL) {
-		printf("read_file: couldnt open file \"%s\"\n", filename);
+//		printf("read_file: couldnt open file \"%s\"\n", filename);
 		return NULL;
 	}
 
@@ -21,7 +21,7 @@ char *read_file(const char *filename) {
 
 	contents = (char *) malloc(size+1);
 	if (contents == NULL) {
-		printf("read_file: malloc() failed!\n");
+//		printf("read_file: malloc() failed!\n");
 		return NULL;
 	}
 
