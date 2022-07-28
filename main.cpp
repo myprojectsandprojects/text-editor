@@ -842,6 +842,7 @@ GtkWidget *create_tab(const char *file_name)
 
 	//printf("*** file-name: %s, title: %s\n", tab_info->file_name, tab_info->title);
 	GtkWidget *file_path_label = gtk_label_new(NULL);
+	gtk_label_set_selectable(GTK_LABEL(file_path_label), TRUE);
 	GtkWidget *line_number_label = gtk_label_new(NULL);
 	GtkWidget *separator_label = gtk_label_new(":");
 

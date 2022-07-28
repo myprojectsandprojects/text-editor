@@ -87,11 +87,8 @@ void on_text_buffer_insert_text_4_autocomplete_character(GtkTextBuffer *text_buf
 	LOG_MSG("on_text_buffer_insert_text_4_autocomplete_character()\n");
 	printf("on_text_buffer_insert_text_4_autocomplete_character()\n");
 
-		WARNING("inserted text: %s\n", inserted_text)
 	if (length == 1) {
 		char ch = inserted_text[0];
-
-		WARNING("character: %c\n", ch)
 
 		switch (ch) {
 			case '\"':

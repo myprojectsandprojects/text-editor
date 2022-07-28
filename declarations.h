@@ -1,17 +1,14 @@
 
 /* declarations.h -- well just pile up these function declarations here for now. so everything that wants to call an undeclared function can include this header.. whether the function be in the same or a different module. we could create a separate header file for each module (file) too but we would end up with thousand header files with almost no content whatsoever so.. */
 
-/* If a declaration for a function which expects 0 arguments has () instead of (void), compiler will happily compile any combination of arguments. (?) */
-
 #include <gtk/gtk.h>
 
-// struct List stuff needs this, but I dont quite understand that:
 #include <stdlib.h>
 
 #include "lib.h" // declares functions defined in lib.c and provides some useful macros
 
 
-/* tab.c */
+/* tab.cpp */
 enum WidgetName{
 	TEXT_VIEW,
 	TEXT_BUFFER,
@@ -53,19 +50,19 @@ struct TabInfo {
 	//char *base_name; // Maybe well put basename here for convenience.
 };
 
-/* hotloader.c */
+/* hotloader.cpp */
 /* gboolean (*GSourceFunc) (gpointer data); */
 void hotloader_register_callback(const char *filepath, GSourceFunc when_changed, void *user_arg);
 
-/* file-browser.c: */
+/* file-browser.cpp: */
 GtkWidget *create_filebrowser_widget(void);
 GtkTreeStore *create_store(void);
 void create_nodes_for_dir(GtkTreeStore *store, GtkTreeIter *parent, const char *dir_path, int max_depth);
 
-/* search-in-files.c: */
+/* search-in-files.cpp: */
 GtkWidget *create_search_in_files_widget(void);
 
-/* editing.c: */
+/* editing.cpp: */
 gboolean handle_tab_key(GtkTextBuffer *text_buffer, GdkEventKey *key_event);
 gboolean duplicate_line(GdkEventKey *key_event);
 gboolean delete_line(GdkEventKey *key_event);
@@ -103,7 +100,7 @@ gboolean comment_block(GdkEventKey *key_event);
 gboolean uncomment_block(GdkEventKey *key_event);
 void get_cursor_position(GtkTextBuffer *buffer, GtkTextMark **pm, GtkTextIter *pi, gint *po);
 
-/* main.c: */
+/* main.cpp: */
 
 #define CLIST_INITIAL_SIZE 3
 
@@ -194,7 +191,7 @@ struct JumpToMarks {
 	GtkTextMark *marks[2];
 };
 
-/* search-replace.c */
+/* search-replace.cpp */
 GtkWidget *create_search_widget(GtkWidget *tab);
 gboolean toggle_search_entry(GdkEventKey *key_event);
 gboolean do_search(GdkEventKey *key_event);
@@ -208,11 +205,11 @@ int parse_str(const char *str2parse,
 #define GO_TO_LINE 2
 #define DO_NOTHING 3
 
-/* undo.c: */
+/* undo.cpp: */
 void init_undo(GtkWidget *tab);
 void actually_undo_last_action(GtkWidget *tab);
 
-/* highlighting-simple.cpp: */
+/* highlighting.cpp: */
 void highlighting_init(GtkWidget *tab, Node *settings);
 void highlighting_set(GtkWidget *tab, const char *highlighting_type);
 void print_tags(GtkTextBuffer *text_buffer);
@@ -237,7 +234,7 @@ void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *
 /* highlighting-rust.cpp: */
 void rust_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end);
 
-/* strings.c: */
+/* strings.cpp: */
 
 char *get_slice_by(char **p_s, char ch);
 char **slice_by(const char *s, char c);
@@ -255,7 +252,7 @@ void test_str_replace(void);
 void test_get_slice_by(void);
 void test_trim_whitespace(void);
 
-/* autocomplete.c */
+/* autocomplete.cpp */
 
 #define MAX_STRS 1000
 struct SortedStrs {
@@ -276,17 +273,17 @@ gboolean autocomplete_downkey(GdkEventKey *key_event);
 gboolean do_autocomplete(GdkEventKey *key_event);
 gboolean autocomplete_close_popup(GdkEventKey *key_event);
 
-/* root-navigation.c */
+/* root-navigation.cpp */
 GtkWidget *create_root_nav_widget(void);
 
-/* open.c */
+/* open.cpp */
 GtkWidget *create_openfile_widget(void);
 gboolean display_openfile_dialog(GdkEventKey *key_event);
 
-/* autocomplete-character.c */
+/* autocomplete-character.cpp */
 void init_autocomplete_character(GtkTextBuffer *text_buffer, Node *settings, GtkWidget *tab);
 
-/* tests.c */
+/* tests.cpp */
 void test_table(void);
 int test_case_parse_str(const char *str2parse,
 	int expected_action,

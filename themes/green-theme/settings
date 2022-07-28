@@ -11,73 +11,108 @@ new stuff easily configurable in here. */
 
 wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
 left-margin {10}
+search-case-sensitivity {true}
 pixels-above-lines {2}
 pixels-below-lines {2}
+/*
+pixels-above-lines {3}
+pixels-below-lines {3}
+pixels-above-lines {4}
+pixels-below-lines {4}
+*/
 
-highlighting
+search-replace {}
+
+autocomplete-character
 {
-	line-highlighting-color { #0d331e }
-	languages
+	enclose-selected-text {true} /* For example, whether to replace the selected text or to enclose it within a pair of doublequotes in case a doublequote was typed. Same applies to all other autocompleted characters. */
+}
+
+languages
+{
+	C
 	{
-		C
-		{
-			file-extensions
-			{
-				.c {}
-				.h {}
-				.cpp {}
-			}
-			tags
-			{
-				comment
-				{
-					foreground {#1d7343}
-				}
-				identifier
-				{
-					foreground {#2cb369}
-				}
-				keyword
-				{
-					foreground {#3eff96}
-				}
-				string-literal
-				{
-					foreground {#2cb369}
-				}
-				number-literal
-				{
-					foreground {#2cb369}
-				}
-				preprocessor-directive
-				{
-					foreground {#2cb369}
-				}
-				type
-				{
-					foreground {#2cb369}
-				}
-				operator
-				{
-					foreground {#2cb369}
-				}
-				unknown
-				{
-					foreground {#2cb369}
-				}
-				function
-				{
-					foreground {#2cb369}
-				}
-			}
-		}
-		CSS
-		{
-			file-extensions
-			{
-				.css {}
-			}
-			tags {}
-		}
+		file-extensions { c {} h {} }
 	}
+	C++
+	{
+		file-extensions { cpp{} hpp{} c {} h {} }
+	}
+	Rust
+	{
+		file-extensions { rs {} }
+	}
+	/*doesnotexist{}*/
+}
+
+/*
+	#c1af9c -- gray/beige
+	#869491 -- gray/blue
+	#809d77 -- colder green
+	#abb26d -- warmer green
+	#2787b2 -- light blue
+	#1c529d -- dark blue
+	#d5b669 -- yellow
+	#da823e -- orange
+	#de4f44 -- red
+	#ac7987 -- purple
+
+	#bfa886 -- gray beige
+	#cfaf86 -- bright beige
+*/
+
+/* Tags that can be used by any language highlighting: */
+text-tags
+{
+	comment
+	{
+		foreground{#2787b2/*#abb26d*/}
+	}
+	identifier
+	{
+		foreground{#cfaf86}
+	}
+	keyword
+	{
+		foreground{#da823e}
+		weight{bold}
+	}
+	type
+	{
+		foreground{#ac7987}
+	}
+	function
+	{
+		foreground{#cfaf86}
+	}
+	string
+	{
+		foreground{#d5b669}
+	}
+	number
+	{
+		foreground{#d5b669}
+	}
+	operator
+	{
+		foreground{#da823e}
+	}
+	preprocessor
+	{
+		foreground{#809d77}
+	}
+	unknown
+	{
+		foreground{#de4f44}
+	}
+	char
+	{
+		foreground{#d5b669}
+	}
+}
+
+highlighting {
+	/*line-highlighting-color {#292929}*/
+	line-highlighting-color {#1a1a1a /*#181818*/}
+	
 }

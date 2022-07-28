@@ -1,21 +1,21 @@
 g++ -g\
-	main.c\
-	tab.c\
-	search-replace.c\
+	main.cpp\
+	tab.cpp\
+	search-replace.cpp\
 	undo.cpp\
-	editing.c\
-	highlighting-simple.cpp\
+	editing.cpp\
+	highlighting.cpp\
 	highlighting-c.cpp\
 	highlighting-cpp.cpp\
 	highlighting-rust.cpp\
-	strings.c\
-	file-browser.c\
-	search-in-files.c\
-	autocomplete.c\
-	root-navigation.c\
-	open.c\
+	strings.cpp\
+	file-browser.cpp\
+	search-in-files.cpp\
+	autocomplete.cpp\
+	root-navigation.cpp\
+	open.cpp\
 	autocomplete-character.cpp\
-	hotloader.c\
-	tests.c\
+	hotloader.cpp\
+	tests.cpp\
 	lib.cpp\
 	$(pkg-config --cflags gtk+-3.0) $(pkg-config --libs gtk+-3.0) && ./a.out
