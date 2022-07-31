@@ -12,7 +12,9 @@ extern GtkWidget *notebook;
 extern Node *settings;
 
 struct SearchState {
-	GtkTextMark *search_mark;
+//	GtkTextMark *search_mark;
+	GtkTextMark *last_match_start;
+	GtkTextMark *last_match_end;
 	bool begin_new_search;
 };
 
@@ -283,10 +285,12 @@ GtkWidget *create_search_widget(GtkWidget *tab)
 
 	GtkTextIter start;
 	gtk_text_buffer_get_start_iter(text_buffer, &start);
-	GtkTextMark *search_mark = gtk_text_buffer_create_mark(text_buffer, "search-mark", &start, TRUE);
+	GtkTextMark *last_match_start = gtk_text_buffer_create_mark(text_buffer, "last-match-start", &start, TRUE);
+	GtkTextMark *last_match_end = gtk_text_buffer_create_mark(text_buffer, "last-match-end", &start, TRUE);
 
 	SearchState *state = (SearchState *) malloc(sizeof(SearchState));
-	state->search_mark = search_mark;
+	state->last_match_start = last_match_start;
+	state->last_match_end = last_match_end;
 	state->begin_new_search = true;
 
 	tab_add_widget_4_retrieval(tab, SEARCH_STATE, (void *) state);
@@ -386,6 +390,11 @@ gboolean do_search(GdkEventKey *key_event)
 		assert(search_str);
 		GtkTextIter search_iter, match_start, match_end;
 
+		bool shift = false;
+		if(key_event->state & GDK_SHIFT_MASK){
+			shift = true;
+		}
+
 //		GtkTextMark *search_mark = gtk_text_buffer_get_mark(text_buffer, "search-mark");
 //		assert(search_mark);
 //		gtk_text_buffer_get_iter_at_mark(text_buffer, &search_iter, search_mark);
@@ -395,7 +404,11 @@ gboolean do_search(GdkEventKey *key_event)
 			get_cursor_position(text_buffer, NULL, &search_iter, NULL);
 		}else{
 	 		// search from the search-mark
-			gtk_text_buffer_get_iter_at_mark(text_buffer, &search_iter, search_state->search_mark);
+//			gtk_text_buffer_get_iter_at_mark(text_buffer, &search_iter, search_state->search_mark);
+			if(shift)
+				gtk_text_buffer_get_iter_at_mark(text_buffer, &search_iter, search_state->last_match_start);
+			else
+				gtk_text_buffer_get_iter_at_mark(text_buffer, &search_iter, search_state->last_match_end);
 		}
 		search_state->begin_new_search = false;
 
@@ -419,14 +432,30 @@ gboolean do_search(GdkEventKey *key_event)
 //			}
 //		}
 
-		if(gtk_text_iter_forward_search(&search_iter, search_str, search_flags, &match_start, &match_end, NULL)){
-			gtk_text_view_scroll_to_iter	(text_view, &match_start, 0.0, TRUE, 0.0, 0.5); // middle
-			gtk_text_buffer_select_range	(text_buffer, &match_start, &match_end);
-			gtk_text_buffer_move_mark		(text_buffer, search_state->search_mark, &match_end);
+		if(shift){
+			if(gtk_text_iter_backward_search(&search_iter, search_str, search_flags, &match_start, &match_end, NULL)){
+				gtk_text_view_scroll_to_iter	(text_view, &match_start, 0.0, TRUE, 0.0, 0.5); // middle
+				gtk_text_buffer_select_range	(text_buffer, &match_start, &match_end);
+				gtk_text_buffer_move_mark		(text_buffer, search_state->last_match_start, &match_start);
+				gtk_text_buffer_move_mark		(text_buffer, search_state->last_match_end, &match_end);
+			}else{
+				GtkTextIter end;
+				gtk_text_buffer_get_end_iter	(text_buffer, &end);
+				gtk_text_buffer_move_mark		(text_buffer, search_state->last_match_start, &end);
+				gtk_text_buffer_move_mark		(text_buffer, search_state->last_match_end, &end);
+			}
 		}else{
-			GtkTextIter start;
-			gtk_text_buffer_get_start_iter	(text_buffer, &start);
-			gtk_text_buffer_move_mark			(text_buffer, search_state->search_mark, &start);
+			if(gtk_text_iter_forward_search(&search_iter, search_str, search_flags, &match_start, &match_end, NULL)){
+				gtk_text_view_scroll_to_iter	(text_view, &match_start, 0.0, TRUE, 0.0, 0.5); // middle
+				gtk_text_buffer_select_range	(text_buffer, &match_start, &match_end);
+				gtk_text_buffer_move_mark		(text_buffer, search_state->last_match_start, &match_start);
+				gtk_text_buffer_move_mark		(text_buffer, search_state->last_match_end, &match_end);
+			}else{
+				GtkTextIter start;
+				gtk_text_buffer_get_start_iter	(text_buffer, &start);
+				gtk_text_buffer_move_mark			(text_buffer, search_state->last_match_start, &start);
+				gtk_text_buffer_move_mark			(text_buffer, search_state->last_match_end, &start);
+			}
 		}
 	} else if (action_2_take == REPLACE) {
 
