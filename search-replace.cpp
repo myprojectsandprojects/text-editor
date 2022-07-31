@@ -11,6 +11,11 @@
 extern GtkWidget *notebook;
 extern Node *settings;
 
+struct SearchState {
+	GtkTextMark *search_mark;
+	bool begin_new_search;
+};
+
 const char *print_action2take(int action2take)
 {
 	const char *action2take_strs[] = {
@@ -243,14 +248,18 @@ int not_used_parse_search_str(
 
 void on_search_entry_changed(GtkEditable *search_entry, gpointer data)
 {
-	/*
-	search entry changed: make sure search-mark points at the beginning of the buffer!
-	*/
-	
-	GtkTextIter start;
-	GtkTextBuffer *text_buffer = (GtkTextBuffer *) data;
-	gtk_text_buffer_get_start_iter(text_buffer, &start);
-	gtk_text_buffer_move_mark_by_name(text_buffer, "search-mark", &start);
+//	/*
+//	search entry changed: make sure search-mark points at the beginning of the buffer!
+//	*/
+//	
+//	GtkTextIter start;
+//	GtkTextBuffer *text_buffer = (GtkTextBuffer *) data;
+//	gtk_text_buffer_get_start_iter(text_buffer, &start);
+//	gtk_text_buffer_move_mark_by_name(text_buffer, "search-mark", &start);
+
+	GtkWidget *tab = (GtkWidget *) data;
+	SearchState *search_state = (SearchState *) tab_retrieve_widget(tab, SEARCH_STATE);
+	search_state->begin_new_search = true;
 }
 
 
@@ -274,10 +283,16 @@ GtkWidget *create_search_widget(GtkWidget *tab)
 
 	GtkTextIter start;
 	gtk_text_buffer_get_start_iter(text_buffer, &start);
-	gtk_text_buffer_create_mark(text_buffer, "search-mark", &start, TRUE);
+	GtkTextMark *search_mark = gtk_text_buffer_create_mark(text_buffer, "search-mark", &start, TRUE);
 
-	g_signal_connect(G_OBJECT(search_entry), "changed",
-		G_CALLBACK(on_search_entry_changed), text_buffer);
+	SearchState *state = (SearchState *) malloc(sizeof(SearchState));
+	state->search_mark = search_mark;
+	state->begin_new_search = true;
+
+	tab_add_widget_4_retrieval(tab, SEARCH_STATE, (void *) state);
+
+
+	g_signal_connect(G_OBJECT(search_entry), "changed", G_CALLBACK(on_search_entry_changed), (void *) tab);
 
 	return search_revealer;
 }
@@ -371,28 +386,47 @@ gboolean do_search(GdkEventKey *key_event)
 		assert(search_str);
 		GtkTextIter search_iter, match_start, match_end;
 
-		GtkTextMark *search_mark = gtk_text_buffer_get_mark(text_buffer, "search-mark");
-		assert(search_mark != NULL);
-		gtk_text_buffer_get_iter_at_mark(text_buffer, &search_iter, search_mark);
+//		GtkTextMark *search_mark = gtk_text_buffer_get_mark(text_buffer, "search-mark");
+//		assert(search_mark);
+//		gtk_text_buffer_get_iter_at_mark(text_buffer, &search_iter, search_mark);
+		SearchState *search_state = (SearchState *) tab_retrieve_widget(tab, SEARCH_STATE);
+		if(search_state->begin_new_search){
+			// search from the cursor
+			get_cursor_position(text_buffer, NULL, &search_iter, NULL);
+		}else{
+	 		// search from the search-mark
+			gtk_text_buffer_get_iter_at_mark(text_buffer, &search_iter, search_state->search_mark);
+		}
+		search_state->begin_new_search = false;
 
-		gboolean found;
-		DO_SEARCH:
-		found = gtk_text_iter_forward_search(&search_iter, search_str, search_flags, &match_start, &match_end, NULL);
+//		gboolean found;
+//		DO_SEARCH:
+//		found = gtk_text_iter_forward_search(&search_iter, search_str, search_flags, &match_start, &match_end, NULL);
+//
+//		if (found == TRUE) {
+//			gtk_text_view_scroll_to_iter(text_view, &match_start, 0.0, TRUE, 0.0, 0.5); // middle
+////			gtk_text_view_scroll_to_iter(text_view, &match_start, 0.0, TRUE, 0.0, 0.1);
+//			gtk_text_buffer_select_range(text_buffer, &match_end, &match_start);
+//			search_iter = match_end;
+//			gtk_text_buffer_move_mark(text_buffer, search_mark, &search_iter);
+//		} else {
+//			if (gtk_text_iter_is_start(&search_iter) == FALSE) {
+//				LOG_MSG("\tthere were matches for \"%s\" -> back to the beginning\n", text);	
+//				gtk_text_buffer_get_start_iter(text_buffer, &search_iter);
+//				goto DO_SEARCH;
+//			} else {
+//				LOG_MSG("\tthere were no matches for \"%s\"\n", text);
+//			}
+//		}
 
-		if (found == TRUE) {
-			gtk_text_view_scroll_to_iter(text_view, &match_start, 0.0, TRUE, 0.0, 0.5); // middle
-//			gtk_text_view_scroll_to_iter(text_view, &match_start, 0.0, TRUE, 0.0, 0.1);
-			gtk_text_buffer_select_range(text_buffer, &match_end, &match_start);
-			search_iter = match_end;
-			gtk_text_buffer_move_mark(text_buffer, search_mark, &search_iter);
-		} else {
-			if (gtk_text_iter_is_start(&search_iter) == FALSE) {
-				LOG_MSG("\tthere were matches for \"%s\" -> back to the beginning\n", text);	
-				gtk_text_buffer_get_start_iter(text_buffer, &search_iter);
-				goto DO_SEARCH;
-			} else {
-				LOG_MSG("\tthere were no matches for \"%s\"\n", text);
-			}
+		if(gtk_text_iter_forward_search(&search_iter, search_str, search_flags, &match_start, &match_end, NULL)){
+			gtk_text_view_scroll_to_iter	(text_view, &match_start, 0.0, TRUE, 0.0, 0.5); // middle
+			gtk_text_buffer_select_range	(text_buffer, &match_start, &match_end);
+			gtk_text_buffer_move_mark		(text_buffer, search_state->search_mark, &match_end);
+		}else{
+			GtkTextIter start;
+			gtk_text_buffer_get_start_iter	(text_buffer, &start);
+			gtk_text_buffer_move_mark			(text_buffer, search_state->search_mark, &start);
 		}
 	} else if (action_2_take == REPLACE) {
 
@@ -432,7 +466,6 @@ gboolean do_search(GdkEventKey *key_event)
 	}
 
 	//@ free everything
-	printf("do_search: returning..\n");
 
 	return TRUE;
 }

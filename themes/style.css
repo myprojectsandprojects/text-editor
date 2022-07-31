@@ -27,6 +27,7 @@ and just stick to classes.
 {
 	font: Comic Shanns Bold 14;
 	font: Comic Shanns Regular 12;
+	font: Comic Shanns Regular 13;
 }
 
 /* Rules for all text-entries: */
@@ -144,9 +145,8 @@ and just stick to classes.
 
 .text-view
 {
-	/*background: beige;*/
 	background: #e2d7bb/* -- beige*/;
-	color: #2d2b25/* -- darker gray*/;
+	color: #1d1b18;
 }
 
 .status-bar {
