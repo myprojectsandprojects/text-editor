@@ -12,14 +12,8 @@ new stuff easily configurable in here. */
 wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
 left-margin {10}
 search-case-sensitivity {true}
-pixels-above-lines {2}
-pixels-below-lines {2}
-/*
-pixels-above-lines {3}
-pixels-below-lines {3}
-pixels-above-lines {4}
-pixels-below-lines {4}
-*/
+pixels-above-lines {1}
+pixels-below-lines {1}
 
 search-replace {}
 
@@ -45,42 +39,20 @@ languages
 	/*doesnotexist{}*/
 }
 
-/*
-	#c1af9c -- gray/beige
-	#869491 -- gray/blue
-	#809d77 -- colder green
-	#abb26d -- warmer green
-	#2787b2 -- light blue
-	#1c529d -- dark blue
-	#d5b669 -- yellow
-	#da823e -- orange
-	#de4f44 -- red
-	#ac7987 -- purple
-
-	#bfa886 -- gray beige
-	#cfaf86 -- bright beige
-
-	#2d2b25 -- dark gray
-	#ac5013 -- orange
-	#315d66 -- blue
-	#546b28 -- green
-	#524e7c -- purple
-*/
-
 /* Tags that can be used by any language highlighting: */
 text-tags
 {
 	comment
 	{
-		foreground{#315d66}
+		foreground{#16e500}
 	}
 	identifier
 	{
-		foreground{#1d1b18}
+		foreground{#e0e0e0}
 	}
 	keyword
 	{
-		foreground{#2d2b25}
+		foreground{#ede627}
 		weight{bold}
 	}
 	type
@@ -93,27 +65,28 @@ text-tags
 	}
 	string
 	{
-		foreground{#ac5013}
-	}
-	number
-	{
-		foreground{#ac5013}
-	}
-	operator
-	{
-		foreground{#2d2b25}
-	}
-	preprocessor
-	{
-		foreground{#524e7c}
-	}
-	unknown
-	{
-		foreground{#ba4944}
+		foreground{#ffa300}
 	}
 	char
 	{
-		foreground{#ac5013}
+		foreground{#ffa300}
+	}
+	number
+	{
+		foreground{#ffa300}
+	}
+	operator
+	{
+		foreground{#e0e0e0}
+	}
+	preprocessor
+	{
+		foreground{#3793ea}
+		weight{bold}
+	}
+	unknown
+	{
+		foreground{#ee2800}
 	}
 }
 

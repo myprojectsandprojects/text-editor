@@ -403,7 +403,6 @@ gboolean do_search(GdkEventKey *key_event)
 			// search from the cursor
 			get_cursor_position(text_buffer, NULL, &search_iter, NULL);
 		}else{
-	 		// search from the search-mark
 //			gtk_text_buffer_get_iter_at_mark(text_buffer, &search_iter, search_state->search_mark);
 			if(shift)
 				gtk_text_buffer_get_iter_at_mark(text_buffer, &search_iter, search_state->last_match_start);

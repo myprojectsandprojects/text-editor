@@ -61,8 +61,8 @@ languages
 	#cfaf86 -- bright beige
 
 	#2d2b25 -- dark gray
-	#cb5f17 -- orange
-	#396c77 -- blue
+	#ac5013 -- orange
+	#315d66 -- blue
 	#546b28 -- green
 	#524e7c -- purple
 */
@@ -72,11 +72,11 @@ text-tags
 {
 	comment
 	{
-		foreground{#396c77}
+		foreground{#315d66}
 	}
 	identifier
 	{
-		foreground{#2d2b25}
+		foreground{#1d1b18}
 	}
 	keyword
 	{
@@ -93,11 +93,11 @@ text-tags
 	}
 	string
 	{
-		foreground{#546b28}
+		foreground{#ac5013}
 	}
 	number
 	{
-		foreground{#546b28}
+		foreground{#ac5013}
 	}
 	operator
 	{
@@ -113,7 +113,7 @@ text-tags
 	}
 	char
 	{
-		foreground{#546b28}
+		foreground{#ac5013}
 	}
 }
 
