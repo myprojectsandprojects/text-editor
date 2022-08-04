@@ -192,6 +192,8 @@ struct JumpToMarks {
 	GtkTextMark *marks[2];
 };
 
+void on_text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data); //@ hack: this is called by highlighting to keep the line-highlighting uptodate.
+
 /* search-replace.cpp */
 GtkWidget *create_search_widget(GtkWidget *tab);
 gboolean toggle_search_entry(GdkEventKey *key_event);
@@ -295,7 +297,7 @@ void test_parse_str(void);
 void test_get_word_with_allocate(void);
 
 
-#define PRINT_LOG_MESSAGES
+//#define PRINT_LOG_MESSAGES
 #ifdef PRINT_LOG_MESSAGES
 	//#define LOG_MSG(...) printf(__VA_ARGS__)
 	#define LOG_MSG(format, ...) printf("[%s:%d] " format, __FILE__, __LINE__, ##__VA_ARGS__)

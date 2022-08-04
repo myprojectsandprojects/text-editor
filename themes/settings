@@ -90,8 +90,6 @@ text-tags
 	}
 }
 
-highlighting {
-	/*line-highlighting-color {#292929}*/
-	line-highlighting-color {#1a1a1a /*#181818*/}
-	
+line-highlighting {
+	color {#25365d}
 }

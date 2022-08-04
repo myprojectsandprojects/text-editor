@@ -166,7 +166,10 @@ static void on_insert_text_after(GtkTextBuffer *text_buffer, GtkTextIter *locati
 
 //	cpp_highlight(text_buffer, location, NULL);
 	Highlighter f = (Highlighter) tab_retrieve_widget(GTK_WIDGET(tab), HIGHLIGHTER);
-	if(f) f(text_buffer, location, NULL);
+	if(f){
+		f(text_buffer, location, NULL);
+		on_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL); //@ hack
+	}
 }
 
 static void on_delete_range_after(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end, gpointer tab){
@@ -177,7 +180,10 @@ static void on_delete_range_after(GtkTextBuffer *text_buffer, GtkTextIter *start
 
 //	cpp_highlight(text_buffer, start, NULL);
 	Highlighter f = (Highlighter) tab_retrieve_widget(GTK_WIDGET(tab), HIGHLIGHTER);
-	if(f) f(text_buffer, start, NULL);
+	if(f){
+		f(text_buffer, start, NULL);
+		on_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL); //@ hack
+	}
 }
 
 static void on_highlighting_selected(GtkMenuItem *item, gpointer data){

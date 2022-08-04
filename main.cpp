@@ -791,6 +791,44 @@ static void set_highlighting_based_on_file_extension(GtkWidget *tab, Node *setti
 	}
 }
 
+void on_text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data){
+	WARNING("cursor position changed!\n");
+
+	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
+
+	GtkTextIter cursor_pos;
+	get_cursor_position(text_buffer, NULL, &cursor_pos, NULL);
+
+	GtkTextIter start_line, end_line;
+	start_line = end_line = cursor_pos;
+//	gtk_text_iter_backward_line(&start_line);
+//	gtk_text_iter_forward_char(&start_line);
+	gtk_text_iter_set_line_offset(&start_line, 0);
+	gtk_text_iter_forward_line(&end_line);
+
+	GtkTextIter start_buffer, end_buffer;
+	gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
+	gtk_text_buffer_remove_tag_by_name(text_buffer, "line-highlighting", &start_buffer, &end_buffer);
+
+	gtk_text_buffer_apply_tag_by_name(text_buffer, "line-highlighting", &start_line, &end_line);
+}
+
+void line_highlighting_init(GtkTextBuffer *text_buffer, const char *color){
+	printf("line_highlighting_init()\n");
+
+	assert(color);
+
+	gtk_text_buffer_create_tag(text_buffer,
+		"line-highlighting",
+		"paragraph-background", color,
+		NULL);
+
+	g_signal_connect(text_buffer,
+		"notify::cursor-position",
+		G_CALLBACK(on_text_buffer_cursor_position_changed),
+		NULL);
+}
+
 GtkWidget *create_tab(const char *file_name)
 {
 	static int count = 1;
@@ -900,6 +938,15 @@ GtkWidget *create_tab(const char *file_name)
 //
 //	// if the value is set in settings, we should do line highlighting, otherwise not
 //	highlighting_current_line_enable_or_disable(settings, text_buffer);
+	{
+		const char *value = settings_get_value(settings, "line-highlighting/color");
+		if(value)
+			line_highlighting_init(text_buffer, value);
+		else{
+			ERROR("Setting \"line-highlighting/color\" doesnt seem to be set in the settings file. (Reverting to default value then: black)")
+			line_highlighting_init(text_buffer, "black");
+		}
+	}
 
 	highlighting_init(tab, settings); //@ get rid of this
 
