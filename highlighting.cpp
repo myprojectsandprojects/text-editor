@@ -167,6 +167,12 @@ static void on_insert_text_after(GtkTextBuffer *text_buffer, GtkTextIter *locati
 //	cpp_highlight(text_buffer, location, NULL);
 	Highlighter f = (Highlighter) tab_retrieve_widget(GTK_WIDGET(tab), HIGHLIGHTER);
 	if(f){
+		//@hack begin:
+		GtkTextIter start_buffer, end_buffer;
+		gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
+		gtk_text_buffer_remove_tag_by_name(text_buffer, "line-highlighting", &start_buffer, &end_buffer);
+		//@hack end:
+
 		f(text_buffer, location, NULL);
 		on_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL); //@ hack
 	}
