@@ -697,10 +697,12 @@ GtkWidget *create_filebrowser_widget(void)
 	g_signal_connect(filebrowser, "row-expanded", G_CALLBACK(on_filebrowser_row_expanded), NULL);
 	g_signal_connect(filebrowser, "button-press-event", G_CALLBACK(on_filebrowser_button_pressed), NULL);
 
+/*
 	pthread_t id;
 	if ((pthread_create(&id, NULL, monitor_fs_changes, NULL)) != 0) {
 		printf("create_filebrowser_widget(): pthread_create() error!\n");
 	}
+*/
 
 	return filebrowser;
 }

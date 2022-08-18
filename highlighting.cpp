@@ -1,6 +1,10 @@
 #include <string.h>
 #include "declarations.h"
 
+extern guint gtk_version_major;
+extern guint gtk_version_minor;
+extern guint gtk_version_micro;
+
 static void on_insert_text_after(GtkTextBuffer *text_buffer, GtkTextIter *location, gchar *text, gint len, gpointer tab);
 static void on_delete_range_after(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end, gpointer tab);
 static void update_highlighting_selection_button(GtkWidget *tab, const char *new_highlighting);
@@ -29,11 +33,13 @@ Highlighter get_highlighter(const char *highlighting_type) {
 }
 
 void highlighting_init(GtkWidget *tab, Node *settings){
-	printf("highlighting_init()\n");
+	LOG_MSG("highlighting_init()\n");
 
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
+INFO("start");
 
 	Node *text_tags = get_node(settings, "text-tags");
+
 	for(int i = 0; i < text_tags->nodes.count; ++i){
 		Node *text_tag = (Node *) text_tags->nodes.data[i];
 //		printf("text-tag: %s\n", text_tag->name);
@@ -64,6 +70,7 @@ void highlighting_init(GtkWidget *tab, Node *settings){
 			g_object_set(G_OBJECT(gtk_text_tag), attribute_name->name, attribute_value->name, NULL);
 		}
 	}
+INFO("end");
 
 	// register event-handlers necessary to keep the highlighting uptodate
 	g_signal_connect_after(text_buffer, "insert-text", G_CALLBACK(on_insert_text_after), tab);
@@ -71,8 +78,7 @@ void highlighting_init(GtkWidget *tab, Node *settings){
 }
 
 void highlighting_set(GtkWidget *tab, const char *highlighting){
-	printf("highlighting_set()\n");
-	printf("setting highlighting to %s\n", highlighting);
+	LOG_MSG("highlighting_set()\n");
 
 	Highlighter f;
 
@@ -144,7 +150,7 @@ void print_tags(GtkTextBuffer *text_buffer){
 }
 
 static void on_insert_text_after(GtkTextBuffer *text_buffer, GtkTextIter *location, gchar *text, gint len, gpointer tab){
-	printf("on_insert_text_after()\n");
+	LOG_MSG("on_insert_text_after()\n");
 
 //	printf("location offset: %d, text: %s, len: %d\n", gtk_text_iter_get_offset(location), text, len);
 //	printf("character at location: %c[%d]\n", gtk_text_iter_get_char(location), gtk_text_iter_get_char(location));
@@ -171,7 +177,7 @@ static void on_insert_text_after(GtkTextBuffer *text_buffer, GtkTextIter *locati
 		GtkTextIter start_buffer, end_buffer;
 		gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
 		gtk_text_buffer_remove_tag_by_name(text_buffer, "line-highlighting", &start_buffer, &end_buffer);
-		//@hack end:
+		//hack end:
 
 		f(text_buffer, location, NULL);
 		on_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL); //@ hack
@@ -201,7 +207,7 @@ static void on_highlighting_selected(GtkMenuItem *item, gpointer data){
 }
 
 static void update_highlighting_selection_button(GtkWidget *tab, const char *new_highlighting){
-	printf("update_highlighting_selection_button()\n");
+	LOG_MSG("update_highlighting_selection_button()\n");
 
 	GtkWidget *button_label = (GtkWidget *) tab_retrieve_widget(tab, HIGHLIGHTING_MENU_BUTTON_LABEL);
 	gtk_label_set_text(GTK_LABEL(button_label), new_highlighting);

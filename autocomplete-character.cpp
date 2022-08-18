@@ -59,7 +59,6 @@ Perhaps it would be easier to do autocompleting when handling key-combinations. 
 void on_text_buffer_begin_user_action_4_autocomplete_character(
 	GtkTextBuffer *text_buffer, gpointer data)
 {
-	printf("on_text_buffer_begin_user_action_4_autocomplete_character()\n");
 	LOG_MSG("on_text_buffer_begin_user_action_4_autocomplete_character()\n");
 	if(deleted_text){
 		free(deleted_text);
@@ -75,7 +74,6 @@ void on_text_buffer_delete_range_4_autocomplete_character(
 	gpointer data)
 {
 	LOG_MSG("on_text_buffer_delete_range_4_autocomplete_character()\n");
-	printf("on_text_buffer_delete_range_4_autocomplete_character()\n");
 
 	deleted_text = gtk_text_buffer_get_text(text_buffer, start, end, FALSE);
 
@@ -85,7 +83,6 @@ void on_text_buffer_insert_text_4_autocomplete_character(GtkTextBuffer *text_buf
 	GtkTextIter *location, char *inserted_text, int length, gpointer data)
 {
 	LOG_MSG("on_text_buffer_insert_text_4_autocomplete_character()\n");
-	printf("on_text_buffer_insert_text_4_autocomplete_character()\n");
 
 	if (length == 1) {
 		char ch = inserted_text[0];

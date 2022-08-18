@@ -40,8 +40,7 @@ static gboolean init(GtkTextView **pview, GtkTextBuffer **pbuffer)
 
 // m, i, o -- output values
 // output values are optional (pass in NULL if you dont want one)
-void get_cursor_position(GtkTextBuffer *buffer,
-	GtkTextMark **pm, GtkTextIter *pi, gint *po)
+void get_cursor_position(GtkTextBuffer *buffer, GtkTextMark **pm, GtkTextIter *pi, gint *po)
 {
 	LOG_MSG("get_cursor_position()\n");
 
@@ -93,10 +92,6 @@ char **get_opening_tags(GtkTextIter *i)
 
 	return names;	
 }
-
-
-char **get_closing_tags(GtkTextIter *i)
-{}
 
 
 // moves iterator to the beginning of the next token (returns TRUE)
@@ -483,6 +478,8 @@ gboolean move_lines_up(GdkEventKey *key_event)
 	gtk_text_buffer_get_iter_at_mark(buffer, &iter, keep_this);
 	gtk_text_buffer_insert(buffer, &iter, text, -1);
 	gtk_text_buffer_delete_mark(buffer, keep_this);
+
+	return TRUE;
 }
 
 
@@ -523,6 +520,8 @@ gboolean move_lines_down(GdkEventKey *key_event)
 	gtk_text_buffer_get_iter_at_mark(buffer, &iter, keep_this);
 	gtk_text_buffer_insert(buffer, &iter, text, -1);
 	gtk_text_buffer_delete_mark(buffer, keep_this);
+
+	return TRUE;
 }
 
 
@@ -563,6 +562,8 @@ gboolean duplicate_line(GdkEventKey *key_event)
 	gtk_text_buffer_place_cursor(buffer, &iter);*/
 	gtk_text_buffer_delete_mark(buffer, start_mark);
 	gtk_text_buffer_delete_mark(buffer, end_mark);
+
+	return TRUE;
 }
 
 

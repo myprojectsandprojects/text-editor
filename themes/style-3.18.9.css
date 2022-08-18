@@ -26,9 +26,12 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
+	/*
 	font: Sudo Medium 16;
 	font: Comic Shanns Regular 13;
 	font: Comic Shanns Regular 12;
+	*/
+	font: 16px Source Code Pro;
 }
 
 /* Rules for all text-entries: */
@@ -145,13 +148,15 @@ and just stick to classes.
 
 .text-view
 {
-	background: 	#1a2641;
+	/*background: 	#1a2641;*/
+	background-color: rgb(255, 0, 0, 255);
 	color: 		#e0e0e0;
 }
 
 .status-bar {
 	/*border-top: solid 1px rgb(200, 200, 200);*/
-	background: #131c30;
+	background: green;
+	/*background: #131c30;*/
 	color: #e0e0e0;
 	font-weight: bold;
 	/*	padding: 10px 10px 10px 10px;*/ /* no effect */

@@ -5,6 +5,23 @@
 
 #include "declarations.h"
 
+char *get_base_name(const char *file_name)
+{
+	char file_name_copy[100]; //@ buffer bounds
+	char *base_name;
+	char *curr_token, *prev_token;
+
+	sprintf(file_name_copy, "%s", file_name); // ...since strtok() modifies the string given.
+	curr_token = strtok(file_name_copy, "/"); //@ What if this returns NULL?
+	while(curr_token != NULL) {
+		prev_token = curr_token;
+		curr_token = strtok(NULL, "/");
+	}
+	base_name = (char *) malloc(100); //@  buffer bounds
+	sprintf(base_name, "%s", prev_token);
+
+	return base_name;
+}
 
 char *trim_whitespace(char *str)
 {

@@ -175,10 +175,11 @@ const char *settings_get_value(Node *settings, const char *path);
 // have warnings too?
 #define WARNING(message, ...)\
 	fprintf(stderr, "\033[1;33m" message "\033[0m\n", ##__VA_ARGS__);
+#define INFO(message, ...)\
+	fprintf(stderr, "\033[1;32m" message "\033[0m\n", ##__VA_ARGS__);
 
 //void display_error(const char *primary_message, const char *secondary_message);
 void add_menu_item(GtkMenu *menu, const char *label, GCallback callback, gpointer data);
-char *get_base_name(const char *file_name);
 void refresh_application_title(void);
 GtkWidget *create_tab(const char *file_name);
 void set_root_dir(const char *path);
@@ -238,7 +239,7 @@ void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *
 void rust_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end);
 
 /* strings.cpp: */
-
+char *get_base_name(const char *file_name);
 char *get_slice_by(char **p_s, char ch);
 char **slice_by(const char *s, char c);
 char *get_parent_path(const char *path);

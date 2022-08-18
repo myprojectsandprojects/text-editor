@@ -10,6 +10,10 @@
 
 #include "declarations.h"
 
+guint gtk_version_major;
+guint gtk_version_minor;
+guint gtk_version_micro;
+
 // It seems to me, and I might be mistaken about this,
 // that GTK *never* deallocates already allocated memory,
 // but it does get reused when possible.
@@ -35,19 +39,21 @@ char root_dir[ROOT_DIR_SIZE];
 
 extern GtkWidget *root_dir_label;
 
-const char *filebrowser_icon_path =			"/home/eero/all/text-editor/themes/icons/files.png";
-const char *searchinfiles_icon_path = 		"/home/eero/all/text-editor/themes/icons/search.png";
-const char *unsaved_changes_icon_path = 		"/home/eero/all/text-editor/themes/icons/exclamation-mark.png";
-const char *file_icon_path = 					"/home/eero/all/text-editor/themes/icons/file.png";
-const char *folder_icon_path = 				"/home/eero/all/text-editor/themes/icons/folder.png";
-const char *home_icon_path = 					"/home/eero/all/text-editor/themes/icons/house.png";
-const char *parent_dir_icon_path = 			"/home/eero/all/text-editor/themes/icons/arrow.png";
-const char *search_icon_path = 				"/home/eero/all/text-editor/themes/icons/search.png";
+const char *filebrowser_icon_path = "themes/icons/files.png";
+const char *searchinfiles_icon_path = "themes/icons/search.png";
+const char *unsaved_changes_icon_path = "themes/icons/exclamation-mark.png";
+const char *file_icon_path = "themes/icons/file.png";
+const char *folder_icon_path = "themes/icons/folder.png";
+const char *home_icon_path = "themes/icons/house.png";
+const char *parent_dir_icon_path = "themes/icons/arrow.png";
+const char *search_icon_path = "themes/icons/search.png";
 
 //const char *settings_file_path = "/home/eero/all/text-editor/themes/settings";
-const char *settings_file_path = "/home/eero/all/text-editor/themes/settings";
-const char *css_file_path = "/home/eero/all/text-editor/themes/style.css";
-
+const char *settings_file_path = "themes/settings";
+const char *settings_file_path_ifnotheme = "themes/settings-no-theme"; // if we dont style widgets because we are unsure if the GTK version we are currently using supports our style, we take settings from this file.
+//const char *css_file_path = "/home/eero/all/text-editor/themes/style.css";
+const char *css_file_path = "themes/style.css";
+bool use_theme = false;
 
 struct Node *settings;
 
@@ -145,6 +151,8 @@ struct Node *parse_settings_file(const char *file_path)
 	}
 //	assert(contents);
 //	printf("contents:\n%s\n", contents);
+
+	INFO("Using settings from \"%s\"", file_path);
 
 	int start_comment, end_comment;
 	start_comment = -1;
@@ -751,7 +759,7 @@ void configure_text_view(GtkTextView *text_view, struct Node *settings)
 }
 
 static void set_highlighting_based_on_file_extension(GtkWidget *tab, Node *settings, const char *file_name){
-	printf("set_highlighting_based_on_file_extension()\n");
+	LOG_MSG("set_highlighting_based_on_file_extension()\n");
 
 	if(!file_name || *file_name == '\0'){ // NULL or ""
 		highlighting_set(tab, "None");
@@ -792,8 +800,6 @@ static void set_highlighting_based_on_file_extension(GtkWidget *tab, Node *setti
 }
 
 void on_text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data){
-	WARNING("cursor position changed!\n");
-
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
 
 	GtkTextIter cursor_pos;
@@ -814,7 +820,7 @@ void on_text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, 
 }
 
 void line_highlighting_init(GtkTextBuffer *text_buffer, const char *color){
-	printf("line_highlighting_init()\n");
+	LOG_MSG("line_highlighting_init()\n");
 
 	assert(color);
 
@@ -940,6 +946,7 @@ GtkWidget *create_tab(const char *file_name)
 //	highlighting_current_line_enable_or_disable(settings, text_buffer);
 	{
 		const char *value = settings_get_value(settings, "line-highlighting/color");
+
 		if(value)
 			line_highlighting_init(text_buffer, value);
 		else{
@@ -1023,26 +1030,6 @@ char *get_file_name_from_user(GtkFileChooserAction dialog_type)
 
 	return file_name;
 }
-
-
-char *get_base_name(const char *file_name)
-{
-	char file_name_copy[100]; //@ buffer bounds
-	char *base_name;
-	char *curr_token, *prev_token;
-
-	sprintf(file_name_copy, "%s", file_name); // ...since strtok() modifies the string given.
-	curr_token = strtok(file_name_copy, "/"); //@ What if this returns NULL?
-	while(curr_token != NULL) {
-		prev_token = curr_token;
-		curr_token = strtok(NULL, "/");
-	}
-	base_name = (char *) malloc(100); //@  buffer bounds
-	sprintf(base_name, "%s", prev_token);
-
-	return base_name;
-}
-
 
 #define CTRL	1 // 0001
 #define ALT	2 // 0010
@@ -1483,9 +1470,9 @@ gboolean do_open(GdkEventKey *key_event)
 /* signature is such because we need register it as a callback */
 gboolean apply_css_from_file(void *data)
 {
-	LOG_MSG("apply_css_from_file()\n");
-	//const char *file_name = (const char *) data;
-	const char *file_name = css_file_path;
+	WARNING("apply_css_from_file()\n");
+	const char *file_name = (const char *) data;
+	//const char *file_name = css_file_path;
 
 	//printf("applying css from \"%s\"..\n", file_name);
 	LOG_MSG("\tapplying css from \"%s\"..\n", file_name);
@@ -1551,6 +1538,8 @@ gboolean set_mark(GdkEventKey *key_event)
 		//marks->current_mark_i = !marks->current_mark_i;
 		marks->current_mark_i = 0;
 	}
+
+	return TRUE;
 }
 
 
@@ -1578,6 +1567,8 @@ gboolean go_to_mark(GdkEventKey *key_event)
 		TRUE, // use alignment?
 		0.0, // x-alignment
 		0.5); // y-alignment (in the middle of the screen)
+
+	return TRUE;
 }
 
 
@@ -1768,6 +1759,10 @@ gboolean update_settings(gpointer user_arg)
 	return FALSE; // dont call us again
 }
 
+//gboolean test_func(void *data) {
+//	INFO("test_func() with \"%s\"", (const char *)data);
+//	return FALSE;
+//}
 
 void activate_handler(GtkApplication *app, gpointer data)
 {
@@ -1874,11 +1869,28 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(CTRL, 44, less_fancy_toggle_notebook); // ctrl + j
 
 
-	settings = parse_settings_file(settings_file_path);
-	apply_css_from_file(NULL);
+	// other GTK versions might brake our theme
+	if (gtk_version_major == 3 && gtk_version_minor == 18 && gtk_version_micro == 9) {
+		settings = parse_settings_file(settings_file_path);
 
-	hotloader_register_callback(css_file_path, apply_css_from_file, NULL);
+		apply_css_from_file((void *)css_file_path);
+		hotloader_register_callback(css_file_path, apply_css_from_file, (void *)css_file_path);
+	} else {
+		settings = parse_settings_file(settings_file_path_ifnotheme);
+
+		if (gtk_version_major == 3 && gtk_version_minor == 24 && gtk_version_micro == 34) {
+			const char *x = "themes/style-3.24.34.css";
+			apply_css_from_file((void *)x);
+			hotloader_register_callback(x, apply_css_from_file, (void *)x);
+		}
+	}
+
 //	hotloader_register_callback(settings_file_path, update_settings, NULL);
+
+	//char *filename1 = strdup("/home/eero/test/file1");
+	//char *filename2 = strdup("/home/eero/test/file2");
+	//hotloader_register_callback("/home/eero/test/file1", test_func, (void *)filename1);
+	//hotloader_register_callback("/home/eero/test/file2", test_func, (void *)filename2);
 
 	/*uid_t real_uid = getuid();
 	uid_t effective_uid = geteuid();
@@ -1960,7 +1972,6 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 */
 }
 
-
 int main()
 {
 	LOG_MSG("main()\n");
@@ -1968,10 +1979,10 @@ int main()
 	int status;
 	GtkApplication *app;
 
-	guint major = gtk_get_major_version();
-	guint minor = gtk_get_minor_version();
-	guint micro = gtk_get_micro_version();
-	printf("GTK version: %u.%u.%u\n", major, minor, micro);
+	gtk_version_major = gtk_get_major_version();
+	gtk_version_minor = gtk_get_minor_version();
+	gtk_version_micro = gtk_get_micro_version();
+	printf("GTK version: %u.%u.%u\n", gtk_version_major, gtk_version_minor, gtk_version_micro);
 
 	app = gtk_application_new(NULL, G_APPLICATION_FLAGS_NONE);
 	g_signal_connect(app,
