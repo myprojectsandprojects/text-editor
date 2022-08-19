@@ -1970,9 +1970,17 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 */
 }
 
-int main()
+int main(int argc, char *argv[])
 {
 	LOG_MSG("main()\n");
+
+	// Make sure CWD is the directory which contains the executable. (This might not be the case when the executable is executed through a symbolic link)
+	const int size = 100; //@
+	char executable_path[size];
+	readlink("/proc/self/exe", executable_path, size);
+	char *parent_path = get_parent_path(executable_path);
+	chdir(parent_path);
+	free(parent_path);
 
 	int status;
 	GtkApplication *app;
