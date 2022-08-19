@@ -49,7 +49,7 @@ static void *monitor_changes_and_call(void *args) {
 	Args *a = (Args *) args;
 	const char *file_path     = a->file_path;
 	GSourceFunc when_changed  = a->when_changed;
-	void *user_data           = a->user_data;
+	void *user_data            = a->user_data;
 
 	const char *parent_path   = get_parent_path(file_path);
 	const char *base_name     = get_base_name(file_path);
@@ -75,12 +75,12 @@ static void *monitor_changes_and_call(void *args) {
 		
 		for (p = event_buffer; p < event_buffer + num_bytes;) {
 			inotify_event *event = (inotify_event *) p;
-			//print_event(event);
+			print_event(event);
 
 			if (event->mask & IN_IGNORED) {
 				ERROR("monitor_changes_and_call(): cant continue monitoring file \"%s\" -- we lost our watch! Parent directory (\"%s\") got deleted?", file_path, parent_path);
 				return NULL;
-			} else if ((event->mask & IN_MODIFY) && event->name && strcmp(event->name, base_name) == 0) { // just look for IN_MODIFY events associated with our file. Maybe it works.
+			} else if (((event->mask & IN_MODIFY) || (event->mask & IN_MOVED_TO)) && event->name && strcmp(event->name, base_name) == 0) { // just look for IN_MODIFY events associated with our file. Maybe it works. Also: IN_MOVED_TO for Gedit
 				INFO("file (\"%s\") changed", file_path);
 				g_timeout_add_seconds(1, when_changed, user_data);
 			}

@@ -52,7 +52,7 @@ const char *search_icon_path = "themes/icons/search.png";
 const char *settings_file_path = "themes/settings";
 const char *settings_file_path_ifnotheme = "themes/settings-no-theme"; // if we dont style widgets because we are unsure if the GTK version we are currently using supports our style, we take settings from this file.
 //const char *css_file_path = "/home/eero/all/text-editor/themes/style.css";
-const char *css_file_path = "themes/style.css";
+const char *css_file_path = "themes/style-3.18.9.css";
 bool use_theme = false;
 
 struct Node *settings;
@@ -1470,12 +1470,10 @@ gboolean do_open(GdkEventKey *key_event)
 /* signature is such because we need register it as a callback */
 gboolean apply_css_from_file(void *data)
 {
-	WARNING("apply_css_from_file()\n");
+	LOG_MSG("apply_css_from_file()\n");
 	const char *file_name = (const char *) data;
 	//const char *file_name = css_file_path;
 
-	//printf("applying css from \"%s\"..\n", file_name);
-	LOG_MSG("\tapplying css from \"%s\"..\n", file_name);
 	// Apply css from file:
 	static GtkCssProvider *provider = NULL;
 	GdkScreen *screen = gdk_screen_get_default();
