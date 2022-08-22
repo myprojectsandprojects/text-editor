@@ -497,3 +497,111 @@ gboolean do_search(GdkEventKey *key_event)
 
 	return TRUE;
 }
+
+gboolean jump_to_next_occurrence(GdkEventKey *key_event) {
+	printf("search_identifier_at_cursor()\n");
+
+//	GtkTextBuffer *text_buffer;
+//	if (!(text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER)))) {
+//		printf("error\n");
+//	} else {
+//		printf("ok\n");
+//	}
+
+	GtkTextBuffer *text_buffer;
+	{
+		void *x = visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
+		if (!x) {
+			return FALSE;
+		}
+		text_buffer = GTK_TEXT_BUFFER(x);
+	}
+
+	GtkTextView *text_view;
+	{
+		void *x = visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW);
+		if (!x) {
+			return FALSE;
+		}
+		text_view = GTK_TEXT_VIEW(x);
+	}
+
+	GtkTextIter cursor_pos;
+	get_cursor_position(text_buffer, NULL, &cursor_pos, NULL);
+
+//	gunichar c = gtk_text_iter_get_char(&iter);
+//	printf("c: %c\n", c);
+
+	char *text;
+	GtkTextIter start, end;
+	{
+		start = cursor_pos;
+		for (gunichar c = gtk_text_iter_get_char(&start);
+		(g_unichar_isalpha(c) || g_unichar_isdigit(c) || c == '_') && !gtk_text_iter_is_start(&start);
+		gtk_text_iter_backward_char(&start), c = gtk_text_iter_get_char(&start));
+		if (!gtk_text_iter_is_start(&start)) gtk_text_iter_forward_char(&start);
+
+		end = cursor_pos;
+		for (gunichar c = gtk_text_iter_get_char(&end);
+		g_unichar_isalpha(c) || g_unichar_isdigit(c) || c == '_';
+		gtk_text_iter_forward_char(&end), c = gtk_text_iter_get_char(&end));
+
+		if (!(gtk_text_iter_compare(&start, &end) < 0)) {
+			return FALSE;
+		}
+
+		text = gtk_text_buffer_get_text(text_buffer, &start, &end, FALSE);
+	}
+//	printf("text: %s\n", text);
+
+	GtkTextIter match_start, match_end;
+	GtkTextSearchFlags flags = (GtkTextSearchFlags) 0;
+	if (key_event->state & GDK_SHIFT_MASK) {
+		GtkTextIter search_iter = start;
+		while (gtk_text_iter_backward_search(&search_iter, text, flags, &match_start, &match_end, NULL)) {
+			// Check that the search result is not part of an *identifier*
+			GtkTextIter before, after;
+			before = match_start;
+			after = match_end;
+			gtk_text_iter_backward_char(&before);
+			gunichar char_before = gtk_text_iter_get_char(&before);
+			gunichar char_after = gtk_text_iter_get_char(&after);
+			if (((g_unichar_isalpha(char_before) || g_unichar_isdigit(char_before) || char_before == '_') && !gtk_text_iter_is_start(&match_start)) 
+			|| (g_unichar_isalpha(char_after) || g_unichar_isdigit(char_after) || char_after == '_')) {
+				search_iter = match_start;
+				continue;
+			}
+
+			gtk_text_buffer_place_cursor(text_buffer, &match_start);
+//			gtk_text_view_scroll_to_iter(text_view, &match_start, 0.0, TRUE, 0.0, 0.5); // middle
+			gtk_text_view_scroll_to_iter(text_view, &match_start, 0.0, FALSE, 0.0, 0.0); // "just get the mark onscreen"
+//			gtk_text_buffer_select_range(text_buffer, &match_start, &match_end);
+			break;
+		}
+	} else {
+		GtkTextIter search_iter = end;
+		while (gtk_text_iter_forward_search(&search_iter, text, flags, &match_start, &match_end, NULL)) {
+			// Check that the search result is not part of an *identifier*
+			GtkTextIter before, after;
+			before = match_start, after = match_end;
+			gtk_text_iter_backward_char(&before);
+			gunichar char_before = gtk_text_iter_get_char(&before);
+			gunichar char_after = gtk_text_iter_get_char(&after);
+			if ((g_unichar_isalpha(char_before) || g_unichar_isdigit(char_before) || char_before == '_')
+			|| (g_unichar_isalpha(char_after) || g_unichar_isdigit(char_after) || char_after == '_')) {
+				search_iter = match_end;
+				continue;
+			}
+
+			gtk_text_buffer_place_cursor(text_buffer, &match_start);
+//			gtk_text_view_scroll_to_iter(text_view, &match_start, 0.0, TRUE, 0.0, 0.5); // middle
+			gtk_text_view_scroll_to_iter(text_view, &match_start, 0.0, FALSE, 0.0, 0.0); // "just get the mark onscreen"
+//			gtk_text_buffer_select_range(text_buffer, &match_start, &match_end);
+			break;
+		}
+	}
+
+	free(text);
+
+	return TRUE;
+}

@@ -199,6 +199,7 @@ void on_text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, 
 GtkWidget *create_search_widget(GtkWidget *tab);
 gboolean toggle_search_entry(GdkEventKey *key_event);
 gboolean do_search(GdkEventKey *key_event);
+gboolean jump_to_next_occurrence(GdkEventKey *key_event);
 const char *print_action2take(int action2take);
 int parse_str(const char *str2parse,
 	int *line_num, char **search_str, char **replace_with_str);

@@ -1,0 +1,58 @@
+/**/
+
+GtkWidget {
+	font: Source Code Pro 11;
+}
+
+GtkApplicationWindow {
+	background: white;
+	color: black;
+}
+
+GtkTextView {
+	font: Source Code Pro 12;
+}
+
+.command-entry, .search-entry {
+	border-radius: 0;
+	border: dashed 1px gray;
+	background: white;
+	color: black;
+}
+
+.command-entry:focus, .search-entry:focus {
+	border: dashed 1px red;
+}
+
+#search-revealer > GtkEntry:selected, #command-revealer > GtkEntry:selected, GtkTextView:selected {
+	color: white;
+	background: red;
+}
+
+GtkNotebook
+{
+	border-radius: 0px;
+	/*border: solid 3px gray;*/
+	background: white;
+	color: black;
+	padding: 0 9px;
+}
+
+/*GtkNotebook tab {border: solid 3px red;}*/
+/*GtkNotebook tab:active {border-top: solid 3px blue;}*/
+
+GtkNotebook tab
+{
+	padding: 10px 16px;
+}
+
+.info-bar, .info-bar-emphasis {
+	border-top: solid 1px gray;
+	/*background: white;*/ 
+	color: black;
+	padding: 3px;
+}
+
+/*.info-bar-emphasis {
+	font: Source Code Pro 13;
+}*/

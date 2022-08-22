@@ -1833,6 +1833,9 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(CTRL, 34, move_cursor_closing); // ctrl + ü
 	add_keycombination_handler(CTRL, 31, select_inside); // ctrl + ü
 
+	add_keycombination_handler(CTRL, 35, jump_to_next_occurrence); // ctrl + õ (35)
+	add_keycombination_handler(CTRL | SHIFT, 35, jump_to_next_occurrence); // ctrl + shift + õ (35)
+
 	add_keycombination_handler(ALT, 111, move_lines_up); // alt + <up arrow>
 	add_keycombination_handler(ALT, 116, move_lines_down); // alt + <down arrow>
 //	add_keycombination_handler(ALT, 113, move_token_left); // alt + <left arrow>
