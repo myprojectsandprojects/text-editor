@@ -26,9 +26,12 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
+	/*
 	font: Sudo Medium 16;
 	font: Comic Shanns Regular 12;
 	font: Comic Shanns Regular 13;
+	*/
+	font: Liberation Mono 13;
 }
 
 /* Rules for all text-entries: */
@@ -120,7 +123,7 @@ and just stick to classes.
 
 .main-notebook
 {
-	background: #131c30;
+	background: #101010;
 	/*color: black;*/
 	/*border: solid 1px black;*/
 	border: solid 1px rgb(200, 200, 200);
@@ -130,12 +133,12 @@ and just stick to classes.
 .main-notebook tab
 {
 	padding: 10px 16px;
-	background: #131c30;
+	background: #101010;
 }
 
 .main-notebook tab:active
 {
-	background: #1a2641;
+	background: #000000;
 	/*border-top: solid red 1px;*/
 }
 
@@ -145,13 +148,15 @@ and just stick to classes.
 
 .text-view
 {
-	background: 	#1a2641;
-	color: 		#e0e0e0;
+	background: #000000;
+	/*color:      #aa9960;*/
+	color:      #ffffff;
 }
 
 .status-bar {
 	/*border-top: solid 1px rgb(200, 200, 200);*/
 	background: #131c30;
+	background: #101010;
 	color: #e0e0e0;
 	font-weight: bold;
 	/*	padding: 10px 10px 10px 10px;*/ /* no effect */

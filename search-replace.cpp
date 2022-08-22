@@ -433,10 +433,10 @@ gboolean do_search(GdkEventKey *key_event)
 
 		if(shift){
 			if(gtk_text_iter_backward_search(&search_iter, search_str, search_flags, &match_start, &match_end, NULL)){
-				gtk_text_view_scroll_to_iter	(text_view, &match_start, 0.0, TRUE, 0.0, 0.5); // middle
-				gtk_text_buffer_select_range	(text_buffer, &match_start, &match_end);
-				gtk_text_buffer_move_mark		(text_buffer, search_state->last_match_start, &match_start);
-				gtk_text_buffer_move_mark		(text_buffer, search_state->last_match_end, &match_end);
+				gtk_text_view_scroll_to_iter (text_view, &match_start, 0.0, TRUE, 0.0, 0.5); // middle
+				gtk_text_buffer_select_range (text_buffer, &match_start, &match_end);
+				gtk_text_buffer_move_mark    (text_buffer, search_state->last_match_start, &match_start);
+				gtk_text_buffer_move_mark    (text_buffer, search_state->last_match_end, &match_end);
 			}else{
 				GtkTextIter end;
 				gtk_text_buffer_get_end_iter	(text_buffer, &end);

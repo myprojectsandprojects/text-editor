@@ -1770,20 +1770,28 @@ gboolean cursor_long_jump_right(GdkEventKey *key_event) {
 	GtkTextIter cursor_pos = iter;
 
 	gunichar ch = gtk_text_iter_get_char(&iter);
-
-	if (g_unichar_isalnum(ch) || ch == '_')
-	{
-		// lowercase alpha
-		do {
-			if (!gtk_text_iter_forward_char(&iter)) break;
+	if (g_unichar_isalnum(ch) || ch == '_') {
+		while ((g_unichar_isalnum(ch) || ch == '_') && gtk_text_iter_forward_char(&iter)) {
 			ch = gtk_text_iter_get_char(&iter);
-		} while (g_unichar_isalnum(ch) || ch == '_');
+		}
 	} else {
-		do {
-			if (!gtk_text_iter_forward_char(&iter)) break;
+		while ((!(g_unichar_isalnum(ch) || ch == '_')) && gtk_text_iter_forward_char(&iter)) {
 			ch = gtk_text_iter_get_char(&iter);
-		} while (!(g_unichar_isalnum(ch) || ch == '_'));
+		}
 	}
+
+//	if (g_unichar_isalnum(ch) || ch == '_')
+//	{
+//		do {
+//			if (!gtk_text_iter_forward_char(&iter)) break;
+//			ch = gtk_text_iter_get_char(&iter);
+//		} while (g_unichar_isalnum(ch) || ch == '_');
+//	} else {
+//		do {
+//			if (!gtk_text_iter_forward_char(&iter)) break;
+//			ch = gtk_text_iter_get_char(&iter);
+//		} while (!(g_unichar_isalnum(ch) || ch == '_'));
+//	}
 //	else if (g_unichar_ispunct(ch))
 //	{
 //		// punctuation

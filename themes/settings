@@ -44,15 +44,15 @@ text-tags
 {
 	comment
 	{
-		foreground{#16e500}
+		foreground{#339933}
 	}
 	identifier
 	{
-		foreground{#e0e0e0}
+		foreground{#aa9960}
 	}
 	keyword
 	{
-		foreground{#ede627}
+		foreground{#bbbb33}
 		weight{bold}
 	}
 	type
@@ -65,19 +65,19 @@ text-tags
 	}
 	string
 	{
-		foreground{#ffa300}
+		foreground{#aaaaaa}
 	}
 	char
 	{
-		foreground{#ffa300}
+		foreground{#aaaaaa}
 	}
 	number
 	{
-		foreground{#ffa300}
+		foreground{#6699dd}
 	}
 	operator
 	{
-		foreground{#e0e0e0}
+		foreground{#aa9960}
 	}
 	preprocessor
 	{
@@ -91,5 +91,5 @@ text-tags
 }
 
 line-highlighting {
-	color {#25365d}
+	color {#101010}
 }
