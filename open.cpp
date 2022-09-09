@@ -109,7 +109,7 @@ void on_openfile_entry_changed
 	snprintf(dbfile_path, 100, "%s/textdb", home_dir);
 	printf("***database file path: %s\n", dbfile_path);
 	snprintf(command, 1000,
-		"grep \"^%s\" %s | grep \"/[^/]*%s[^/]*$\"",
+		"grep \"^%s/\" %s | grep \"/[^/]*%s[^/]*$\"",
 		root_dir, dbfile_path, escaped_text);
 	printf("***command to execute: %s\n", command);
 

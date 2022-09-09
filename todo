@@ -189,3 +189,5 @@ Could also highlight the enclosed scope inside?
 * highlighting strings!!!
 
 * tabs vs spaces. tab width. when autoindenting, what should we do?
+
+* openfile dialog displays files not under the root directory. it seems it does it when files are in a directory whos name contains the name of the root directory(?)
