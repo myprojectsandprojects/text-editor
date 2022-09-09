@@ -65,6 +65,7 @@ GtkWidget *create_search_in_files_widget(void);
 
 /* editing.cpp: */
 gboolean handle_tab_key(GtkTextBuffer *text_buffer, GdkEventKey *key_event);
+gboolean handle_enter(GdkEventKey *key_event);
 gboolean duplicate_line(GdkEventKey *key_event);
 gboolean delete_line(GdkEventKey *key_event);
 gboolean insert_line_before(GdkEventKey *key_event);

@@ -546,9 +546,7 @@ gboolean jump_to_next_occurrence(GdkEventKey *key_event) {
 		g_unichar_isalpha(c) || g_unichar_isdigit(c) || c == '_';
 		gtk_text_iter_forward_char(&end), c = gtk_text_iter_get_char(&end));
 
-		if (!(gtk_text_iter_compare(&start, &end) < 0)) {
-			return FALSE;
-		}
+		if (!(gtk_text_iter_compare(&start, &end) < 0)) return FALSE;
 
 		text = gtk_text_buffer_get_text(text_buffer, &start, &end, FALSE);
 	}

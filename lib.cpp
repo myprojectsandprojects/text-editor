@@ -1,5 +1,12 @@
 #include "lib.h"
 
+long get_time_us()
+{
+	timeval time;
+	gettimeofday(&time, NULL);
+	return time.tv_sec * 1000000 + time.tv_usec;
+}
+
 char *read_file(const char *filename) {
 	char *contents;
 	FILE *file;

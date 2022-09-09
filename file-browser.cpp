@@ -75,11 +75,7 @@ static int compare(const void *a, const void *b)
 	return 0;
 }
 
-void create_nodes_for_dir(
-	GtkTreeStore *store,
-	GtkTreeIter *parent,
-	const char *dir_path,
-	int max_depth)
+void create_nodes_for_dir(GtkTreeStore *store, GtkTreeIter *parent, const char *dir_path, int max_depth)
 {
 	LOG_MSG("create_nodes_for_dir(): \"%s\"\n", dir_path);
 
@@ -91,7 +87,7 @@ void create_nodes_for_dir(
 		printf("create_nodes_for_dir(): opendir() error: errno: %d\n", errno);
 	}
 	*/
-	assert(dir != NULL); // permissions
+	assert(dir != NULL); //@ permissions, Windows shared directory that has disappeared
 
 	char *basenames[1000];
 	int i = 0; // points at the end of the list (after last element)
@@ -100,7 +96,7 @@ void create_nodes_for_dir(
 		assert(i <= 999);
 
 		if (strcmp(fs_node->d_name, ".") == 0 || strcmp(fs_node->d_name, "..") == 0) continue;
-		if (fs_node->d_name[0] == '.') continue; // Ignore hidden files/directories
+		if (fs_node->d_name[0] == '.') continue; // Ignore hidden files/directories (@should be optional)
 
 		int len = strlen(fs_node->d_name);
 		basenames[i] = (char *) malloc(len + 1);
@@ -117,9 +113,12 @@ void create_nodes_for_dir(
 		char entry_path[1000]; //@ buffer bounds
 		sprintf(entry_path, "%s/%s", dir_path, basenames[j]);
 
+		//@ lstat()'ing a mounted windows-share that has disappeared fails. This is fine because we just ignore entries we fail to lstat() but it might take a long time for lstat() to fail and this causes UI to become unresponsive.
 		struct stat entry_info;
-		if (lstat(entry_path, &entry_info) == -1)
+		if (lstat(entry_path, &entry_info) == -1) {
 			fprintf(stderr, "Failed to lstat \"%s\"\n", basenames[j]); // @error handling
+			continue;
+		}
 		
 
 		gboolean is_dir = S_ISDIR(entry_info.st_mode) ? TRUE : FALSE;

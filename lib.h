@@ -19,9 +19,11 @@
 	struct timeval end_time;\
 	gettimeofday(&end_time, NULL);
 
-// Returnes time elapsed between TIME_START and TIME_END in microseconds.
+// Returnes time elapsed between TIME_START and TIME_END in microseconds. (long int)
 #define TIME_ELAPSED\
 	(1000000 * (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec))
+
+long get_time_us();
 
 char *read_file(const char *filename);
 void write_file(const char *filename, const char *contents);

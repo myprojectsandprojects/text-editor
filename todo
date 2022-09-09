@@ -1,0 +1,191 @@
+bug: if we cant open a file, we shouldnt end up with a gtk error...
+
+bug: unindenting a block of code is buggy
+* shift-tab block of text when block of text contains an empty line
+* bug: shift + tab block of code which contains empty lines
+
+plausable feature: searching limited to a specific scope somehow? like only inside a function... we have that and we use { and }, but what about "scoping" by block/paragraph? Another thing is that this is a very language specific feature.. -- tried that but it was somewhat complicated.
+* backward/forward searching?
+* when we hit the end and go back to the beginning is not very obvious
+
+search depth! when i want to find something i have pieces of information. i may for example know, that its a hidden file.. narrowing down the possibilities seems to be very good performance-wise. large resultsets render the application unresposive, can something be done? large number of results isnt very helpful anyways -- display only some of them? some results are total bogus -- needs investigation. search used to crash, is this gone?
+
+plausable feature: keeping file browser up-to-date with fs-changes
+* it's really annoying to update the file-browsers view manually when making changes to the filesystem!
+
+
+ctrl + <left/right>, what about ctrl + <up/down>? We have that and we scroll and its quite cool (dont know if more efficient)..
+alt+up/down.. what about alt+left/right (moving word/s / character/s around)?
+when highlighting we divide the file into tokens, when undoing we would maybe like to undo by a token, when jumping around we would like to jump by a token..
+..also open a file by copy-pasting full path
+
+plausable feature: indent when opening a line
+plausable feature: delete end of line
+plausable feature: select a whole line when triple-clicking on a wrapped line
+plausable feature: consider keeping the cursor offset when deleting a line?
+
+plausable feature: tabs, file changes on disk...
+* if a single file opened in multiple tabs, then only 1 of those tabs could be used for editing.
+
+plausable feature: opening & highlighting large files is really slow and ui becomes unresponsive (but it eventually manages to do it)
+
+plausable feature: conf-file 4 key-combinations
+
+when all tabs are closed, sidebar's back-button might receive focus.
+When sidebar's back-button is focus then hitting enter triggers a button-pressed-event which changes the root directory.
+Unless we are root, we can not read contents of the root directory,
+(or some directories inside the root directory rather) 
+so if we hit enter multiple times then eventually we reach at the root directory which causes an assertion to fail..
+so that's no good.
+We should have error handling for permission-related things..
+
+bug: stopping a "large search" ? spaces in file/directory names? not searching in root?
+
+
+search-in-files crash when searching for "search" in home dir:
+	...
+	create_search_result_widgets()
+	on_app_window_key_press(): hardware keycode: 46
+	*** Error in `./a.out': free(): invalid pointer: 0x00007f3b43104d00 ***
+	buildandrun.sh: line 1: 22801 Aborted                 (core dumped) ./a.out
+yap, another1:
+	...
+	on_app_window_key_press(): hardware keycode: 64
+	grep: write error: Broken pipe
+	buildandrun.sh: line 1:  2396 Segmentation fault      (core dumped) ./a.out
+
+* open-file-dialog: files and directories should be differentiable or maybe we'll drop directories entirely... if we are searching through a pure text of file-paths then we could perhaps stat them beforehand to speed up things at runtime?
+* search-in-files button icons
+
+* keeping old root-dirs around might be useful
+* copy-pasting text from labels
+
+* filebrowsers naming files/folders + scroll is buggy
+* open-file-dialog arrow-keys and mouse-pointer are not quite agreeing on the selected item in the list.
+
+SEARCH-REPLACE:
+* search-replace: selection disappears when toggling the search-bar and it contains text.
+* replace should be more convenient
+* maybe search should disappear when not active? maybe search text should disappear when search disappears?
+* search-replace: searching could be bit more advanced:
+	it could inform us when we hit bottom and go back up,
+	maybe count number of matches (1/3, 2/3, ...),
+	maybe backward and forward search,
+	search from the cursor
+
+* ctrl + +/- -> increase / decrease text size
+* highlighting: '\\' is not correct
+
+* opening a large file is slow. see if its still slow if we do no highlighting
+* delete(/change) word/token/identifier when cursor is at the beginning/middle/end of it
+* delete(/change) inside "", (), {}
+* maybe also wrap selected text between () and [] in addition to "" and '' by default
+* highlight matching () etc.?
+* it would be nice to see a list of functions in a file, but thats kind of a C-specific thing so I dont know
+* maybe autocomplete should only store longer words
+* bug: shift + tab single line doesnt work
+* moving lines up/down doesnt scroll, last line buggy
+* delete text from beginning of the line to cursor. (we already have "Alt + P")
+* would like to see two files at the same time (I do think this is gonna be editor #2 that has this feature though)
+* we dont hotload file-extension-list change in settings
+* we still dont have text selection from cursor to the beginning/end of () etc.!
+
+* WOULD LIKE TO SIMPLIFY AND ORGANIZE SHORTCUTS, BECAUSE RIGHT NOW IT FEELS LIKE A TERRIBLE MESS
+* just overwrite ctrl + arrow-key thing
+* arrow-key, ctrl + arrow-key, ctrl + fn? + arrow-key; shift selects; can you press 4 keys at the same time?
+so we have a shorter and longer jump both horizontally and vertically
+* what if alt + ? only ever selects text? (moving lines is useful though)
+* shortcuts for sidebar pages
+* sometimes I use mouse and sometimes (just for fun) I use keyboard, so both options should be possible (?)
+
+---
+
+* pasting a doublequote results in totally weird behavior
+* highlighting: pasting larger amount of text
+* we lose empty lines when indenting a block of code.
+---
+
+
+ThisIsAnIdentifier = this_is_an_identifier + 123 + 123.456 + 0x123
+
+ctrl + right:
+	jumps to the end of the nearest word on the right
+ctrl + left
+	jumps to the start of the nearest word on the left
+
+abcABC
+abc
+ABC
+123
+.,:;-<>(){}[]/\ ...
+_
+
+word is a sequence of characters which belong to the same class/category
+so how do we define classes?
+
+if we have shorter and longer jumps, then longer jump just means more general classes (includes more characters)
+
+if ctrl + left/right then:
+if whitespace, then move right/left until not whitespace
+what type of word is it that I am in?
+then start moving forwward/backward until we encounter a character of different class
+if I already have a selection and then jump to start/end of line, we should add that to the selection, not reselect
+- regular expressiony kind of stuff? for replace?
+
+shorter jump classes:
+	abc, ABC, 123,
+	_, +, -, *, /, =, ., ,, (everything else is in a class of its own)
+
+* dont replace selected text with '()'
+* search: some way to "reset" search? search forward and backward?
+* if we fail to parse the settings file or the settings file has missing settings (?), we fail an assertion / dont even startup, which is very inconvenient. Use default settings if unable to read settings from the settings file?
+* search/replace: would patterns with wildcards be useful?
+* decent way to "cut out" a block of text
+* crashes when deleting large chunk of text (undo?)
+* crashes when deleting a directory (filebrowser)
+* nested comments in settings file
+* case-(in/)sensitivity when searching in files
+* BUG: pasting a doublequote
+* surround selected text with (parenthesis), instead of replaceing it with them
+* c++ string highlighting not correct sometimes (i think its an old problem with strings which occurs when a doublequote gets inserted or deleted because we dont have a good way to determine range in this case. unless a string literal is bounded by newlines, everything after such a change is affected and should perhaps be updated)
+* undo and autocomplete-character conflict (should be possible to insert text into the text-buffer without autocomplete-character messing with it)
+* recently opened files / restore recent state
+* C++ highlighting: bug in string highlighting
+* C++ highlighting: why is pasted text not immediately highlighted?
+* in Vim there is a really cool feature which is that if the cursor is on an identifier you can jump to the next/previous occurence of that identifier. its a big thing that you dont have to type the search phrase.
+* ctrl + forwards/backwards:
+	beginning of a word + forwards -> beginning of the next word
+	end of a word + forwards -> end of the next word
+* option to insert spaces instead of tabs?
+* it would be interesting if we could highlight for example for-loops parenthesis etc.
+
+lets take for example a feature like autocompleting '(' with '()'. there are cases when you need '()' and there are cases when you need '('. in former case it saves you from typing ')' but in latter case you now have to do more work because you have to delete the extra ')'. so in deciding whether or notthe feature is good, we have to take into account 2 things: a) how many times do you encounter each case 2) how much work needs to be done in each case
+
+              need '()'   need '('
+feature on    work1       work2
+feature off   work3       work4
+
+num_cases1 -- number of cases I need '()'
+num_cases2 -- number of cases I need '('
+
+total_work_on = num_cases1 * work1 + num_cases2 * work2
+total_work_off = num_cases1 * work3 + num_cases2 * work4
+
+once we have measured the amount of work these four cases require and counted the number of cases we need '()' and '(', we can calculate the total amount of work that needs to be done if the feature is on and if the feature is off and then we can compare these two numbers and pick the one which is smaller.
+
+* editing:
+	ENTER -- look at the indent of the previous line
+	OPEN NEW LINE BEFORE/AFTER --
+	TAB -- if at the beginning of the line, "jump over" indent. if the lines before and after have different indent, pick greater?
+(?)
+
+* Highlight matching "()", "{}", maybe "[]", "<>"
+Could also highlight the enclosed scope inside?
+
+* autocomplete.
+	start offering suggestions more than 1 character in.
+	consider alternatives: Emacs-style autocompletion.
+
+* highlighting strings!!!
+
+* tabs vs spaces. tab width. when autoindenting, what should we do?

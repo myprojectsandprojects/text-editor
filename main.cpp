@@ -1793,6 +1793,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(SHIFT, 23, handle_tab); // <tab> + shift
 	add_keycombination_handler(0, 36, do_search);// <enter>
 	add_keycombination_handler(SHIFT, 36, do_search);// <enter> + shift
+	add_keycombination_handler(0, 36, handle_enter);// <enter>
 
 	add_keycombination_handler(0, 9, autocomplete_close_popup); // escape
 	add_keycombination_handler(0, 111, autocomplete_upkey); // up

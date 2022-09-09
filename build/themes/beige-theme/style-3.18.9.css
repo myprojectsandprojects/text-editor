@@ -1,22 +1,21 @@
 /* ~/.local/share/fonts */
 
 /*
-#25365d -- lighter blue
-#1a2641 -- blue
-#131c30 -- darker blue
-#ee2800 -- red
-#e0e0e0 -- light gray (text)
-#ede627 -- yellow
-#ffa300 -- orange
-#16e500 -- green (text)
-#00ee2d -- lighter green
-#00c625 -- darker green
-*/
-
-/*
 At first I was thinking about using different levels of specificity by means
 of names and classes, but then I thought that we should keep it simple
 and just stick to classes.
+*/
+
+/*
+#2d2b25 -- dark gray
+#eee3c5 -- lighter beige
+#e2d7bb -- beige
+#b5ac96 -- darker beige
+#9d9582 -- darkest beige
+#ccf185 -- light green
+#a0dae5 -- light blue
+#c4c1e0 -- light purple
+#b5997d -- brownish
 */
 
 /* We'll use this font for all widgets that take text input: */
@@ -26,8 +25,15 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
-	font: Sudo Medium 16;
-	font: Comic Shanns Regular 13;
+/*
+	font: JetBrainsMonoNL ExtraBold 11;
+	font: JetBrainsMonoNL ExtraBold 12;
+	font: JetBrainsMonoNL Medium 12;
+	font: JetBrainsMonoNL SemiBold 13;
+*/
+	font: JetBrainsMonoNL SemiBold 10.5;
+	font: JetBrainsMonoNL SemiBold 12;
+	font: JetBrainsMonoNL SemiBold 11;
 }
 
 /* Rules for all text-entries: */
@@ -35,10 +41,11 @@ and just stick to classes.
 .search-in-files-phrase-entry,
 .search-in-files-pattern-entry
 {
-	border: solid 1px #25365d;
+	/*border: solid 1px black;*/
+	border: solid 1px #2d2b25/* -- lighter beige*/;
 	border-radius: 0;
-	background: #25365d;
-	color: #e0e0e0;
+	background: #eee3c5/* -- lighter beige*/;
+	color: black;
 	padding: 7px;
 }
 
@@ -47,10 +54,10 @@ and just stick to classes.
 .search-in-files-pattern-entry:focus
 {
 	/*border: solid 1px black;*/
-	border: solid 1px #ee2800;
+	border: solid 1px IndianRed;
 	border-radius: 0;
-	background: #25365d;
-	color: #e0e0e0;
+	background: #eee3c5/* -- lighter beige*/;
+	color: black;
 	padding: 7px;
 }
 
@@ -71,7 +78,7 @@ and just stick to classes.
 .openfile-entry:selected
 {
 	color: white;
-	background: #ee2800;
+	background: IndianRed;
 }
 
 
@@ -81,8 +88,8 @@ and just stick to classes.
 .home-dir-button,
 .parent-dir-button
 {
-	background: #25365d;
-	color: #e0e0e0;
+	background: #9d9582;
+	color: black;
 	border: none;
 	border-radius: 0;
 	font: Roboto 10;
@@ -94,7 +101,7 @@ and just stick to classes.
 .home-dir-button:hover,
 .parent-dir-button:hover
 {
-	background: #2d4170;
+	background: rgb(254, 218, 73);
 }
 
 /*
@@ -112,14 +119,14 @@ and just stick to classes.
 
 .app-window
 {
-	background: #131c30;
-	color: #e0e0e0;
+	background: #b5ac96/* -- darker beige*/;
+	color: black;
 	font: Roboto 10;
 }
 
 .main-notebook
 {
-	background: #131c30;
+	background: #b5ac96/* -- darker beige*/;
 	/*color: black;*/
 	/*border: solid 1px black;*/
 	border: solid 1px rgb(200, 200, 200);
@@ -129,12 +136,12 @@ and just stick to classes.
 .main-notebook tab
 {
 	padding: 10px 16px;
-	background: #131c30;
+	background: #b5ac96/* -- darker beige*/;
 }
 
 .main-notebook tab:active
 {
-	background: #1a2641;
+	background: #e2d7bb/*beige*/;
 	/*border-top: solid red 1px;*/
 }
 
@@ -144,14 +151,14 @@ and just stick to classes.
 
 .text-view
 {
-	background: 	#1a2641;
-	color: 		#e0e0e0;
+	background: #e2d7bb/* -- beige*/;
+	color: #1d1b18;
 }
 
 .status-bar {
 	/*border-top: solid 1px rgb(200, 200, 200);*/
-	background: #131c30;
-	color: #e0e0e0;
+	background: #b5ac96/* -- darker beige*/;
+	color: black;
 	font-weight: bold;
 	/*	padding: 10px 10px 10px 10px;*/ /* no effect */
 }
@@ -161,33 +168,33 @@ and just stick to classes.
 /*
 .home-dir-button
 {
-	background: #25365d;
+	background: rgb(246, 121, 82);
 }
 
 .home-dir-button:hover
 {
-	background: #3d5999;
+	background: rgb(256, 131, 92);
 }
 
 .parent-dir-button
 {
-	background: #25365d;
+	background: rgb(25, 213, 99);
 }
 
 .parent-dir-button:hover
 {
-	background: #3d5999;
-}
-*/
+	background: rgb(35, 223, 109);
+}*/
+
 .root-dir-label
 {
-	color: #e0e0e0;
+	color: black;
 	font: Roboto Bold 11;
 }
 
 .sidebar-notebook
 {
-	background: #131c30;
+	background: #b5ac96/* -- darker beige*/;
 	color: black;
 	/*border: solid 0px black;*/
 	border: none;
@@ -197,25 +204,23 @@ and just stick to classes.
 .sidebar-notebook tab
 {
 	padding: 10px 16px;
-	background: #131c30;
+	background: #b5ac96/* -- darker beige*/;
 }
 
 .sidebar-notebook tab:active
 {
-	background: #1a2641;
+	background: #e2d7bb/* -- beige*/;
 }
 
 .filebrowser
 {
-	background: #1a2641;
-	background: #ffa300;
-	color: #e0e0e0;
+	background: #e2d7bb/* -- beige*/;
 	color: black;
 }
 
 .filebrowser row:selected
 {
-	background: #ede627;
+	background: #eee3c5/* -- lighter beige*/;
 	border: none;
 }
 
@@ -225,32 +230,15 @@ and just stick to classes.
 	/*border: solid 1px black;*/
 	border: none;
 	border-radius: 0;
-	background: #00991d;
+	background: #e2d7bb/* -- beige*/;
 }
 
-.search-in-files-phrase-entry,
+.search-in-files-phrase-entry
+{
+}
+
 .search-in-files-pattern-entry
 {
-	border: solid 1px #00c625;
-	background: #00c625;
-	color: #e0e0e0;
-	color: black;
-}
-
-.search-in-files-phrase-entry:focus,
-.search-in-files-pattern-entry:focus
-{
-	border: solid 1px #ee2800;
-	background: #00c625;
-	color: #e0e0e0;
-	color: black;
-}
-
-.search-in-files-phrase-entry:selected,
-.search-in-files-pattern-entry:selected
-{
-	color: white;
-	background: #ee2800;
 }
 /*
 .check-button {
@@ -262,17 +250,15 @@ and just stick to classes.
 */
 .search-in-files-button
 {
-	background: #00510f;
 }
 
 .search-in-files-button:hover
 {
-	background: #006b14;
 }
 
 .search-results
 {
-	background: #ffa300;
+	background: #e2d7bb/* -- beige*/;
 }
 
 .search-result
@@ -288,54 +274,13 @@ and just stick to classes.
 
 .openfile-dialog
 {
-	background: red;
-}
-
-.openfile-entry, .openfile-entry:focus
-{
-	color: black;
-	background: #14e38e;
-	font: sudo Bold 16;
-	/*border: solid 1px #484844;*/
-	border: none;
-	border-radius: 0;
-	padding: 7px;
-}
-
-.openfile-entry:selected
-{
-	color: white;
-	background: red;
-}
-
-.openfile-file-list
-{
-	background: red;
-	font: sudo Regular 14;
-}
-
-.openfile-file-list > *
-{
-	background: #0fa064;
-	color: black;
-	padding: 3px;
-}
-
-.openfile-file-list > *:selected
-{
-	color: black;
-	background: #11ba74;
-}
-/*
-.openfile-dialog
-{
 	background: rgb(255, 165, 0);
 	color: black;
 }
 
 .openfile-entry
 {
-	background: rgb(255, 190, 25);
+	background: rgb(255, 190, 25); /* lighter orangeish */
 }
 
 .openfile-file-list
@@ -346,7 +291,7 @@ and just stick to classes.
 
 .openfile-file-list > *
 {
-	background: rgb(255, 165, 0);
+	background: rgb(255, 165, 0); /* orangeish */
 	color: black;
 	padding: 3px;
 }
@@ -354,6 +299,5 @@ and just stick to classes.
 .openfile-file-list > *:selected
 {
 	color: black;
-	background: rgb(255, 190, 25);
+	background: rgb(255, 190, 25); /* lighter orangeish */
 }
-*/

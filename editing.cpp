@@ -349,6 +349,51 @@ tab inserts tabs or replaces selected text with a tab as long as the selection d
 }
 
 
+gboolean handle_enter(GdkEventKey *key_event)
+{
+	LOG_MSG("handle_enter()\n");
+
+	GtkTextView *text_view = GTK_TEXT_VIEW(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
+
+	if (!text_view || !gtk_widget_is_focus(GTK_WIDGET(text_view)))
+	{
+		return FALSE;
+	}
+
+	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
+	assert(text_buffer);
+
+	//@ Autoindent. Just copy all whitespace at the beginning of the previous line. Later on, we might want to do something better
+
+	GtkTextIter cursor_pos;
+	get_cursor_position(text_buffer, NULL, &cursor_pos, NULL);
+
+	GtkTextIter iter = cursor_pos;
+//	gtk_text_iter_backward_line(&iter);
+	gtk_text_iter_set_line_offset(&iter, 0);
+	GtkTextIter indent_start = iter;
+	while (gtk_text_iter_compare(&iter, &cursor_pos) < 0)
+	{
+		gunichar c = gtk_text_iter_get_char(&iter);
+		if (c == ' ' || c == '\t')
+		{
+			gtk_text_iter_forward_char(&iter);
+		}
+		else
+		{
+			break;
+		}
+	}
+	char *indent = gtk_text_buffer_get_text(text_buffer, &indent_start, &iter, FALSE);
+	int buffer_size = strlen(indent) + 1 + 1;
+	char *buffer = (char *) alloca(buffer_size);
+	sprintf(buffer, "\n%s", indent);
+	gtk_text_buffer_insert(text_buffer, &cursor_pos, buffer, -1);
+
+	return TRUE;
+}
+
+
 char *get_line_indent(GtkTextBuffer *buffer, GtkTextIter *pi)
 {
 	GtkTextIter i, i_indent_begin, i_indent_end;

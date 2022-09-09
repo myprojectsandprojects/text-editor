@@ -44,45 +44,43 @@ text-tags
 {
 	comment
 	{
-		foreground{#16e500}
+		foreground{#339933}
 	}
 	identifier
 	{
-		foreground{#e0e0e0}
+		foreground{#aaaaaa}
 	}
 	keyword
 	{
-		foreground{#ede627}
-		weight{bold}
+		foreground{#3793ea}
 	}
 	type
 	{
-		foreground{#ac7987}
+		foreground{#aaaaaa}
 	}
 	function
 	{
-		foreground{#cfaf86}
+		foreground{#aaaaaa}
 	}
 	string
 	{
-		foreground{#ffa300}
+		foreground{#bbbb33}
 	}
 	char
 	{
-		foreground{#ffa300}
+		foreground{#bbbb33}
 	}
 	number
 	{
-		foreground{#ffa300}
+		foreground{#bbbb33}
 	}
 	operator
 	{
-		foreground{#e0e0e0}
+		foreground{#aaaaaa}
 	}
 	preprocessor
 	{
 		foreground{#3793ea}
-		weight{bold}
 	}
 	unknown
 	{
@@ -90,8 +88,6 @@ text-tags
 	}
 }
 
-highlighting {
-	/*line-highlighting-color {#292929}*/
-	line-highlighting-color {#1a1a1a /*#181818*/}
-	
+line-highlighting {
+	color {#0a0a0a}
 }

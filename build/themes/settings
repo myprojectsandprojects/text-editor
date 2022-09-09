@@ -12,8 +12,8 @@ new stuff easily configurable in here. */
 wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
 left-margin {10}
 search-case-sensitivity {true}
-pixels-above-lines {1}
-pixels-below-lines {1}
+pixels-above-lines {0}
+pixels-below-lines {0}
 
 search-replace {}
 
@@ -24,10 +24,10 @@ autocomplete-character
 
 languages
 {
-	/*C
+	C
 	{
 		file-extensions { c {} h {} }
-	}*/
+	}
 	C++
 	{
 		file-extensions { cpp{} hpp{} c {} h {} }
@@ -39,57 +39,72 @@ languages
 	/*doesnotexist{}*/
 }
 
+/*
+	#c1af9c -- gray/beige
+	#869491 -- gray/blue
+	#809d77 -- colder green
+	#abb26d -- warmer green
+	#2787b2 -- light blue
+	#1c529d -- dark blue
+	#d5b669 -- yellow
+	#da823e -- orange
+	#de4f44 -- red
+	#ac7987 -- purple
+
+	#bfa886 -- gray beige
+	#cfaf86 -- bright beige
+*/
+
 /* Tags that can be used by any language highlighting: */
 text-tags
 {
 	comment
 	{
-		foreground{#339933}
+		foreground{green}
 	}
 	identifier
 	{
-		foreground{#aa9960}
+		foreground{black}
 	}
 	keyword
 	{
-		foreground{#bbbb33}
+		foreground{black}
 		weight{bold}
 	}
 	type
 	{
-		foreground{#ac7987}
+		foreground{black}
 	}
 	function
 	{
-		foreground{#cfaf86}
+		foreground{black}
 	}
 	string
 	{
-		foreground{#aaaaaa}
-	}
-	char
-	{
-		foreground{#aaaaaa}
+		foreground{gray}
 	}
 	number
 	{
-		foreground{#6699dd}
+		foreground{black}
 	}
 	operator
 	{
-		foreground{#aa9960}
+		foreground{black}
 	}
 	preprocessor
 	{
-		foreground{#3793ea}
-		weight{bold}
+		foreground{black}
 	}
 	unknown
 	{
-		foreground{#ee2800}
+		foreground{red}
+	}
+	char
+	{
+		foreground{black}
 	}
 }
 
 line-highlighting {
-	color {#101010}
+	color {rgb(240, 240, 240)}
 }
