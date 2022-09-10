@@ -181,7 +181,7 @@ static void on_insert_text_after(GtkTextBuffer *text_buffer, GtkTextIter *locati
 		//hack end:
 		f(text_buffer, location, NULL);
 		line_highlighting_on_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL); //@ hack
-		matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL); //@ hack
+		matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, tab); //@ hack
 	}
 }
 
@@ -202,7 +202,7 @@ static void on_delete_range_after(GtkTextBuffer *text_buffer, GtkTextIter *start
 		//hack end:
 		f(text_buffer, start, NULL);
 		line_highlighting_on_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL); //@ hack
-		matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL); //@ hack
+		matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, tab); //@ hack
 	}
 }
 

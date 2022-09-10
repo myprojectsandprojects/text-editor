@@ -36,7 +36,7 @@ There are multiple ways these functions may fail:
 	* the tab-info struct doesnt have an id-field
 	* the id-value of the tab-info struct is not in the supported range
 	etc.
-But since this widget-bookkeeping-system should really only be a temporary solution I hesitate in making it very robust..
+But since this widget-bookkeeping-system should really only be a temporary solution I hesitate to make it very robust..
 */
 
 void tab_add_widget_4_retrieval(GtkWidget *tab, enum WidgetName widget_name, void *widget)
@@ -47,6 +47,7 @@ void tab_add_widget_4_retrieval(GtkWidget *tab, enum WidgetName widget_name, voi
 
 void *tab_retrieve_widget(GtkWidget *tab, enum WidgetName widget_name)
 {
+	assert(tab);
 	struct TabInfo *tab_info = (struct TabInfo *) g_object_get_data(G_OBJECT(tab), "tab-info");
 	return tab_widgets[tab_info->id][widget_name];
 }

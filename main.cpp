@@ -866,7 +866,8 @@ void matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed(GO
 
 	// If no highlighting, dont do any of this. @Later on, we might want to think how to organize/factor things in a more reasonable way.
 	GtkWidget *tab = (GtkWidget *) user_data;
-	if (tab_retrieve_widget(tab, HIGHLIGHTER)) return;
+	assert(tab);
+	if (tab_retrieve_widget(tab, HIGHLIGHTER) == NULL) return;
 	
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
 	
@@ -1004,7 +1005,7 @@ void matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed(GO
 	}
 }
 
-void matching_parenthesis_highlighting_init(GtkTextBuffer *text_buffer){
+void matching_parenthesis_highlighting_init(GtkTextBuffer *text_buffer, GtkWidget *tab){
 	LOG_MSG("matching_parenthesis_highlighting_init()\n");
 
 	gtk_text_buffer_create_tag(text_buffer,
@@ -1018,10 +1019,11 @@ void matching_parenthesis_highlighting_init(GtkTextBuffer *text_buffer){
 		"paragraph-background", "rgb(240, 255, 240)",
 		NULL);
 
+	assert(tab);
 	g_signal_connect(text_buffer,
 		"notify::cursor-position",
 		G_CALLBACK(matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed),
-		NULL);
+		tab);
 }
 
 GtkWidget *create_tab(const char *file_name)
@@ -1144,7 +1146,7 @@ GtkWidget *create_tab(const char *file_name)
 		}
 	}
 	
-	matching_parenthesis_highlighting_init(text_buffer);
+	matching_parenthesis_highlighting_init(text_buffer, tab);
 
 	highlighting_init(tab, settings); //@ get rid of this
 
