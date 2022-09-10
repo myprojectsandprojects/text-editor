@@ -194,7 +194,8 @@ struct JumpToMarks {
 	GtkTextMark *marks[2];
 };
 
-void on_text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data); //@ hack: this is called by highlighting to keep the line-highlighting uptodate.
+void line_highlighting_on_text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data); //@ hack: this is called by highlighting to keep the line-highlighting uptodate.
+void matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data); //@ hack: this is called by highlighting to keep the line-highlighting uptodate.
 
 /* search-replace.cpp */
 GtkWidget *create_search_widget(GtkWidget *tab);

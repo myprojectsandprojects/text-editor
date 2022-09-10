@@ -799,7 +799,7 @@ static void set_highlighting_based_on_file_extension(GtkWidget *tab, Node *setti
 	}
 }
 
-void on_text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data){
+void line_highlighting_on_text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data){
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
 
 	GtkTextIter cursor_pos;
@@ -831,7 +831,196 @@ void line_highlighting_init(GtkTextBuffer *text_buffer, const char *color){
 
 	g_signal_connect(text_buffer,
 		"notify::cursor-position",
-		G_CALLBACK(on_text_buffer_cursor_position_changed),
+		G_CALLBACK(line_highlighting_on_text_buffer_cursor_position_changed),
+		NULL);
+}
+
+//@ also comments probably
+bool is_inside_literal(GtkTextIter *iter)
+{
+	bool result = false;
+	GSList *text_tags = gtk_text_iter_get_tags(iter);
+	GSList *p = text_tags;
+	for(GSList *p = text_tags; p != NULL; p = p->next)
+	{
+		GtkTextTag *text_tag = (GtkTextTag *) p->data;
+		const char *name;
+		g_object_get(text_tag, "name", &name, NULL);
+//		printf("tag name: %s\n", name);
+		if ((strcmp(name, "string") == 0) || (strcmp(name, "char") == 0))
+		{
+			result = true;
+			break;
+		}
+	}
+//	free(text_tags);
+	
+	return result;
+}
+
+//@ Is noticeably slow if matching parenthesis are far away from each other.
+// I dont really understand why "paragraph-background" doesnt highlight the first line.
+void matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
+{
+	printf("matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed()\n");
+
+	// If no highlighting, dont do any of this. @Later on, we might want to think how to organize/factor things in a more reasonable way.
+	GtkWidget *tab = (GtkWidget *) user_data;
+	if (tab_retrieve_widget(tab, HIGHLIGHTER)) return;
+	
+	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
+	
+	GtkTextIter start_buffer, end_buffer;
+	gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
+	gtk_text_buffer_remove_tag_by_name(text_buffer, "matching-parenthesis-highlighting", &start_buffer, &end_buffer);
+	gtk_text_buffer_remove_tag_by_name(text_buffer, "matching-brace-highlighting", &start_buffer, &end_buffer);
+	
+	GtkTextIter cursor_pos;
+	get_cursor_position(GTK_TEXT_BUFFER(text_buffer), NULL, &cursor_pos, NULL);
+	gunichar c = gtk_text_iter_get_char(&cursor_pos);
+	if (is_inside_literal(&cursor_pos)) return;
+	if (c == '(')
+	{
+		GtkTextIter iter = cursor_pos;
+		int level = 0;
+		while (gtk_text_iter_forward_char(&iter))
+		{
+			if (is_inside_literal(&iter)) continue;
+			c = gtk_text_iter_get_char(&iter);
+			if (c == '(')
+			{
+				// if inside string or char-literal, then ignore.
+				level += 1;
+			}
+			if (c == ')')
+			{
+				// if inside string or char-literal, then ignore.
+				if (level == 0)
+				{
+					GtkTextIter end1 = cursor_pos;
+					GtkTextIter end2 = iter;
+					gtk_text_iter_forward_char(&end1);
+					gtk_text_iter_forward_char(&end2);
+					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-parenthesis-highlighting", &cursor_pos, &end1);
+					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-parenthesis-highlighting", &iter, &end2);
+					break;
+				}
+				else
+				{
+					level -= 1;
+				}
+			}
+		}
+	}
+	else if (c == ')')
+	{
+		GtkTextIter iter = cursor_pos;
+		int level = 0;
+		while (gtk_text_iter_backward_char(&iter))
+		{
+			if (is_inside_literal(&iter)) continue;
+			c = gtk_text_iter_get_char(&iter);
+			if (c == ')')
+			{
+				level += 1;
+			}
+			
+			if (c == '(')
+			{
+				if (level == 0)
+				{
+					GtkTextIter end1 = cursor_pos;
+					GtkTextIter end2 = iter;
+					gtk_text_iter_forward_char(&end1);
+					gtk_text_iter_forward_char(&end2);
+					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-parenthesis-highlighting", &cursor_pos, &end1);
+					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-parenthesis-highlighting", &iter, &end2);
+					break;
+				}
+				else
+				{
+					level -= 1;
+				}
+			}
+		}
+	}
+	if (c == '{')
+	{
+		GtkTextIter iter = cursor_pos;
+		int level = 0;
+		while (gtk_text_iter_forward_char(&iter))
+		{
+			if (is_inside_literal(&iter)) continue;
+			c = gtk_text_iter_get_char(&iter);
+			if (c == '{')
+			{
+				// if inside string or char-literal, then ignore.
+				level += 1;
+			}
+			if (c == '}')
+			{
+				// if inside string or char-literal, then ignore.
+				if (level == 0)
+				{
+					gtk_text_iter_forward_char(&iter);
+					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-brace-highlighting", &iter, &cursor_pos);
+					break;
+				}
+				else
+				{
+					level -= 1;
+				}
+			}
+		}
+	}
+	else if (c == '}')
+	{
+		GtkTextIter iter = cursor_pos;
+		int level = 0;
+		while (gtk_text_iter_backward_char(&iter))
+		{
+			if (is_inside_literal(&iter)) continue;
+			c = gtk_text_iter_get_char(&iter);
+			if (c == '}')
+			{
+				level += 1;
+			}
+			
+			if (c == '{')
+			{
+				if (level == 0)
+				{
+					GtkTextIter range_end = cursor_pos;
+					gtk_text_iter_forward_char(&range_end);
+					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-brace-highlighting", &iter, &range_end);
+					break;
+				}
+				else
+				{
+					level -= 1;
+				}
+			}
+		}
+	}
+}
+
+void matching_parenthesis_highlighting_init(GtkTextBuffer *text_buffer){
+	LOG_MSG("matching_parenthesis_highlighting_init()\n");
+
+	gtk_text_buffer_create_tag(text_buffer,
+		"matching-parenthesis-highlighting",
+		"underline", PANGO_UNDERLINE_SINGLE,
+//		"background", "red",
+		NULL);
+
+	gtk_text_buffer_create_tag(text_buffer,
+		"matching-brace-highlighting",
+		"paragraph-background", "rgb(240, 255, 240)",
+		NULL);
+
+	g_signal_connect(text_buffer,
+		"notify::cursor-position",
+		G_CALLBACK(matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed),
 		NULL);
 }
 
@@ -954,6 +1143,8 @@ GtkWidget *create_tab(const char *file_name)
 			line_highlighting_init(text_buffer, "black");
 		}
 	}
+	
+	matching_parenthesis_highlighting_init(text_buffer);
 
 	highlighting_init(tab, settings); //@ get rid of this
 
