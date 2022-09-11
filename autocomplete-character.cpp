@@ -90,10 +90,11 @@ void on_text_buffer_insert_text_4_autocomplete_character(GtkTextBuffer *text_buf
 		switch (ch) {
 			case '\"':
 				if(deleted_text && enclose_selected_text){
-					char to_insert[100];
-					snprintf(to_insert, 100, "\"%s\"", deleted_text);
+					int to_insert_size = strlen(deleted_text) + 2 + 1;
+					char *to_insert = (char *) alloca(to_insert_size);
+					sprintf(to_insert, "\"%s\"", deleted_text);
 					int o1 = gtk_text_iter_get_offset(location);
-					int o2 = o1 + strlen(to_insert);
+					int o2 = o1 + to_insert_size - 1;
 					gtk_text_buffer_insert(text_buffer, location, to_insert, -1);
 					//printf("...offsets: %d -> %d\n", o1, o2);
 					GtkTextIter i1, i2;
@@ -110,10 +111,11 @@ void on_text_buffer_insert_text_4_autocomplete_character(GtkTextBuffer *text_buf
 				break;
 			case '\'':
 				if(deleted_text && enclose_selected_text){
-					char to_insert[100];
-					snprintf(to_insert, 100, "'%s'", deleted_text);
+					int to_insert_size = strlen(deleted_text) + 2 + 1;
+					char *to_insert = (char *) alloca(to_insert_size);
+					sprintf(to_insert, "\'%s\'", deleted_text);
 					int o1 = gtk_text_iter_get_offset(location);
-					int o2 = o1 + strlen(to_insert);
+					int o2 = o1 + to_insert_size - 1;
 					gtk_text_buffer_insert(text_buffer, location, to_insert, -1);
 					//printf("...offsets: %d -> %d\n", o1, o2);
 					GtkTextIter i1, i2;
@@ -130,10 +132,11 @@ void on_text_buffer_insert_text_4_autocomplete_character(GtkTextBuffer *text_buf
 				break;
 			case '(':
 				if(deleted_text && enclose_selected_text){
-					char to_insert[100];
-					snprintf(to_insert, 100, "(%s)", deleted_text);
+					int to_insert_size = strlen(deleted_text) + 2 + 1;
+					char *to_insert = (char *) alloca(to_insert_size);
+					sprintf(to_insert, "(%s)", deleted_text);
 					int o1 = gtk_text_iter_get_offset(location);
-					int o2 = o1 + strlen(to_insert);
+					int o2 = o1 + to_insert_size - 1;
 					gtk_text_buffer_insert(text_buffer, location, to_insert, -1);
 					//printf("...offsets: %d -> %d\n", o1, o2);
 					GtkTextIter i1, i2;
@@ -150,10 +153,11 @@ void on_text_buffer_insert_text_4_autocomplete_character(GtkTextBuffer *text_buf
 				break;
 			case '{':
 				if(deleted_text && enclose_selected_text){
-					char to_insert[100];
-					snprintf(to_insert, 100, "{%s}", deleted_text);
+					int to_insert_size = strlen(deleted_text) + 2 + 1;
+					char *to_insert = (char *) alloca(to_insert_size);
+					sprintf(to_insert, "{%s}", deleted_text);
 					int o1 = gtk_text_iter_get_offset(location);
-					int o2 = o1 + strlen(to_insert);
+					int o2 = o1 + to_insert_size - 1;
 					gtk_text_buffer_insert(text_buffer, location, to_insert, -1);
 					//printf("...offsets: %d -> %d\n", o1, o2);
 					GtkTextIter i1, i2;
@@ -170,10 +174,11 @@ void on_text_buffer_insert_text_4_autocomplete_character(GtkTextBuffer *text_buf
 				break;
 			case '[':
 				if(deleted_text && enclose_selected_text){
-					char to_insert[100];
-					snprintf(to_insert, 100, "[%s]", deleted_text);
+					int to_insert_size = strlen(deleted_text) + 2 + 1;
+					char *to_insert = (char *) alloca(to_insert_size);
+					sprintf(to_insert, "[%s]", deleted_text);
 					int o1 = gtk_text_iter_get_offset(location);
-					int o2 = o1 + strlen(to_insert);
+					int o2 = o1 + to_insert_size - 1;
 					gtk_text_buffer_insert(text_buffer, location, to_insert, -1);
 					//printf("...offsets: %d -> %d\n", o1, o2);
 					GtkTextIter i1, i2;
@@ -191,7 +196,7 @@ void on_text_buffer_insert_text_4_autocomplete_character(GtkTextBuffer *text_buf
 		}
 	}
 
-	// When text is pasted into the text buffer, "begin-user-action" is not signaled (probably because we overwrote this handler?), which means that "deleted_text" is not cleared. This results in buggy behaviour.
+	// When text is pasted into the text buffer, "begin-user-action" is not signaled (probably because we overwrote paste-handler?), which means that "deleted_text" is not cleared. This results in buggy behaviour.
 	if(deleted_text){
 		free(deleted_text);
 		deleted_text = NULL;

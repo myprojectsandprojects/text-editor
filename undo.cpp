@@ -16,7 +16,8 @@ struct UserAction {
 	// DELETE_ACTION:
 	int start_offset;
 	int end_offset;
-	char deleted_text_buffer[10000]; //@ crashes if too much text
+//	char deleted_text_buffer[10000]; //@ crashes if too much text
+	char *deleted_text;
 
 	// INSERT_ACTION:
 	int location_offset;
@@ -125,7 +126,8 @@ void on_text_buffer_delete_range_4undo(
 	action->type = DELETE_ACTION;
 	action->start_offset = start_offset;
 	action->end_offset = end_offset;
-	sprintf(action->deleted_text_buffer, "%s", deleted_text);
+//	sprintf(action->deleted_text_buffer, "%s", deleted_text);
+	action->deleted_text = deleted_text;
 	add_action(tab_actions[index], action);
 
 	/*if(last_actions[index] != NULL) {
@@ -274,28 +276,11 @@ void actually_undo_last_action(GtkWidget *tab)
 //		g_signal_emit_by_name(text_buffer, "begin-user-action");
 		gulong id = (gulong) tab_retrieve_widget(tab, AUTOCOMPLETE_CHARACTER_HANDLER_ID);
 		g_signal_handler_block(text_buffer, id);
-		gtk_text_buffer_insert(text_buffer, &location, action->deleted_text_buffer, -1);
+//		gtk_text_buffer_insert(text_buffer, &location, action->deleted_text_buffer, -1);
+		gtk_text_buffer_insert(text_buffer, &location, action->deleted_text, -1);
 		g_signal_handler_unblock(text_buffer, id);
+		free(action->deleted_text);
 	}
 
 	free(action);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

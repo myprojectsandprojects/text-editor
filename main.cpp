@@ -2061,7 +2061,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 //	add_keycombination_handler(CTRL, 41, toggle_search_entry); // ctrl + f
 //	add_keycombination_handler(0, 37, toggle_search_entry); // ctrl
-	add_keycombination_handler(0, 108, toggle_search_entry); // altgr
+	add_keycombination_handler(0, 106, toggle_search_entry); // numpad /
 	add_keycombination_handler(CTRL, 43, display_openfile_dialog); // ctrl + h
 
 	add_keycombination_handler(CTRL, 42, less_fancy_toggle_sidebar); // ctrl + g
