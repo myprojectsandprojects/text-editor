@@ -1976,8 +1976,8 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(0, 88, scroll_to_cursor_bottom); // 88 - numpad down
 	add_keycombination_handler(0, 79, scroll_to_start); // 79 - numpad home
 	add_keycombination_handler(0, 87, scroll_to_end); // 87 - numpad end
-	add_keycombination_handler(0, 81, scroll_up); // 81 - numpad page-up
-	add_keycombination_handler(0, 89, scroll_down); // 89 - numpad page-down
+//	add_keycombination_handler(0, 81, scroll_up); // 81 - numpad page-up
+//	add_keycombination_handler(0, 89, scroll_down); // 89 - numpad page-down
 
 	add_keycombination_handler(0, 91, set_mark); // numpad delete
 	add_keycombination_handler(0, 90, go_to_mark); // numpad 0
@@ -2027,8 +2027,10 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(CTRL, 34, move_cursor_closing); // ctrl + ü
 	add_keycombination_handler(CTRL, 31, select_inside); // ctrl + ü
 
-	add_keycombination_handler(CTRL, 35, jump_to_next_occurrence); // ctrl + õ (35)
-	add_keycombination_handler(CTRL | SHIFT, 35, jump_to_next_occurrence); // ctrl + shift + õ (35)
+//	add_keycombination_handler(CTRL, 35, jump_to_next_occurrence); // ctrl + õ (35)
+	add_keycombination_handler(0, 81, jump_to_previous_occurrence); // numpad up
+//	add_keycombination_handler(CTRL | SHIFT, 35, jump_to_next_occurrence); // ctrl + shift + õ (35)
+	add_keycombination_handler(0, 89, jump_to_next_occurrence); // numpad down
 
 	add_keycombination_handler(ALT, 111, move_lines_up); // alt + <up arrow>
 	add_keycombination_handler(ALT, 116, move_lines_down); // alt + <down arrow>
@@ -2057,7 +2059,9 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(CTRL, 39, do_save); // ctrl + s
 	add_keycombination_handler(CTRL, 32, do_open); // ctrl + o
 
-	add_keycombination_handler(CTRL, 41, toggle_search_entry); // ctrl + f
+//	add_keycombination_handler(CTRL, 41, toggle_search_entry); // ctrl + f
+//	add_keycombination_handler(0, 37, toggle_search_entry); // ctrl
+	add_keycombination_handler(0, 108, toggle_search_entry); // altgr
 	add_keycombination_handler(CTRL, 43, display_openfile_dialog); // ctrl + h
 
 	add_keycombination_handler(CTRL, 42, less_fancy_toggle_sidebar); // ctrl + g
