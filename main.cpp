@@ -860,26 +860,189 @@ bool is_inside_literal(GtkTextIter *iter)
 
 //@ Is noticeably slow if matching parenthesis are far away from each other.
 // I dont really understand why "paragraph-background" doesnt highlight the first line.
-void matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
-{
-	printf("matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed()\n");
+//void matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
+//{
+//	printf("matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed()\n");
+//
+//	// If no highlighting, dont do any of this. @Later on, we might want to think how to organize/factor things in a more reasonable way.
+//	GtkWidget *tab = (GtkWidget *) user_data;
+//	assert(tab);
+//	if (tab_retrieve_widget(tab, HIGHLIGHTER) == NULL) return;
+//	
+//	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
+//	
+//	GtkTextIter start_buffer, end_buffer;
+//	gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
+//	gtk_text_buffer_remove_tag_by_name(text_buffer, "matching-parenthesis-highlighting", &start_buffer, &end_buffer);
+//	gtk_text_buffer_remove_tag_by_name(text_buffer, "matching-brace-highlighting", &start_buffer, &end_buffer);
+//	
+//	GtkTextIter cursor_pos;
+//	get_cursor_position(GTK_TEXT_BUFFER(text_buffer), NULL, &cursor_pos, NULL);
+//	if (is_inside_literal(&cursor_pos)) return;
+//	gunichar c = gtk_text_iter_get_char(&cursor_pos);
+//	if (c == '(')
+//	{
+//		GtkTextIter iter = cursor_pos;
+//		int level = 0;
+//		while (gtk_text_iter_forward_char(&iter))
+//		{
+//			if (is_inside_literal(&iter)) continue;
+//			c = gtk_text_iter_get_char(&iter);
+//			if (c == '(')
+//			{
+//				level += 1;
+//			}
+//			if (c == ')')
+//			{
+//				if (level == 0)
+//				{
+//					GtkTextIter end1 = cursor_pos;
+//					GtkTextIter end2 = iter;
+//					gtk_text_iter_forward_char(&end1);
+//					gtk_text_iter_forward_char(&end2);
+//					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-parenthesis-highlighting", &cursor_pos, &end1);
+//					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-parenthesis-highlighting", &iter, &end2);
+//					break;
+//				}
+//				else
+//				{
+//					level -= 1;
+//				}
+//			}
+//		}
+//	}
+//	else if (c == ')')
+//	{
+//		GtkTextIter iter = cursor_pos;
+//		int level = 0;
+//		while (gtk_text_iter_backward_char(&iter))
+//		{
+//			if (is_inside_literal(&iter)) continue;
+//			c = gtk_text_iter_get_char(&iter);
+//			if (c == ')')
+//			{
+//				level += 1;
+//			}
+//			
+//			if (c == '(')
+//			{
+//				if (level == 0)
+//				{
+//					GtkTextIter end1 = cursor_pos;
+//					GtkTextIter end2 = iter;
+//					gtk_text_iter_forward_char(&end1);
+//					gtk_text_iter_forward_char(&end2);
+//					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-parenthesis-highlighting", &cursor_pos, &end1);
+//					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-parenthesis-highlighting", &iter, &end2);
+//					break;
+//				}
+//				else
+//				{
+//					level -= 1;
+//				}
+//			}
+//		}
+//	}
+//	if (c == '{')
+//	{
+//		GtkTextIter iter = cursor_pos;
+//		int level = 0;
+//		while (gtk_text_iter_forward_char(&iter))
+//		{
+//			if (is_inside_literal(&iter)) continue;
+//			c = gtk_text_iter_get_char(&iter);
+//			if (c == '{')
+//			{
+//				// if inside string or char-literal, then ignore.
+//				level += 1;
+//			}
+//			if (c == '}')
+//			{
+//				// if inside string or char-literal, then ignore.
+//				if (level == 0)
+//				{
+//					gtk_text_iter_forward_char(&iter);
+//					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-brace-highlighting", &iter, &cursor_pos);
+//					break;
+//				}
+//				else
+//				{
+//					level -= 1;
+//				}
+//			}
+//		}
+//	}
+//	else if (c == '}')
+//	{
+//		GtkTextIter iter = cursor_pos;
+//		int level = 0;
+//		while (gtk_text_iter_backward_char(&iter))
+//		{
+//			if (is_inside_literal(&iter)) continue;
+//			c = gtk_text_iter_get_char(&iter);
+//			if (c == '}')
+//			{
+//				level += 1;
+//			}
+//			
+//			if (c == '{')
+//			{
+//				if (level == 0)
+//				{
+//					GtkTextIter range_end = cursor_pos;
+//					gtk_text_iter_forward_char(&range_end);
+//					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-brace-highlighting", &iter, &range_end);
+//					break;
+//				}
+//				else
+//				{
+//					level -= 1;
+//				}
+//			}
+//		}
+//	}
+//}
 
-	// If no highlighting, dont do any of this. @Later on, we might want to think how to organize/factor things in a more reasonable way.
-	GtkWidget *tab = (GtkWidget *) user_data;
-	assert(tab);
-	if (tab_retrieve_widget(tab, HIGHLIGHTER) == NULL) return;
-	
+//void matching_parenthesis_highlighting_init(GtkTextBuffer *text_buffer, GtkWidget *tab){
+//	LOG_MSG("matching_parenthesis_highlighting_init()\n");
+//
+//	gtk_text_buffer_create_tag(
+//		text_buffer,
+//		"matching-parenthesis-highlighting",
+//		"underline", PANGO_UNDERLINE_SINGLE,
+////		"background", "red",
+//		NULL);
+//
+//	gtk_text_buffer_create_tag(
+//		text_buffer,
+//		"matching-brace-highlighting",
+//		"paragraph-background", "rgb(240, 255, 240)",
+//		NULL);
+//
+//	assert(tab);
+//	g_signal_connect(
+//		text_buffer,
+//		"notify::cursor-position",
+//		G_CALLBACK(matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed),
+//		tab);
+//}
+
+void matching_char_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
+{
+	printf("MATCHING CHAR HIGHLIGHTING\n");
+
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
 	
 	GtkTextIter start_buffer, end_buffer;
 	gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
-	gtk_text_buffer_remove_tag_by_name(text_buffer, "matching-parenthesis-highlighting", &start_buffer, &end_buffer);
-	gtk_text_buffer_remove_tag_by_name(text_buffer, "matching-brace-highlighting", &start_buffer, &end_buffer);
+	gtk_text_buffer_remove_tag_by_name(text_buffer, "matching-char-highlighting", &start_buffer, &end_buffer);
 	
 	GtkTextIter cursor_pos;
 	get_cursor_position(GTK_TEXT_BUFFER(text_buffer), NULL, &cursor_pos, NULL);
-	gunichar c = gtk_text_iter_get_char(&cursor_pos);
+
 	if (is_inside_literal(&cursor_pos)) return;
+
+	gunichar c = gtk_text_iter_get_char(&cursor_pos);
 	if (c == '(')
 	{
 		GtkTextIter iter = cursor_pos;
@@ -890,20 +1053,18 @@ void matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed(GO
 			c = gtk_text_iter_get_char(&iter);
 			if (c == '(')
 			{
-				// if inside string or char-literal, then ignore.
 				level += 1;
 			}
 			if (c == ')')
 			{
-				// if inside string or char-literal, then ignore.
 				if (level == 0)
 				{
 					GtkTextIter end1 = cursor_pos;
 					GtkTextIter end2 = iter;
 					gtk_text_iter_forward_char(&end1);
 					gtk_text_iter_forward_char(&end2);
-					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-parenthesis-highlighting", &cursor_pos, &end1);
-					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-parenthesis-highlighting", &iter, &end2);
+					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-char-highlighting", &cursor_pos, &end1);
+					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-char-highlighting", &iter, &end2);
 					break;
 				}
 				else
@@ -934,8 +1095,8 @@ void matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed(GO
 					GtkTextIter end2 = iter;
 					gtk_text_iter_forward_char(&end1);
 					gtk_text_iter_forward_char(&end2);
-					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-parenthesis-highlighting", &cursor_pos, &end1);
-					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-parenthesis-highlighting", &iter, &end2);
+					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-char-highlighting", &cursor_pos, &end1);
+					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-char-highlighting", &iter, &end2);
 					break;
 				}
 				else
@@ -945,6 +1106,24 @@ void matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed(GO
 			}
 		}
 	}
+}
+
+void scope_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
+{
+	printf("SCOPE HIGHLIGHTING\n");
+
+	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
+	
+	GtkTextIter start_buffer, end_buffer;
+	gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
+	gtk_text_buffer_remove_tag_by_name(text_buffer, "scope-highlighting", &start_buffer, &end_buffer);
+	
+	GtkTextIter cursor_pos;
+	get_cursor_position(GTK_TEXT_BUFFER(text_buffer), NULL, &cursor_pos, NULL);
+	
+	if (is_inside_literal(&cursor_pos)) return;
+	
+	gunichar c = gtk_text_iter_get_char(&cursor_pos);
 	if (c == '{')
 	{
 		GtkTextIter iter = cursor_pos;
@@ -955,16 +1134,17 @@ void matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed(GO
 			c = gtk_text_iter_get_char(&iter);
 			if (c == '{')
 			{
-				// if inside string or char-literal, then ignore.
 				level += 1;
 			}
 			if (c == '}')
 			{
-				// if inside string or char-literal, then ignore.
 				if (level == 0)
 				{
 					gtk_text_iter_forward_char(&iter);
-					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-brace-highlighting", &iter, &cursor_pos);
+					GtkTextIter start;
+					start = cursor_pos;
+					gtk_text_iter_set_line_offset(&start, 0);
+					gtk_text_buffer_apply_tag_by_name(text_buffer, "scope-highlighting", &start, &iter);
 					break;
 				}
 				else
@@ -991,9 +1171,12 @@ void matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed(GO
 			{
 				if (level == 0)
 				{
-					GtkTextIter range_end = cursor_pos;
-					gtk_text_iter_forward_char(&range_end);
-					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-brace-highlighting", &iter, &range_end);
+					GtkTextIter start, end;
+					start = iter;
+					end = cursor_pos;
+					gtk_text_iter_set_line_offset(&start, 0);
+					gtk_text_iter_forward_char(&end);
+					gtk_text_buffer_apply_tag_by_name(text_buffer, "scope-highlighting", &start, &end);
 					break;
 				}
 				else
@@ -1005,25 +1188,20 @@ void matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed(GO
 	}
 }
 
-void matching_parenthesis_highlighting_init(GtkTextBuffer *text_buffer, GtkWidget *tab){
-	LOG_MSG("matching_parenthesis_highlighting_init()\n");
+void matching_char_highlighting_init(GtkWidget *tab, const char *color)
+{
+	GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
+	gtk_text_buffer_create_tag(text_buffer, "matching-char-highlighting", "background", color, NULL);
+	g_signal_connect(text_buffer, "notify::cursor-position",
+		G_CALLBACK(matching_char_highlighting_on_cursor_position_changed), tab);
+}
 
-	gtk_text_buffer_create_tag(text_buffer,
-		"matching-parenthesis-highlighting",
-		"underline", PANGO_UNDERLINE_SINGLE,
-//		"background", "red",
-		NULL);
-
-	gtk_text_buffer_create_tag(text_buffer,
-		"matching-brace-highlighting",
-		"paragraph-background", "rgb(240, 255, 240)",
-		NULL);
-
-	assert(tab);
-	g_signal_connect(text_buffer,
-		"notify::cursor-position",
-		G_CALLBACK(matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed),
-		tab);
+void scope_highlighting_init(GtkWidget *tab, const char *color)
+{
+	GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
+	gtk_text_buffer_create_tag(text_buffer, "scope-highlighting", "paragraph-background", color, NULL);
+	g_signal_connect(text_buffer, "notify::cursor-position",
+		G_CALLBACK(scope_highlighting_on_cursor_position_changed), tab);
 }
 
 GtkWidget *create_tab(const char *file_name)
@@ -1146,7 +1324,29 @@ GtkWidget *create_tab(const char *file_name)
 		}
 	}
 	
-	matching_parenthesis_highlighting_init(text_buffer, tab);
+//	matching_parenthesis_highlighting_init(text_buffer, tab);
+	{
+		const char *value = settings_get_value(settings, "matching-char-highlighting/color");
+		if (value)
+		{
+			matching_char_highlighting_init(tab, value);
+		}
+		else
+		{
+			ERROR("Setting \"matching-char-highlighting/color\" doesnt seem to be set in the settings file!)")
+		}
+	}
+	{
+		const char *value = settings_get_value(settings, "scope-highlighting/color");
+		if (value)
+		{
+			scope_highlighting_init(tab, value);
+		}
+		else
+		{
+			ERROR("Setting \"scope-highlighting/color\" doesnt seem to be set in the settings file!")
+		}
+	}
 
 	highlighting_init(tab, settings); //@ get rid of this
 
@@ -2028,9 +2228,9 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(CTRL, 31, select_inside); // ctrl + ü
 
 //	add_keycombination_handler(CTRL, 35, jump_to_next_occurrence); // ctrl + õ (35)
-	add_keycombination_handler(0, 81, jump_to_previous_occurrence); // numpad up
+	add_keycombination_handler(0, 86, jump_to_previous_occurrence); // numpad up
 //	add_keycombination_handler(CTRL | SHIFT, 35, jump_to_next_occurrence); // ctrl + shift + õ (35)
-	add_keycombination_handler(0, 89, jump_to_next_occurrence); // numpad down
+	add_keycombination_handler(0, 104, jump_to_next_occurrence); // numpad down
 
 	add_keycombination_handler(ALT, 111, move_lines_up); // alt + <up arrow>
 	add_keycombination_handler(ALT, 116, move_lines_down); // alt + <down arrow>

@@ -36,7 +36,6 @@ void highlighting_init(GtkWidget *tab, Node *settings){
 	LOG_MSG("highlighting_init()\n");
 
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
-INFO("start");
 
 	Node *text_tags = get_node(settings, "text-tags");
 
@@ -70,7 +69,6 @@ INFO("start");
 			g_object_set(G_OBJECT(gtk_text_tag), attribute_name->name, attribute_value->name, NULL);
 		}
 	}
-INFO("end");
 
 	// register event-handlers necessary to keep the highlighting uptodate
 	g_signal_connect_after(text_buffer, "insert-text", G_CALLBACK(on_insert_text_after), tab);
@@ -177,11 +175,13 @@ static void on_insert_text_after(GtkTextBuffer *text_buffer, GtkTextIter *locati
 		GtkTextIter start_buffer, end_buffer;
 		gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
 		gtk_text_buffer_remove_tag_by_name(text_buffer, "line-highlighting", &start_buffer, &end_buffer);
-		gtk_text_buffer_remove_tag_by_name(text_buffer, "matching-parenthesis-highlighting", &start_buffer, &end_buffer);
-		//hack end:
+		gtk_text_buffer_remove_tag_by_name(text_buffer, "matching-char-highlighting", &start_buffer, &end_buffer);
+		gtk_text_buffer_remove_tag_by_name(text_buffer, "scope-highlighting", &start_buffer, &end_buffer);
 		f(text_buffer, location, NULL);
-		line_highlighting_on_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL); //@ hack
-		matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, tab); //@ hack
+		line_highlighting_on_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL);
+		matching_char_highlighting_on_cursor_position_changed(G_OBJECT(text_buffer), NULL, tab);
+		scope_highlighting_on_cursor_position_changed(G_OBJECT(text_buffer), NULL, tab);
+		//hack end:
 	}
 }
 
@@ -198,11 +198,13 @@ static void on_delete_range_after(GtkTextBuffer *text_buffer, GtkTextIter *start
 		GtkTextIter start_buffer, end_buffer;
 		gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
 		gtk_text_buffer_remove_tag_by_name(text_buffer, "line-highlighting", &start_buffer, &end_buffer);
-		gtk_text_buffer_remove_tag_by_name(text_buffer, "matching-parenthesis-highlighting", &start_buffer, &end_buffer);
-		//hack end:
+		gtk_text_buffer_remove_tag_by_name(text_buffer, "matching-char-highlighting", &start_buffer, &end_buffer);
+		gtk_text_buffer_remove_tag_by_name(text_buffer, "scope-highlighting", &start_buffer, &end_buffer);
 		f(text_buffer, start, NULL);
-		line_highlighting_on_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL); //@ hack
-		matching_parenthesis_highlighting_on_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, tab); //@ hack
+		line_highlighting_on_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL);
+		matching_char_highlighting_on_cursor_position_changed(G_OBJECT(text_buffer), NULL, tab);
+		scope_highlighting_on_cursor_position_changed(G_OBJECT(text_buffer), NULL, tab);
+		//hack end:
 	}
 }
 

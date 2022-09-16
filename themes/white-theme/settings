@@ -81,7 +81,7 @@ text-tags
 	}
 	string
 	{
-		foreground{black}
+		foreground{gray}
 	}
 	number
 	{

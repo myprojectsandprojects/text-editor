@@ -1,16 +1,11 @@
 /* ~/.local/share/fonts */
 
 /*
-#25365d -- lighter blue
-#1a2641 -- blue
-#131c30 -- darker blue
-#ee2800 -- red
-#e0e0e0 -- light gray (text)
-#ede627 -- yellow
-#ffa300 -- orange
-#16e500 -- green (text)
-#00ee2d -- lighter green
-#00c625 -- darker green
+black
+white
+red
+orange
+#101010
 */
 
 /*
@@ -26,15 +21,12 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
-/*
-	font: JetBrainsMonoNL ExtraBold 11;
-	font: JetBrainsMonoNL ExtraBold 12;
-	font: JetBrainsMonoNL Medium 12;
-	font: JetBrainsMonoNL SemiBold 13;
-*/
-	font: JetBrainsMonoNL SemiBold 10.5;
-	font: JetBrainsMonoNL SemiBold 12;
-	font: JetBrainsMonoNL SemiBold 11;
+	font: Courier 10 Pitch Regular 12;
+	font: Liberation Mono Regular 12;
+	font: Liberation Mono Bold 11;
+	font: Courier 10 Pitch Bold 11;
+	font: Liberation Mono Bold 12;
+	font: Courier 10 Pitch Bold 12;
 }
 
 /* Rules for all text-entries: */
@@ -42,10 +34,10 @@ and just stick to classes.
 .search-in-files-phrase-entry,
 .search-in-files-pattern-entry
 {
-	border: solid 1px #25365d;
+	border: solid 1px orange;
 	border-radius: 0;
-	background: #25365d;
-	color: #e0e0e0;
+	background: orange;
+	color: black;
 	padding: 7px;
 }
 
@@ -54,10 +46,10 @@ and just stick to classes.
 .search-in-files-pattern-entry:focus
 {
 	/*border: solid 1px black;*/
-	border: solid 1px #ee2800;
+	border: solid 1px red;
 	border-radius: 0;
-	background: #25365d;
-	color: #e0e0e0;
+	background: orange;
+	color: black;
 	padding: 7px;
 }
 
@@ -78,7 +70,7 @@ and just stick to classes.
 .openfile-entry:selected
 {
 	color: white;
-	background: #ee2800;
+	background: red;
 }
 
 
@@ -151,9 +143,19 @@ and just stick to classes.
 
 .text-view
 {
-/*	background: #000000;*/
-	background: #121212;
-	color:      #aaaaaa;
+	background: #006523;
+	background: black;
+	color: gray;
+	color: #030302; /* blackish*/
+	color: #181c1f; /* gray*/
+	color: #79550b; /* dark beige */
+	color: #268156; /* grayer cyanish */
+	color: #3ed78d; /* crazy light green */
+	color: #2bc278; /* light green */
+	color: #466459; /* gray */
+	color: #a7873d; /* beige*/
+	color: #c2b272; /* light beige*/
+	color: white;
 }
 
 .status-bar {

@@ -548,7 +548,7 @@ gboolean jump_to_next_occurrence(GdkEventKey *key_event)
 			gtk_text_iter_forward_char(&end), c = gtk_text_iter_get_char(&end)
 		);
 
-		if (!(gtk_text_iter_compare(&start, &end) < 0)) return FALSE; // no identifier under cursor
+		if (!(gtk_text_iter_compare(&start, &end) < 0)) return TRUE; // no identifier under cursor
 
 		text = gtk_text_buffer_get_text(text_buffer, &start, &end, FALSE);
 	}
@@ -635,7 +635,7 @@ gboolean jump_to_previous_occurrence(GdkEventKey *key_event)
 			gtk_text_iter_forward_char(&end), c = gtk_text_iter_get_char(&end)
 		);
 
-		if (!(gtk_text_iter_compare(&start, &end) < 0)) return FALSE;
+		if (!(gtk_text_iter_compare(&start, &end) < 0)) return TRUE;
 
 		text = gtk_text_buffer_get_text(text_buffer, &start, &end, FALSE);
 	}

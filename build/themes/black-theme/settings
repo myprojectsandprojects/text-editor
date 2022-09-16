@@ -24,10 +24,10 @@ autocomplete-character
 
 languages
 {
-	C
+	/*C
 	{
 		file-extensions { c {} h {} }
-	}
+	}*/
 	C++
 	{
 		file-extensions { cpp{} hpp{} c {} h {} }
@@ -39,73 +39,55 @@ languages
 	/*doesnotexist{}*/
 }
 
-/*
-	#c1af9c -- gray/beige
-	#869491 -- gray/blue
-	#809d77 -- colder green
-	#abb26d -- warmer green
-	#2787b2 -- light blue
-	#1c529d -- dark blue
-	#d5b669 -- yellow
-	#da823e -- orange
-	#de4f44 -- red
-	#ac7987 -- purple
-
-	#bfa886 -- gray beige
-	#cfaf86 -- bright beige
-*/
-
 /* Tags that can be used by any language highlighting: */
 text-tags
 {
 	comment
 	{
-		foreground{#2787b2/*#abb26d*/}
+		foreground{#339933}
 	}
 	identifier
 	{
-		foreground{#c1af9c/*#cfaf86*/}
+		foreground{#aaaaaa}
 	}
 	keyword
 	{
-		foreground{#da823e}
-		weight{bold}
+		foreground{#3793ea}
 	}
 	type
 	{
-		foreground{#ac7987}
+		foreground{#aaaaaa}
 	}
 	function
 	{
-		foreground{#c1af9c/*#cfaf86*/}
+		foreground{#aaaaaa}
 	}
 	string
 	{
-		foreground{#d5b669}
-	}
-	number
-	{
-		foreground{#d5b669}
-	}
-	operator
-	{
-		foreground{#c1af9c/*#da823e*/}
-	}
-	preprocessor
-	{
-		foreground{#809d77}
-	}
-	unknown
-	{
-		foreground{#de4f44}
+		foreground{#bbbb33}
 	}
 	char
 	{
-		foreground{#d5b669}
+		foreground{#bbbb33}
+	}
+	number
+	{
+		foreground{#bbbb33}
+	}
+	operator
+	{
+		foreground{#aaaaaa}
+	}
+	preprocessor
+	{
+		foreground{#3793ea}
+	}
+	unknown
+	{
+		foreground{#ee2800}
 	}
 }
 
 line-highlighting {
-	color {#1a1a1a}
-	
+	color {#101010}
 }

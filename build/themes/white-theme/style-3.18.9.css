@@ -13,17 +13,8 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
-/*
-	font: JetBrainsMonoNL ExtraBold 11;
-	font: JetBrainsMonoNL ExtraBold 12;
-	font: JetBrainsMonoNL Medium 12;
-	font: JetBrainsMonoNL SemiBold 13;
-*/
-	font: JetBrainsMonoNL SemiBold 12;
-	font: JetBrainsMonoNL Bold 10.5;
-	font: JetBrainsMonoNL ExtraBold 10.5;
-	font: JetBrainsMonoNL SemiBold 10.5;
-	font: JetBrainsMonoNL SemiBold 11;
+	font: Courier 10 Pitch Bold 11;
+	font: Courier 10 Pitch Regular 12;
 }
 
 /* Rules for all text-entries: */
@@ -45,6 +36,7 @@ and just stick to classes.
 {
 	/*border: solid 1px black;*/
 	border: solid 1px IndianRed;
+	border: solid 1px orange;
 	border-radius: 0;
 	background: white;
 	color: black;
@@ -68,7 +60,10 @@ and just stick to classes.
 .openfile-entry:selected
 {
 	color: white;
+	/*
 	background: IndianRed;
+	*/
+	background: red;
 }
 
 
