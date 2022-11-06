@@ -413,6 +413,20 @@ char * get_until(const char *s, char c)
 	return slice;
 }
 
+char *get_parent_path_noalloc(char *path)
+{
+	char *last_slash = 0;
+	for (char *ptr = path; *ptr; ++ptr)
+	{
+		if (*ptr == '/')
+		{
+			last_slash = ptr;
+		}
+	}
+	if (last_slash) *last_slash = 0;
+	return path;
+}
+
 /* 
 Its not excactly clear to me right now what should be returned for all kinds of exotic possibilities.
 */
@@ -425,7 +439,7 @@ char *get_parent_path(const char *path)
 	int i = strlen(path) - 1;
 	if (i < 0) return NULL; // if empty string
 
-	if (path[i] == '/') i -= 1; // we'll ignore a trailing '/'
+	if (path[i] == '/') i -= 1; // we'll ignore a trailing '/' //@ if we have multiple trailing '/'?
 
 	for (; i >= 0; --i) {
 		if (path[i] == '/') break;

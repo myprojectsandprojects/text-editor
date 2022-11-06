@@ -2371,17 +2371,43 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 */
 }
 
+bool get_executable_path(char *buffer, int buffer_size)
+{
+	bool ret;
+	ssize_t num_copied = readlink("/proc/self/exe", buffer, buffer_size);
+	if (num_copied == -1)
+	{
+		// something went wrong (errno should contain further info)
+		ret = false;
+	}
+	else if (num_copied == buffer_size)
+	{
+		// path too long
+		ret = false;
+	}
+	else
+	{
+		buffer[num_copied] = 0;
+		ret = true;
+	}
+	return ret;
+}
+
 int main(int argc, char *argv[])
 {
 	LOG_MSG("main()\n");
 
-	// Make sure CWD is the directory which contains the executable. (This might not be the case when the executable is executed through a symbolic link)
-	const int size = 100; //@
-	char executable_path[size];
-	readlink("/proc/self/exe", executable_path, size);
-	char *parent_path = get_parent_path(executable_path);
+	// Make sure current working directory is the directory which contains the executable. (This might not be the case when the executable is executed through a symbolic link or through a Bash-shell from a different directory)
+	const int exe_path_size = 1024; // allegedly MAX_PATH is not particularly trustworthy
+	char exe_path[exe_path_size];
+	if (!get_executable_path(exe_path, exe_path_size)) {
+		//@ error handling
+		printf("failed\n");
+		return 1;
+	}
+	char *parent_path = get_parent_path_noalloc(exe_path);
 	chdir(parent_path);
-	free(parent_path);
+	LOG_MSG("Changed CWD to \"%s\"\n", parent_path);
 
 	int status;
 	GtkApplication *app;

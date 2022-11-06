@@ -13,9 +13,12 @@ and just stick to classes.
 .search-in-files-phrase-entry,
 .search-in-files-pattern-entry
 {
-	font: JetBrainsMonoNL SemiBold 10.5;
+	font: JetBrainsMonoNL ExtraBold 10.5;
 	font: JetBrainsMonoNL SemiBold 12;
+	font: JetBrainsMonoNL SemiBold 10.5;
+	font: JetBrainsMonoNL Bold 11;
 	font: JetBrainsMonoNL SemiBold 11;
+	font: JetBrainsMonoNL Bold 10.5;
 }
 
 /* Rules for all text-entries: */
@@ -137,9 +140,10 @@ and just stick to classes.
 
 .text-view
 {
-	/*background: 	#272725;*/
-	background: 	#212121;
-	color: 		#c1af9c;
+	/*background: #272725;*/
+	/*background: #161616;*/
+	background: #212121;
+	color: #c1af9c;
 }
 
 .status-bar {

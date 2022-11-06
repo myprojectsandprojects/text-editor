@@ -21,12 +21,10 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
-	font: Courier 10 Pitch Regular 12;
-	font: Liberation Mono Regular 12;
-	font: Liberation Mono Bold 11;
-	font: Courier 10 Pitch Bold 11;
-	font: Liberation Mono Bold 12;
-	font: Courier 10 Pitch Bold 12;
+	font: Courier Prime Regular 11;
+	font: Courier Prime Regular 12;
+	font: Nitti Bold 11;
+	font: Nitti Regular 13;
 }
 
 /* Rules for all text-entries: */
@@ -143,18 +141,7 @@ and just stick to classes.
 
 .text-view
 {
-	background: #006523;
 	background: black;
-	color: gray;
-	color: #030302; /* blackish*/
-	color: #181c1f; /* gray*/
-	color: #79550b; /* dark beige */
-	color: #268156; /* grayer cyanish */
-	color: #3ed78d; /* crazy light green */
-	color: #2bc278; /* light green */
-	color: #466459; /* gray */
-	color: #a7873d; /* beige*/
-	color: #c2b272; /* light beige*/
 	color: white;
 }
 

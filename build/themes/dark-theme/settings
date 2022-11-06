@@ -12,7 +12,7 @@ new stuff easily configurable in here. */
 wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
 left-margin {10}
 search-case-sensitivity {true}
-pixels-above-lines {0}
+pixels-above-lines {1}
 pixels-below-lines {0}
 
 search-replace {}
@@ -24,13 +24,13 @@ autocomplete-character
 
 languages
 {
-	C
-	{
-		file-extensions { c {} h {} }
-	}
 	C++
 	{
 		file-extensions { cpp{} hpp{} c {} h {} }
+	}
+	C
+	{
+		file-extensions { c {} h {} }
 	}
 	Rust
 	{
@@ -60,11 +60,11 @@ text-tags
 {
 	comment
 	{
-		foreground{#2787b2/*#abb26d*/}
+		foreground{#809d77}
 	}
 	identifier
 	{
-		foreground{#c1af9c/*#cfaf86*/}
+		foreground{#c8ac86/*#c1af9c*//*#cfaf86*/}
 	}
 	keyword
 	{
@@ -89,11 +89,11 @@ text-tags
 	}
 	operator
 	{
-		foreground{#c1af9c/*#da823e*/}
+		foreground{#c8ac86/*#c1af9c*//*#da823e*/}
 	}
 	preprocessor
 	{
-		foreground{#809d77}
+		foreground{#ac7987}
 	}
 	unknown
 	{
@@ -108,4 +108,15 @@ text-tags
 line-highlighting {
 	color {#1a1a1a}
 	
+}
+
+matching-char-highlighting
+{
+	/*color {#de4f44}*/
+	color {#6a1a1a}
+}
+
+scope-highlighting
+{
+	color {#1a1a1a}
 }

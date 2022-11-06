@@ -191,3 +191,9 @@ Could also highlight the enclosed scope inside?
 * tabs vs spaces. tab width. when autoindenting, what should we do?
 
 * key combinations is a mess
+
+* if the cursor is at the end of "#include", which is at the beginning of the file and we go ctrl + left, then the cursor jumps over the whole thing although it should stop before '#'
+
+* is there a bug in search-replace when I search for something then go to the beginning of the file and search again? Because it should search from the beginning of the file but it isnt
+
+* get rid of the scroll animation

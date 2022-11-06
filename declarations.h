@@ -248,6 +248,7 @@ char *get_base_name(const char *file_name);
 char *get_slice_by(char **p_s, char ch);
 char **slice_by(const char *s, char c);
 char *get_parent_path(const char *path);
+char *get_parent_path_noalloc(char *path);
 int is_beginning_of(const char *needle, const char *haystack); //@ fix inconsistent style
 bool ends_with(const char *h, const char *n);
 char *str_replace(const char *h, const char *n, const char *r);

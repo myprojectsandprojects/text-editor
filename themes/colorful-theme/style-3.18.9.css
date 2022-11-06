@@ -1,11 +1,16 @@
 /* ~/.local/share/fonts */
 
 /*
-black
-white
-red
-orange
-#101010
+#25365d -- lighter blue
+#1a2641 -- blue
+#131c30 -- darker blue
+#ee2800 -- red
+#e0e0e0 -- light gray (text)
+#ede627 -- yellow
+#ffa300 -- orange
+#16e500 -- green (text)
+#00ee2d -- lighter green
+#00c625 -- darker green
 */
 
 /*
@@ -21,10 +26,15 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
-	font: Courier Prime Regular 11;
-	font: Courier Prime Regular 12;
-	font: Nitti Bold 11;
-	font: Nitti Regular 13;
+/*
+	font: JetBrainsMonoNL ExtraBold 11;
+	font: JetBrainsMonoNL ExtraBold 12;
+	font: JetBrainsMonoNL Medium 12;
+	font: JetBrainsMonoNL SemiBold 13;
+*/
+	font: JetBrainsMonoNL SemiBold 10.5;
+	font: JetBrainsMonoNL SemiBold 12;
+	font: JetBrainsMonoNL SemiBold 11;
 }
 
 /* Rules for all text-entries: */
@@ -32,10 +42,10 @@ and just stick to classes.
 .search-in-files-phrase-entry,
 .search-in-files-pattern-entry
 {
-	border: solid 1px orange;
+	border: solid 1px #25365d;
 	border-radius: 0;
-	background: orange;
-	color: black;
+	background: #25365d;
+	color: #e0e0e0;
 	padding: 7px;
 }
 
@@ -44,10 +54,10 @@ and just stick to classes.
 .search-in-files-pattern-entry:focus
 {
 	/*border: solid 1px black;*/
-	border: solid 1px red;
+	border: solid 1px #ee2800;
 	border-radius: 0;
-	background: orange;
-	color: black;
+	background: #25365d;
+	color: #e0e0e0;
 	padding: 7px;
 }
 
@@ -68,7 +78,7 @@ and just stick to classes.
 .openfile-entry:selected
 {
 	color: white;
-	background: red;
+	background: #ee2800;
 }
 
 
@@ -141,8 +151,9 @@ and just stick to classes.
 
 .text-view
 {
-	background: black;
-	color: white;
+/*	background: #000000;*/
+	background: #121212;
+	color:      #aaaaaa;
 }
 
 .status-bar {

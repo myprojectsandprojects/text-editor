@@ -12,8 +12,8 @@ new stuff easily configurable in here. */
 wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
 left-margin {10}
 search-case-sensitivity {true}
-pixels-above-lines {0}
-pixels-below-lines {0}
+pixels-above-lines {1}
+pixels-below-lines {1}
 
 search-replace {}
 
@@ -52,7 +52,8 @@ text-tags
 	}
 	keyword
 	{
-		foreground{#3793ea}
+		foreground{#d26230}
+		weight{bold}
 	}
 	type
 	{
@@ -72,7 +73,7 @@ text-tags
 	}
 	number
 	{
-		foreground{#bbbb33}
+		foreground{#a0a0cf}
 	}
 	operator
 	{
@@ -90,4 +91,14 @@ text-tags
 
 line-highlighting {
 	color {#101010}
+}
+
+matching-char-highlighting
+{
+	color {#304030}
+}
+
+scope-highlighting
+{
+	color {#201010}
 }
