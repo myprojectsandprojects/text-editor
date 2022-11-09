@@ -12,8 +12,8 @@ new stuff easily configurable in here. */
 wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
 left-margin {10}
 search-case-sensitivity {true}
-pixels-above-lines {1}
-pixels-below-lines {0}
+pixels-above-lines {2}
+pixels-below-lines {2}
 
 search-replace {}
 
@@ -68,8 +68,7 @@ text-tags
 	}
 	keyword
 	{
-		foreground{black}
-		weight{bold}
+		foreground{blue}
 	}
 	type
 	{
@@ -85,15 +84,15 @@ text-tags
 	}
 	number
 	{
-		foreground{black}
+		foreground{purple}
 	}
 	operator
 	{
-		foreground{black}
+		foreground{brown}
 	}
 	preprocessor
 	{
-		foreground{black}
+		foreground{orange}
 	}
 	unknown
 	{
@@ -101,7 +100,7 @@ text-tags
 	}
 	char
 	{
-		foreground{black}
+		foreground{gray}
 	}
 }
 

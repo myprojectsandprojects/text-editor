@@ -13,8 +13,7 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
-	font: Courier 10 Pitch Bold 11;
-	font: Cascadia Mono Regular 11;
+	font: JetBrainsMonoNL ExtraBold 11;
 }
 
 /* Rules for all text-entries: */
