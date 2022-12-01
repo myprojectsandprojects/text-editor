@@ -195,3 +195,85 @@ const char *basename_get_extension(const char *basename){
 
 	return p;
 }
+
+void hash_table_init(HashTable *table)
+{
+	for (int i = 0; i < HASH_TABLE_SIZE; ++i)
+	{
+		table->data[i] = 0;
+	}
+	table->num_occupied_slots = 0;
+}
+
+void hash_table_store(HashTable *table, const char *str)
+{
+	unsigned int hash = 0;
+	for (const char *p = str; *p; ++p)
+	{
+		hash += *p;
+	}
+	unsigned int index = hash % HASH_TABLE_SIZE;
+
+	// we want to keep 1 empty slot, because otherwise when the table is full the lookup code will loop forever.
+	assert(table->num_occupied_slots < HASH_TABLE_SIZE-1);
+
+	while (table->data[index])
+	{
+		if (strcmp(table->data[index], str) == 0)
+		{
+			// string already there
+			return;
+		}
+		index += 1;
+		index %= HASH_TABLE_SIZE;
+	}
+	table->data[index] = str;
+	table->num_occupied_slots += 1;
+}
+
+bool hash_table_has(HashTable *table, const char *str)
+{
+	unsigned int hash = 0;
+	for (const char *p = str; *p; ++p)
+	{
+		hash += *p;
+	}
+	unsigned int index = hash % HASH_TABLE_SIZE;
+
+//	int num_comparsions = 0;
+	bool found = false;
+	while (table->data[index])
+	{
+//		num_comparsions += 1;
+		if (strcmp(table->data[index], str) == 0)
+		{
+			found = true;
+			break;
+		}
+		index += 1;
+		index %= HASH_TABLE_SIZE;
+	}
+//	printf("num_comparsions for \"%s\": %d\n", str, num_comparsions);
+	return found;
+}
+
+void hash_table_print(HashTable *table)
+{
+	for (int i = 0; i < HASH_TABLE_SIZE; ++i)
+	{
+		if (table->data[i])
+		{
+			unsigned int hash = 0;
+			for (const char *p = table->data[i]; *p; ++p)
+			{
+				hash += *p;
+			}
+			unsigned int index = hash % HASH_TABLE_SIZE;
+			printf("%d: %s (%d)\n", i, table->data[i], index);
+		}
+		else
+		{
+			printf("%d: -\n", i);
+		}
+	}
+}

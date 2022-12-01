@@ -500,7 +500,7 @@ gboolean do_search(GdkEventKey *key_event)
 
 gboolean jump_to_next_occurrence(GdkEventKey *key_event)
 {
-	printf("jump_to_previous_occurrence()\n");
+	printf("jump_to_next_occurrence()\n");
 
 //	GtkTextBuffer *text_buffer;
 //	if (!(text_buffer = GTK_TEXT_BUFFER(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER)))) {

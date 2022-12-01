@@ -12,8 +12,8 @@ new stuff easily configurable in here. */
 wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
 left-margin {10}
 search-case-sensitivity {true}
-pixels-above-lines {2}
-pixels-below-lines {2}
+pixels-above-lines {1}
+pixels-below-lines {1}
 
 search-replace {}
 
@@ -24,13 +24,13 @@ autocomplete-character
 
 languages
 {
-	C
-	{
-		file-extensions { c {} h {} }
-	}
 	C++
 	{
 		file-extensions { cpp{} hpp{} c {} h {} }
+	}
+	C
+	{
+		file-extensions { c {} h {} }
 	}
 	Rust
 	{
@@ -60,39 +60,40 @@ text-tags
 {
 	comment
 	{
-		foreground{green}
+		foreground{#809d77}
 	}
 	identifier
 	{
-		foreground{black}
+		foreground{#c8ac86}
 	}
 	keyword
 	{
-		foreground{blue}
+		foreground{#de4f44 /*red*//*#da823e*/ /*orange*/}
+		/*weight{bold}*/
 	}
 	type
 	{
-		foreground{black}
+		foreground{#ac7987/*purple*/}
 	}
 	function
 	{
-		foreground{black}
+		foreground{#d5b669/*yellow*//*#de4f44*//*red*/}
 	}
 	string
 	{
-		foreground{gray}
+		foreground{#abb26d/*warmer green*/}
 	}
 	number
 	{
-		foreground{purple}
+		foreground{#abb26d/*warmer green*/}
 	}
 	operator
 	{
-		foreground{brown}
+		foreground{/*#c8ac86*/#da823e/*orange*/}
 	}
 	preprocessor
 	{
-		foreground{orange}
+		foreground{#da823e/*orange*//*#ac7987*/}
 	}
 	unknown
 	{
@@ -100,21 +101,22 @@ text-tags
 	}
 	char
 	{
-		foreground{gray}
+		foreground{#abb26d/*warmer green*/}
 	}
 }
 
 line-highlighting {
-	color {#f0f0f0}
+	color {#1a1a1a}
+	
 }
 
 matching-char-highlighting
 {
 	/*color {#de4f44}*/
-	color {#00ffff}
+	color {#6a1a1a}
 }
 
 scope-highlighting
 {
-	color {#f0f0f0}
+	color {#1a1a1a}
 }

@@ -238,7 +238,8 @@ GtkWidget *create_highlighting_selection_button(GtkWidget *tab, Node *settings);
 void c_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end);
 
 /* highlighting-cpp.cpp: */
-void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end);
+//void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end);
+void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *location);
 
 /* highlighting-rust.cpp: */
 void rust_highlight(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end);

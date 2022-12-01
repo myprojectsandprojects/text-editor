@@ -197,3 +197,10 @@ Could also highlight the enclosed scope inside?
 * is there a bug in search-replace when I search for something then go to the beginning of the file and search again? Because it should search from the beginning of the file but it isnt
 
 * get rid of the scroll animation
+* we should be aware of the changes made to the underlying file on disk. think about it for a bit
+* scope-highlighting commented out curly brackets, is there a bug?
+
+THESE WOULD BE NICE, BUT THEY ARE HARD TO IMPLEMENT GIVEN THAT WE DONT HAVE A CONCEPT OF A PROJECT:
+- easy way to go to function definition
+- easy way to go/see where/how a function is called (?)
+say, someone retrieves a function pointer and calls it

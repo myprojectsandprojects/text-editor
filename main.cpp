@@ -577,7 +577,7 @@ void text_view_cut_clipboard(GtkTextView *text_view, gpointer user_data)
 	g_signal_stop_emission_by_name(text_view, "cut-clipboard");
 }
 
-//@ should replace selected 
+//@ should replace selected
 void text_view_paste_clipboard(GtkTextView *text_view, gpointer user_data)
 {
 	printf("paste-clipboard!!!\n");
@@ -1029,8 +1029,6 @@ bool is_inside_literal(GtkTextIter *iter)
 
 void matching_char_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
 {
-	printf("MATCHING CHAR HIGHLIGHTING\n");
-
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
 	
 	GtkTextIter start_buffer, end_buffer;
@@ -1110,8 +1108,6 @@ void matching_char_highlighting_on_cursor_position_changed(GObject *object, GPar
 
 void scope_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
 {
-	printf("SCOPE HIGHLIGHTING\n");
-
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
 	
 	GtkTextIter start_buffer, end_buffer;
@@ -2228,9 +2224,9 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(CTRL, 31, select_inside); // ctrl + ü
 
 //	add_keycombination_handler(CTRL, 35, jump_to_next_occurrence); // ctrl + õ (35)
-	add_keycombination_handler(0, 86, jump_to_previous_occurrence); // numpad up
+	add_keycombination_handler(0, 86, jump_to_previous_occurrence); // numpad +
 //	add_keycombination_handler(CTRL | SHIFT, 35, jump_to_next_occurrence); // ctrl + shift + õ (35)
-	add_keycombination_handler(0, 104, jump_to_next_occurrence); // numpad down
+	add_keycombination_handler(0, 104, jump_to_next_occurrence); // numpad enter
 
 	add_keycombination_handler(ALT, 111, move_lines_up); // alt + <up arrow>
 	add_keycombination_handler(ALT, 116, move_lines_down); // alt + <down arrow>

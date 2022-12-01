@@ -1,15 +1,16 @@
 #include <string.h>
 #include "declarations.h"
 
-extern guint gtk_version_major;
-extern guint gtk_version_minor;
-extern guint gtk_version_micro;
+//extern guint gtk_version_major;
+//extern guint gtk_version_minor;
+//extern guint gtk_version_micro;
 
 static void on_insert_text_after(GtkTextBuffer *text_buffer, GtkTextIter *location, gchar *text, gint len, gpointer tab);
 static void on_delete_range_after(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end, gpointer tab);
 static void update_highlighting_selection_button(GtkWidget *tab, const char *new_highlighting);
 
-typedef void (*Highlighter) (GtkTextBuffer *, GtkTextIter *, GtkTextIter *);
+//typedef void (*Highlighter) (GtkTextBuffer *, GtkTextIter *, GtkTextIter *);
+typedef void (*Highlighter) (GtkTextBuffer *, GtkTextIter *);
 
 struct TableEntry {
 	const char *name;			// highlighting name
@@ -17,9 +18,9 @@ struct TableEntry {
 };
 
 TableEntry highlighters[] = {
-	{"C", c_highlight},
+//	{"C", c_highlight},
 	{"C++", cpp_highlight},
-	{"Rust", rust_highlight},
+//	{"Rust", rust_highlight},
 };
 //const int highlighters_num_entries = sizeof(highlighters) / sizeof(struct TableEntry);
 
@@ -107,7 +108,13 @@ void highlighting_set(GtkWidget *tab, const char *highlighting){
 	gtk_text_buffer_remove_all_tags(text_buffer, &a, &b);
 
 	if(f){
-		f(text_buffer, &a, &b);
+//		f(text_buffer, &a, &b);
+		long before = get_time_us();
+		f(text_buffer, NULL);
+		long after = get_time_us();
+		long elapsed = after - before;
+		printf("initial highlighting took %ld\n", elapsed);
+//		print_tags(text_buffer);
 	}else{
 		assert(strcmp(highlighting, "None") == 0);
 	}
@@ -152,6 +159,7 @@ static void on_insert_text_after(GtkTextBuffer *text_buffer, GtkTextIter *locati
 
 //	printf("location offset: %d, text: %s, len: %d\n", gtk_text_iter_get_offset(location), text, len);
 //	printf("character at location: %c[%d]\n", gtk_text_iter_get_char(location), gtk_text_iter_get_char(location));
+	// "location" is pointing at the character after the inserted text
 
 //	{
 //		GtkTextIter a, b;
@@ -169,15 +177,20 @@ static void on_insert_text_after(GtkTextBuffer *text_buffer, GtkTextIter *locati
 //	}
 
 //	cpp_highlight(text_buffer, location, NULL);
-	Highlighter f = (Highlighter) tab_retrieve_widget(GTK_WIDGET(tab), HIGHLIGHTER);
-	if(f){
+	Highlighter highlight = (Highlighter) tab_retrieve_widget(GTK_WIDGET(tab), HIGHLIGHTER);
+	if (highlight) {
 		//@hack begin:
 		GtkTextIter start_buffer, end_buffer;
 		gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
 		gtk_text_buffer_remove_tag_by_name(text_buffer, "line-highlighting", &start_buffer, &end_buffer);
 		gtk_text_buffer_remove_tag_by_name(text_buffer, "matching-char-highlighting", &start_buffer, &end_buffer);
 		gtk_text_buffer_remove_tag_by_name(text_buffer, "scope-highlighting", &start_buffer, &end_buffer);
-		f(text_buffer, location, NULL);
+
+		GtkTextIter iter = *location; // changing "location" directly also changes cursor position somehow \_(oo)_/
+		gtk_text_iter_backward_chars(&iter, len); // "location" points at the end of the inserted text and we want to be at the beginning
+		highlight(text_buffer, &iter);
+//		f(text_buffer, &start_buffer, &end_buffer); // highlight the whole buffer
+
 		line_highlighting_on_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL);
 		matching_char_highlighting_on_cursor_position_changed(G_OBJECT(text_buffer), NULL, tab);
 		scope_highlighting_on_cursor_position_changed(G_OBJECT(text_buffer), NULL, tab);
@@ -200,7 +213,8 @@ static void on_delete_range_after(GtkTextBuffer *text_buffer, GtkTextIter *start
 		gtk_text_buffer_remove_tag_by_name(text_buffer, "line-highlighting", &start_buffer, &end_buffer);
 		gtk_text_buffer_remove_tag_by_name(text_buffer, "matching-char-highlighting", &start_buffer, &end_buffer);
 		gtk_text_buffer_remove_tag_by_name(text_buffer, "scope-highlighting", &start_buffer, &end_buffer);
-		f(text_buffer, start, NULL);
+		f(text_buffer, start);
+//		f(text_buffer, &start_buffer, &end_buffer); // highlight the whole buffer
 		line_highlighting_on_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL);
 		matching_char_highlighting_on_cursor_position_changed(G_OBJECT(text_buffer), NULL, tab);
 		scope_highlighting_on_cursor_position_changed(G_OBJECT(text_buffer), NULL, tab);

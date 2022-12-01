@@ -88,3 +88,22 @@ void array_add(Array<T> *array, T element){
 	array->data[array->count] = element;
 	array->count += 1;
 }
+
+//@ todo (things that could be improved probably):
+// dynamically grow at some point (when?)
+// improved hash
+// improved probing
+// right now we just store strings so that someone can check if we have a particular string or not, but we might want to store other things as well (?)
+
+#define HASH_TABLE_SIZE 512
+
+struct HashTable
+{
+	const char *data[HASH_TABLE_SIZE];
+	int num_occupied_slots;
+};
+
+void hash_table_init(HashTable *table);
+void hash_table_store(HashTable *table, const char *str);
+bool hash_table_has(HashTable *table, const char *str);
+void hash_table_print(HashTable *table);

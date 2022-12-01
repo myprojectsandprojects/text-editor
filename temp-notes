@@ -1,0 +1,56 @@
+
+printf("Hello, world!\n);
+int num = 123;
+float num2 = 3.14159;
+
+FIRST PASS TOKENS:
+	name (printf, num, num2, int, float)
+	number (123, 3.14159)
+	string ("Hello, world!\n")
+	punctuation (=, ;)
+
+SECOND PASS TOKENS
+	function call
+	type identifier
+	variable identifier
+
+---
+
+incorrect -> initial highlighting -> correct -> correct -> correct
+tokens can not overlap
+change happens either in between 2 tokens or inside 1 token
+
+struct Token
+{
+	TokenType type;
+	TextIter start;
+	TextIter end;
+};
+
+switch (ch)
+	case '"':
+		token = token_parse_string(...)
+		if (token_matches_tag(token)) {
+			// we are done
+		} else {
+			// continue parsing next token
+		}
+	...
+
+// checks if there already is a tag in the text-buffer, if so, we dont need to update
+token_matches_tag(token)
+{
+	if (token.type == TOKEN_STRING) {
+		if (is_start_string_tag_at(text_buffer, token.start) && is_end_string_tag_at(text_buffer, token.end))
+	}
+	if (token.type == TOKEN_COMMENT) {
+		...
+	}
+}
+
+is_start_string_tag_at(text_buffer, iter)
+{
+	// checks if there is a string tag starting at iter in the text-buffer
+}
+
+...
