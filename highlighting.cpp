@@ -199,7 +199,7 @@ static void on_insert_text_after(GtkTextBuffer *text_buffer, GtkTextIter *locati
 }
 
 static void on_delete_range_after(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end, gpointer tab){
-	printf("on_delete_range_after()\n");
+	LOG_MSG("on_delete_range_after()\n");
 
 //	printf("start: %c, end: %c\n", gtk_text_iter_get_char(start), gtk_text_iter_get_char(end));
 	assert(gtk_text_iter_compare(start, end) == 0); // should be equal after deletion

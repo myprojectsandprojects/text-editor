@@ -1,4 +1,5 @@
 #include <sys/time.h>
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,18 +12,7 @@
 //#define MIN(a, b) (a) < (b) ? (a) : (b)
 //#define MAX(a, b) (a) > (b) ? (a) : (b)
 
-#define TIME_START\
-	struct timeval start_time;\
-	gettimeofday(&start_time, NULL);
-
-#define TIME_END\
-	struct timeval end_time;\
-	gettimeofday(&end_time, NULL);
-
-// Returnes time elapsed between TIME_START and TIME_END in microseconds. (long int)
-#define TIME_ELAPSED\
-	(1000000 * (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec))
-
+double get_time_secs();
 long get_time_us();
 
 char *read_file(const char *filename);
@@ -107,3 +97,16 @@ void hash_table_init(HashTable *table);
 void hash_table_store(HashTable *table, const char *str);
 bool hash_table_has(HashTable *table, const char *str);
 void hash_table_print(HashTable *table);
+
+struct Link
+{
+	Link *next;
+	const void *data;
+};
+
+struct LinkedList
+{
+	Link *first;
+};
+
+void prepend(LinkedList *list, const void *d);

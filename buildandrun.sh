@@ -12,7 +12,7 @@ g++ -g\
 	strings.cpp\
 	file-browser.cpp\
 	search-in-files.cpp\
-	autocomplete.cpp\
+	autocomplete-identifier.cpp\
 	root-navigation.cpp\
 	open.cpp\
 	autocomplete-character.cpp\

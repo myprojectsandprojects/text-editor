@@ -7,7 +7,7 @@ autocomplete.c
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
-#include <gtk/gtk.h>
+//#include <gtk/gtk.h>
 
 //#include "tab.h"
 #include "declarations.h"
@@ -650,7 +650,7 @@ void autocomplete_init(GtkNotebook *notebook, GtkApplicationWindow* app_window)
 
 	/* the only reason we want page-removed is to delete the window when the last page/tab is closed. 
 	all other page-remove's always trigger switch-page also. */
-	// maybe its possible to keep the suggestions-window when switching from one tab to another?
+	// maybe its possible to keep the suggestions-window when switching from one tab to another? visibility?
 	g_signal_connect_after(G_OBJECT(notebook), "page-removed",
 		G_CALLBACK(autocomplete_on_notebook_page_removed), NULL);
 

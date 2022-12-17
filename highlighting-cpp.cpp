@@ -50,7 +50,7 @@ const char *cpp_keywords[] = {
 	"default",
 	"inline",
 	"static",
-	"void",
+//	"void",
 	"delete",
 //	"int",
 	"static_cast",
@@ -428,7 +428,6 @@ void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *location) {
 		// We are doing the initial highlighting
 		gtk_text_buffer_get_start_iter(text_buffer, &region_start);
 		gtk_text_buffer_get_end_iter(text_buffer, &region_end);
-		
 	} else {
 		// We are updating already existing highlighting
 		region_start = *location;

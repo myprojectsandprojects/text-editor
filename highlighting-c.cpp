@@ -71,7 +71,6 @@ void c_highlight(GtkTextBuffer *text_buffer, GtkTextIter *a, GtkTextIter *b)
 			break;
 		}
 	}
-	TIME_START
 
 	char *text = gtk_text_buffer_get_text(text_buffer, start, end, FALSE);
 	printf("\"%s\"\n", text);
@@ -353,7 +352,4 @@ void c_highlight(GtkTextBuffer *text_buffer, GtkTextIter *a, GtkTextIter *b)
 			gtk_text_iter_backward_char(&iter);
 		}
 	}
-
-	TIME_END
-	printf("it took %ld milliseconds\n", TIME_ELAPSED);
 }

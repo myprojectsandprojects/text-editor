@@ -22,6 +22,7 @@ enum WidgetName{
 	STATUS_MESSAGE_LABEL,
 	FILEPATH_LABEL,
 	AUTOCOMPLETE_WORDS,
+	AUTOCOMPLETE_STATE,
 //	CURRENT_TEXT_HIGHLIGHTING,
 //	HIGHLIGHTING_MENU_BUTTON,
 	HIGHLIGHTING_MENU_BUTTON_LABEL,
@@ -265,24 +266,36 @@ void test_trim_whitespace(void);
 
 /* autocomplete.cpp */
 
-#define MAX_STRS 1000
-struct SortedStrs {
-	const char *strs[MAX_STRS];
-	unsigned int counts[MAX_STRS];
-	unsigned int i;
-};
-struct SortedStrs *sorted_strs_new(void);
-void sorted_strs_free(struct SortedStrs* strs);
-void sorted_strs_print(struct SortedStrs *strs);
-bool sorted_strs_add(struct SortedStrs *strs, const char *str);
-struct SortedStrs *sorted_strs_get_starts_with(struct SortedStrs *strs, const char *starts_with);
+//#define MAX_STRS 1000
+//struct SortedStrs {
+//	const char *strs[MAX_STRS];
+//	unsigned int counts[MAX_STRS];
+//	unsigned int i;
+//};
+//struct SortedStrs *sorted_strs_new(void);
+//void sorted_strs_free(struct SortedStrs* strs);
+//void sorted_strs_print(struct SortedStrs *strs);
+//bool sorted_strs_add(struct SortedStrs *strs, const char *str);
+//struct SortedStrs *sorted_strs_get_starts_with(struct SortedStrs *strs, const char *starts_with);
+//
+//void autocomplete_init(GtkNotebook *notebook, GtkApplicationWindow* app_window);
+//struct SortedStrs *autocomplete_create_and_store_words(GtkTextBuffer *text_buffer);
+//gboolean autocomplete_upkey(GdkEventKey *key_event);
+//gboolean autocomplete_downkey(GdkEventKey *key_event);
+//gboolean do_autocomplete(GdkEventKey *key_event);
+//gboolean autocomplete_close_popup(GdkEventKey *key_event);
 
-void autocomplete_init(GtkNotebook *notebook, GtkApplicationWindow* app_window);
-struct SortedStrs *autocomplete_create_and_store_words(GtkTextBuffer *text_buffer);
-gboolean autocomplete_upkey(GdkEventKey *key_event);
-gboolean autocomplete_downkey(GdkEventKey *key_event);
-gboolean do_autocomplete(GdkEventKey *key_event);
-gboolean autocomplete_close_popup(GdkEventKey *key_event);
+/*
+autocomplete-identifier.cpp
+*/
+#include "autocomplete-identifier.h"
+void autocomplete_identifier_init(GtkWidget *tab, GtkTextBuffer *text_buffer);
+AutocompleteState *autocomplete_state_new(Array<Identifier *> *identifiers);
+void autocomplete_state_free(AutocompleteState *state, GtkTextBuffer *text_buffer);
+Array<Identifier *> *autocomplete_get_identifiers(const char *text);
+void autocomplete_print_identifiers(Array<Identifier *> *identifiers);
+gboolean autocomplete_emacs_style(GdkEventKey *key_event);
+gboolean autocomplete_clear(GdkEventKey *key_event);
 
 /* root-navigation.cpp */
 GtkWidget *create_root_nav_widget(void);

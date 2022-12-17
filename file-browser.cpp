@@ -309,7 +309,7 @@ static void *monitor_fs_changes(void *arg)
 		
 		for (p = event_buffer; p < event_buffer + n_bytes;) {
 			struct inotify_event *event = (struct inotify_event *) p;
-			print_event(event);
+//			print_event(event);
 			p += sizeof(struct inotify_event) + event->len;
 		}
 	}

@@ -75,7 +75,7 @@ static void *monitor_changes_and_call(void *args) {
 		
 		for (p = event_buffer; p < event_buffer + num_bytes;) {
 			inotify_event *event = (inotify_event *) p;
-			print_event(event);
+//			print_event(event);
 
 			if (event->mask & IN_IGNORED) {
 				ERROR("monitor_changes_and_call(): cant continue monitoring file \"%s\" -- we lost our watch! Parent directory (\"%s\") got deleted?", file_path, parent_path);

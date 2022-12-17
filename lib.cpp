@@ -1,5 +1,14 @@
 #include "lib.h"
 
+// nanosecond accuracy
+double get_time_secs()
+{
+	struct timespec t;
+	clock_gettime(CLOCK_REALTIME, &t);
+//	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &t);
+	return (t.tv_sec + (t.tv_nsec / 1000000000.0));
+}
+
 long get_time_us()
 {
 	timeval time;
@@ -277,3 +286,69 @@ void hash_table_print(HashTable *table)
 		}
 	}
 }
+
+void prepend(LinkedList *list, const void *d)
+{
+	Link *n = (Link *) malloc(sizeof(Link));
+	n->next = list->first;
+	n->data = d;
+	list->first = n;
+}
+
+//Link *prepend(Link *l, const void *d)
+//{
+//	Link *n = (Link *) malloc(sizeof(Link));
+//	n->next = l;
+//	n->data = d;
+//	return n;
+//}
+//
+//Link *append(Link *l, const void *d)
+//{
+//	Link *n = (Link *) malloc(sizeof(Link));
+//	n->next = 0;
+//	n->data = d;
+//
+//	for (Link *p = l; p; p = p->next)
+//	{
+//		if (!p->next)
+//		{
+//			p->next = n;
+//			break;
+//		}
+//	}
+//
+//	if (!l)
+//	{
+//		return n;
+//	}
+//	else
+//	{
+//		return l;
+//	}
+//}
+//
+//Link *remove(Link *l, const void *d)
+//{
+//	Link *first = l;
+//	Link *previous = 0;
+//	for (Link *p = l; p; p = p->next)
+//	{
+//		if (p->data == d)
+//		{
+//			if (p == first)
+//			{
+//				first = p->next;
+//				free(p);
+//			}
+//			else
+//			{
+//				previous->next = p->next;
+//				free(p);
+//			}
+//			break;
+//		}
+//		previous = p;
+//	}
+//	return first;
+//}

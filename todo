@@ -197,6 +197,7 @@ Could also highlight the enclosed scope inside?
 * is there a bug in search-replace when I search for something then go to the beginning of the file and search again? Because it should search from the beginning of the file but it isnt
 
 * get rid of the scroll animation
+* highlight color values using the color they represent (#123456) (?)
 * we should be aware of the changes made to the underlying file on disk. think about it for a bit
 * scope-highlighting commented out curly brackets, is there a bug?
 
@@ -204,3 +205,29 @@ THESE WOULD BE NICE, BUT THEY ARE HARD TO IMPLEMENT GIVEN THAT WE DONT HAVE A CO
 - easy way to go to function definition
 - easy way to go/see where/how a function is called (?)
 say, someone retrieves a function pointer and calls it
+
+---
+To get "on track" in terms of it being an editor anyone, other than myself ofcourse, might want to use for any purpose:
+---
+- GTK themes. How are we going to support all these different GTK-versions? Is it possible to drop GTK entirely?
+- different modes for different languages (not just highlighting but features and everything should be language specific)
+- memory usage -- why does it go so high?
+- code cleanup (tab_get_widget(), TabInfo, all kinds of hacks we have all over the place, ...)
+- autocomplete
+- easy (gui) way to switch between themes. copy-pasting files around in confusing.
+Is there any point to do any of these before we have a concept of a project?
+
+- it should be possible to create a project, add files to it, remove files from it. project is just a collection of files. when user opens a project, we can parse all these files and build some kind of "understanding of the code". i havent really thought about this deeply but everything should become easier (opening files, jumping to function definitions). keeping this "internal understanding" uptodate seems challenging though.
+- easy way to change names (functions, types) throughout the whole project
+
+---
+The goal is to make a text-editor/IDE which works on Linux, Windows, MacOS?, ...?
+Building should be trivial (no dependecies other than the compiler, well I quess we do need a linker and an OS).
+It should have a very simple and intuitive user interface. Very small number of features, but very useful features.
+It should work well on lower and higher end hardware platforms.
+It should be fast and snappy. Performance is critical -- it should never, even if you are on a goddamn Intel 4004, feel slow.
+Very small memory footprint. Again so that we support total piece of shit or antique hardware.
+Typing every character should be enjoyable.
+It should be easy to extend it to support multiple languages. Language support might come with language specific highlighting, features
+Installation shouldnt be neccessary at all. You might want OS'es to be aware of it like using it as a default editor to open certain files or whatever, but this should all happen only if the user wants this.
+No insisting on storing files on harddisk other than project files

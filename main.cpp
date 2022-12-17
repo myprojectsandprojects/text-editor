@@ -1345,8 +1345,10 @@ GtkWidget *create_tab(const char *file_name)
 	}
 
 	highlighting_init(tab, settings); //@ get rid of this
-
 	set_highlighting_based_on_file_extension(tab, settings, file_name);
+
+	// autocomplete-identifier
+	autocomplete_identifier_init(tab, text_buffer);
 
 	/* We want autocomplete-character's handler for "insert-text"-signal to be the first handler called.  
 	(code-highlighting and undo also register callbacks for this signal.) */
@@ -1636,16 +1638,25 @@ gboolean create_empty_tab(GdkEventKey *key_event)
 
 gboolean close_tab(GdkEventKey *key_event)
 {
-	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
-	if (page == -1) {
-		// no tabs open
+//	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
+//	if (page == -1) {
+//		// no tabs open
+//		return FALSE;
+//	}
+//	GtkWidget *tab = gtk_notebook_get_nth_page(GTK_NOTEBOOK(notebook), page);
+	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
+	if (!tab) {
 		return FALSE;
 	}
-	GtkWidget *tab = gtk_notebook_get_nth_page(GTK_NOTEBOOK(notebook), page);
 
 	// need to do this before freeing the tab-info because tab_retrieve_widget() needs tab-info
-	struct SortedStrs *autocomplete_words = (struct SortedStrs *) tab_retrieve_widget(tab, AUTOCOMPLETE_WORDS);
-	sorted_strs_free(autocomplete_words);
+//	struct SortedStrs *autocomplete_words = (struct SortedStrs *) tab_retrieve_widget(tab, AUTOCOMPLETE_WORDS);
+//	sorted_strs_free(autocomplete_words);
+
+	// autocomplete-identifier
+	AutocompleteState *state = (AutocompleteState *) tab_retrieve_widget(tab, AUTOCOMPLETE_STATE);
+	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
+	autocomplete_state_free(state, text_buffer);
 
 	// test
 	/*
@@ -1835,10 +1846,24 @@ gboolean do_save(GdkEventKey *key_event)
 	tab_set_unsaved_changes_to(tab, FALSE);
 
 	/* autocomplete: we'll update the list of words during each save-op to be more up-to-date */
-	struct SortedStrs *words = autocomplete_create_and_store_words(text_buffer);
-	struct SortedStrs *old_words = (struct SortedStrs *) tab_retrieve_widget(tab, AUTOCOMPLETE_WORDS);
-	sorted_strs_free(old_words);
-	tab_add_widget_4_retrieval(tab, AUTOCOMPLETE_WORDS, (void *) words);
+//	struct SortedStrs *words = autocomplete_create_and_store_words(text_buffer);
+//	struct SortedStrs *old_words = (struct SortedStrs *) tab_retrieve_widget(tab, AUTOCOMPLETE_WORDS);
+//	sorted_strs_free(old_words);
+//	tab_add_widget_4_retrieval(tab, AUTOCOMPLETE_WORDS, (void *) words);
+
+	// autocomplete-identifier
+	AutocompleteState *old_state = (AutocompleteState *) tab_retrieve_widget(tab, AUTOCOMPLETE_STATE);
+	autocomplete_state_free(old_state, text_buffer);
+
+	tab_add_widget_4_retrieval(tab, AUTOCOMPLETE_STATE,
+		autocomplete_state_new(
+				autocomplete_get_identifiers(
+					contents)));
+
+	AutocompleteState *new_state = (AutocompleteState *) tab_retrieve_widget(tab, AUTOCOMPLETE_STATE);
+//	autocomplete_print_identifiers(new_state->identifiers);
+
+	free(contents);
 
 	return TRUE;
 }
@@ -2184,11 +2209,15 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(SHIFT, 36, do_search);// <enter> + shift
 	add_keycombination_handler(0, 36, handle_enter);// <enter>
 
-	add_keycombination_handler(0, 9, autocomplete_close_popup); // escape
-	add_keycombination_handler(0, 111, autocomplete_upkey); // up
-	add_keycombination_handler(0, 116, autocomplete_downkey); // down
-	add_keycombination_handler(0, 36, do_autocomplete); // enter
-	add_keycombination_handler(0, 23, do_autocomplete); // tab
+//	add_keycombination_handler(0, 9, autocomplete_close_popup); // escape
+//	add_keycombination_handler(0, 111, autocomplete_upkey); // up
+//	add_keycombination_handler(0, 116, autocomplete_downkey); // down
+//	add_keycombination_handler(0, 36, do_autocomplete); // enter
+//	add_keycombination_handler(0, 23, do_autocomplete); // tab
+
+	// autocomplete-identifier
+	add_keycombination_handler(0, 67, autocomplete_emacs_style); // F1
+	add_keycombination_handler(0, 68, autocomplete_clear); // F2
 
 	// We'll overwrite the default handlers, because we want to do better
 	// Actually the default worked in the following way (if I remember correctly):
@@ -2221,7 +2250,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(CTRL | SHIFT, 61, move_cursor_end_word_shift); // ctrl + shift + -
 	add_keycombination_handler(CTRL, 33, move_cursor_opening); // ctrl + p
 	add_keycombination_handler(CTRL, 34, move_cursor_closing); // ctrl + ü
-	add_keycombination_handler(CTRL, 31, select_inside); // ctrl + ü
+	add_keycombination_handler(CTRL, 31, select_inside); // ctrl + i
 
 //	add_keycombination_handler(CTRL, 35, jump_to_next_occurrence); // ctrl + õ (35)
 	add_keycombination_handler(0, 86, jump_to_previous_occurrence); // numpad +
@@ -2345,7 +2374,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 		G_CALLBACK(autocomplete_on_appwindow_button_pressed), NULL);
 */
 
-	autocomplete_init(GTK_NOTEBOOK(notebook), GTK_APPLICATION_WINDOW(app_window));
+//	autocomplete_init(GTK_NOTEBOOK(notebook), GTK_APPLICATION_WINDOW(app_window));
 
 	GtkWidget *paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
 	gtk_paned_add1(GTK_PANED(paned), sidebar_container);
@@ -2405,21 +2434,17 @@ int main(int argc, char *argv[])
 	chdir(parent_path);
 	LOG_MSG("Changed CWD to \"%s\"\n", parent_path);
 
-	int status;
-	GtkApplication *app;
-
 	gtk_version_major = gtk_get_major_version();
 	gtk_version_minor = gtk_get_minor_version();
 	gtk_version_micro = gtk_get_micro_version();
 	printf("GTK version: %u.%u.%u\n", gtk_version_major, gtk_version_minor, gtk_version_micro);
 
-	app = gtk_application_new(NULL, G_APPLICATION_FLAGS_NONE);
-	g_signal_connect(app,
-		"activate", G_CALLBACK(activate_handler), NULL);
+	GtkApplication *app = gtk_application_new(NULL, G_APPLICATION_FLAGS_NONE);
+	g_signal_connect(app, "activate", G_CALLBACK(activate_handler), NULL);
 
-	status = g_application_run(G_APPLICATION(app), 0, NULL);
+	int status = g_application_run(G_APPLICATION(app), 0, NULL);
 
-	g_object_unref(app);
+//	g_object_unref(app);
 
 	return status;
 }
