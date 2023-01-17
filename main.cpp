@@ -1204,7 +1204,7 @@ GtkWidget *create_tab(const char *file_name)
 {
 	static int count = 1;
 	GtkWidget *tab, *scrolled_window;
-	char *tab_title, *tab_name;
+	char *tab_title;
 	gchar *contents, *base_name;
 	//GFile *file;
 

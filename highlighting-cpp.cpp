@@ -410,6 +410,17 @@ void get_next_token(Token *token, GtkTextBuffer *text_buffer, GtkTextIter *iter)
 
 	What we do is we "look back" from the location of the change for a semicolon that is not part of a comment, a string or a character-literal to determine where to start parsing the text. We also "look forward" to determine the location from where we could start to consider stopping. Between these two locations is a region we will parse no matter what. The actual region being parsed will depend on the circumstances. Once we have moved past the end of that region and the tokens we are generating begin to match up with pairs of text-tags in the text-buffer, we move on until we find a semicolon and then we stop.
 */
+
+/*
+This function is called when either one of the following conditions occurs: 1) contents of the text buffer need to be highlighted for the first time or 2) the contents of the text buffer were modified, so the highlighting needs to be updated. If the contents of the text buffer were modified, then we expect "location" argument to tell us the location of the change. Otherwise we expect "location" argument to be NULL.
+
+We cant parse through the whole text buffer every time contents of the text buffer are modified, because the editor would become untolerably slow if the file was large enough. So we need to pick a smaller region around the location of the change.
+
+Whether an identifier was meant to identify a variable or a type or a function is not possible to determine by "looking at" the identifier alone -- tokens before and after the identifier need to be taken into consideration. So to not "miss out" any tokens important to us, we never begin or end a region we choose to update in the middle of the statement. (Statements in C and C++ end with a ';', so the region we update will always begin and end with ';')
+
+The region we will always parse will begin at the first ';' moving backwards from the location of the change (the ';' must also be legit, which means, for example, in case text was inserted, that it didnt come along with the inserted text etc.) and end at the location where the change took place. How far past the end of the before mentioned region we actually end up parsing depends on the circumstances. Once the tokens we find by parsing begin to match-up with whats already in the text buffer we parse until the first ';' and then stop.
+*/
+
 void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *location) {
 	LOG_MSG("cpp_highlight()\n");
 
