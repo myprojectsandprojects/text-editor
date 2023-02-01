@@ -2203,6 +2203,12 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(0, 91, set_mark); // numpad delete
 	add_keycombination_handler(0, 90, go_to_mark); // numpad 0
 
+	// autocomplete-identifier
+//	add_keycombination_handler(0, 67, autocomplete_emacs_style); // F1
+//	add_keycombination_handler(0, 68, autocomplete_clear); // F2
+	add_keycombination_handler(SHIFT, 23, autocomplete_clear); // shift + tab
+	add_keycombination_handler(0, 23, autocomplete_emacs_style); // tab
+
 	add_keycombination_handler(0, 23, handle_tab); // <tab>
 	add_keycombination_handler(SHIFT, 23, handle_tab); // <tab> + shift
 	add_keycombination_handler(0, 36, do_search);// <enter>
@@ -2214,10 +2220,6 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 //	add_keycombination_handler(0, 116, autocomplete_downkey); // down
 //	add_keycombination_handler(0, 36, do_autocomplete); // enter
 //	add_keycombination_handler(0, 23, do_autocomplete); // tab
-
-	// autocomplete-identifier
-	add_keycombination_handler(0, 67, autocomplete_emacs_style); // F1
-	add_keycombination_handler(0, 68, autocomplete_clear); // F2
 
 	// We'll overwrite the default handlers, because we want to do better
 	// Actually the default worked in the following way (if I remember correctly):

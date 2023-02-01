@@ -338,6 +338,13 @@ gboolean autocomplete_clear(GdkEventKey *key_event)
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
 	assert(text_buffer);
 
+	{
+		GtkTextIter start, end;
+		if(gtk_text_buffer_get_selection_bounds(text_buffer, &start, &end)){
+			return FALSE;
+		}
+	}
+
 	AutocompleteState *state = (AutocompleteState *) tab_retrieve_widget(tab, AUTOCOMPLETE_STATE);
 
 	if (state->last_completion)
@@ -414,10 +421,18 @@ gboolean autocomplete_emacs_style(GdkEventKey *key_event)
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
 	if (!tab)
 	{
+		printf("NO TABS\n");
 		return FALSE;
 	}
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
 	assert(text_buffer);
+
+	{
+		GtkTextIter start, end;
+		if(gtk_text_buffer_get_selection_bounds(text_buffer, &start, &end)){
+			return FALSE;
+		}
+	}
 
 	AutocompleteState *state = (AutocompleteState *) tab_retrieve_widget(tab, AUTOCOMPLETE_STATE);
 //	autocomplete_print_identifiers(state->identifiers);
@@ -426,6 +441,7 @@ gboolean autocomplete_emacs_style(GdkEventKey *key_event)
 	GtkTextMark *cursor_pos_mark = gtk_text_buffer_get_insert(text_buffer); // special mark, cant be deleted
 
 	//@ using cursor position is not actually correct, but it should work most of the time
+	// it does crop up sometimes, could store the autocompleted identifier alongside cursor position maybe?
 	bool keep_last_completion = false;
 	{
 		gtk_text_buffer_get_iter_at_mark(text_buffer, &cursor_pos, cursor_pos_mark);
@@ -455,25 +471,29 @@ gboolean autocomplete_emacs_style(GdkEventKey *key_event)
 		state->last_completion = 0;
 	}
 
-
 	//@ UTF8
 	gtk_text_buffer_get_iter_at_mark(text_buffer, &cursor_pos, cursor_pos_mark);
 	GtkTextIter iter = cursor_pos;
 	GtkTextIter start, end;
 	end = iter;
+	bool exclude_char = false;
 	while (gtk_text_iter_backward_char(&iter))
 	{
 		gunichar c = gtk_text_iter_get_char(&iter);
-		if (!isalnum(c) && c != '_') break;
+		if (!isalnum(c) && c != '_'){
+			exclude_char = true;
+			break;
+		}
 	}
-	if (!gtk_text_iter_is_start(&iter))
+	if(exclude_char){
 		gtk_text_iter_forward_char(&iter);
+	}
 	start = iter;
 
 	if (gtk_text_iter_compare(&start, &end) >= 0) // start - end >= 0 means that 'start' is greater or equal to 'end'
 	{
 		printf("nothing to autocomplete\n");
-		return TRUE;
+		return FALSE;
 	}
 
 	char *text_to_autocomplete = gtk_text_buffer_get_text(text_buffer, &start, &end, FALSE);
