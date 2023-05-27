@@ -97,16 +97,3 @@ void hash_table_init(HashTable *table);
 void hash_table_store(HashTable *table, const char *str);
 bool hash_table_has(HashTable *table, const char *str);
 void hash_table_print(HashTable *table);
-
-struct Link
-{
-	Link *next;
-	const void *data;
-};
-
-struct LinkedList
-{
-	Link *first;
-};
-
-void prepend(LinkedList *list, const void *d);
