@@ -1,3 +1,9 @@
+
+When saving a file, instead of immediately overwriting a file, some editors write a temporary file first, then delete the original and rename the temporary. (?)
+Why do they do this?
+Is it more recovery-friendly?
+When saving a new file I accidentally overwrote an existing file and I cant find any way to get it back. First of all, it should have warned that it's going to overwrite existing data. But secondly maybe there is a better way to save files.
+
 bug: if we cant open a file, we shouldnt end up with a gtk error...
 
 bug: unindenting a block of code is buggy
