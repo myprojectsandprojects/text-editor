@@ -13,34 +13,15 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
-	font: Droid Sans Mono Regular 11;
-	font: Droid Sans Mono Regular 13;
-	font: Consolas Bold 13;
-	font: Consolas Regular 13;
-	font: Consolas Regular 14;
-	font: Consolas Bold 14;
-	font: DroidSansMonoW01-Bold Regular 11;
-	font: DroidSansMono Regular 13;
-	font: DroidSansMono Regular 11;
 	font: Dejavu Sans Mono Regular 11;
-	font: Dejavu Sans Mono Bold 10.5;
-	font: Dejavu Sans Mono Book Regular 10.5;
-	font: BPMono Regular 11;
-/*	font: BPMono Bold 13;*/
-	font: Courier 10 Pitch Regular 13;
-	font: Courier 10 Pitch Bold 13;
-	font: Courier 10 Pitch Bold 11;
-	font: Iosevka Regular 11;
-	font: Dejavu Sans Mono Book Regular 11;
-	font: JetBrains Mono NL SemiBold 13;
-	font: Courier 10 Pitch Regular 11;
-	font: Courier New Regular 11;
-	font: Courier New Bold 11;
-	font: Liberation Mono Regular 13;
-	font: Dejavu Sans Mono Regular 13;
-	font: Courier New Bold 13;
-	font: BPMono Regular 10;
-	font: BPMono Regular 13;
+	font: BlexMono Nerd Font Mono Medium 11;
+	font: CodeNewRoman Bold 13;
+	font: Sudo Bold Italic 14;
+	font: Sudo Bold 14;
+	font: Ubuntu Mono Bold 13;
+	font: Iosevka Fixed SS18 Bold 12;
+	font: BlexMono Nerd Font Mono Regular 12;
+	font: BlexMono Nerd Font Mono Regular 11;
 	font: BPMono Regular 11;
 }
 
@@ -50,10 +31,10 @@ and just stick to classes.
 .search-in-files-pattern-entry
 {
 	/*border: solid 1px black;*/
-	border: solid 1px rgb(200, 200, 200);
+	border: solid 1px #053930;
 	border-radius: 0;
-	background: white;
-	color: black;
+	background: #053930;
+	color: #57b8a7;
 	padding: 7px;
 }
 
@@ -62,11 +43,9 @@ and just stick to classes.
 .search-in-files-pattern-entry:focus
 {
 	/*border: solid 1px black;*/
-	border: solid 1px IndianRed;
-	border: solid 1px orange;
+	border: solid 1px #57b8a7;
 	border-radius: 0;
-	background: white;
-	color: black;
+	background: #053930;
 	padding: 7px;
 }
 
@@ -86,11 +65,12 @@ and just stick to classes.
 .search-in-files-pattern-entry:selected,
 .openfile-entry:selected
 {
-	color: white;
+	color: Black;
+	background: Yellow;
 	/*
-	background: IndianRed;
+	color: white;
+	background: #25c181;
 	*/
-	background: red;
 }
 
 
@@ -116,18 +96,17 @@ and just stick to classes.
 	background: rgb(254, 218, 73);
 }
 
-/*
 .code-highlighting-menu-button
 {
-	background: rgb(41, 87, 116);
+	background: #0070b5;
+	color: black;
 	color: white;
 }
 
 .code-highlighting-menu-button:hover
 {
-	background: rgb(51, 97, 126);
+	background: #00c8b5;
 }
-*/
 
 .app-window
 {
@@ -138,20 +117,21 @@ and just stick to classes.
 
 .main-notebook
 {
-	background: white;
-	/*color: black;*/
-	/*border: solid 1px black;*/
-	border: solid 1px rgb(200, 200, 200);
+	color: #98d0f3;
+	background: #001521;
+	border: solid 0px #002f4c;
 }
 
 .main-notebook tab
 {
 	padding: 10px 16px;
+	background: #001521;
 }
 
 .main-notebook tab:active
 {
-	border-top: solid red 1px;
+	/*border-top: solid red 1px;*/
+	background: #002237;
 }
 
 .search-entry
@@ -160,14 +140,23 @@ and just stick to classes.
 
 .text-view
 {
-	background: white;
-	color: #000000;
+	/*
+	background: #002f4c;
+	*/
+	background: #002237; /* blue */
+	color: #98d0f3; /* blue */
 }
 
-.status-bar {
-	border-top: solid 1px rgb(200, 200, 200);
-	background: white;
-	color: black;
+.status-bar
+{
+	/*
+	border-top: dotted 3px #004a77;
+	background: #002237;
+	*/
+	background: #004a77;
+	color: #98d0f3;
+
+	font: Roboto Bold 10;
 	/*	padding: 10px 10px 10px 10px;*/ /* no effect */
 }
 

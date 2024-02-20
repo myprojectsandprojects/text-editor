@@ -13,27 +13,19 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
-	font: Courier 10 Pitch Bold 11;
-	font: Jet Brains Mono NL ExtraBold 12;
-	font: Jet Brains Mono NL SemiBold 12;
-	font: Jet Brains Mono NL SemiBold 11;
-	font: Jet Brains Mono NL ExtraBold 11;
-	font: BPMono Bold 13;
-	font: Fura Mono Nerd Font Bold 10.5;
-	font: Fura Mono Nerd Font Medium 12;
-	font: CodeNewRoman Bold 12;
-	font: CodeNewRoman Bold 13;
-	font: Fura Mono Nerd Font Bold 11;
-	font: Fura Mono Nerd Font Bold 11.5;
-	font: Dejavu Sans Mono Bold 11;
-	font: DroidSansMono Regular 13;
+	font: DroidSansMono Regular 12;
+	font: Input Mono Regular 10.5;
+	font: Input Mono Regular 12;
+	font: DroidSansMonoW01-Bold Regular 12;
 	font: DroidSansMonoW01-Bold Regular 13;
-	font: Dejavu Sans Mono Regular 13;
-	font: Sudo Medium 14;
-	font: Sudo Bold 15;
-	font: Sudo Bold 14;
-	font: Sudo Bold Italic 14;
+	font: DroidSansMono Regular 13;
+	font: Courier 10 Pitch Bold 13;
+	font: DejaVu Sans Mono Regular 11;
+	font: DroidSansMono Regular 11;
+	font: Courier New Bold 13;
 	font: DroidSansMonoW01-Bold Regular 11;
+	font: BPMono Regular 11;
+	font: BPMono Bold 11;
 }
 
 /* Rules for all text-entries: */

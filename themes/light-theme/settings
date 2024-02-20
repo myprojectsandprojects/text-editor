@@ -12,8 +12,12 @@ new stuff easily configurable in here. */
 wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
 left-margin {10}
 search-case-sensitivity {true}
+pixels-above-lines {1}
+pixels-below-lines {1}
+/*
 pixels-above-lines {2}
 pixels-below-lines {2}
+*/
 
 search-replace {}
 
@@ -24,10 +28,12 @@ autocomplete-character
 
 languages
 {
+	/*
 	C
 	{
 		file-extensions { c {} h {} }
 	}
+	*/
 	C++
 	{
 		file-extensions { cpp{} hpp{} c {} h {} }
@@ -39,22 +45,6 @@ languages
 	/*doesnotexist{}*/
 }
 
-/*
-	#c1af9c -- gray/beige
-	#869491 -- gray/blue
-	#809d77 -- colder green
-	#abb26d -- warmer green
-	#2787b2 -- light blue
-	#1c529d -- dark blue
-	#d5b669 -- yellow
-	#da823e -- orange
-	#de4f44 -- red
-	#ac7987 -- purple
-
-	#bfa886 -- gray beige
-	#cfaf86 -- bright beige
-*/
-
 /* Tags that can be used by any language highlighting: */
 text-tags
 {
@@ -65,6 +55,7 @@ text-tags
 	identifier
 	{
 		foreground{black}
+		/*weight{bold}*/
 	}
 	keyword
 	{
@@ -76,7 +67,8 @@ text-tags
 	}
 	function
 	{
-		foreground{black}
+		foreground{brown}
+		/*weight{bold}*/
 	}
 	string
 	{
@@ -84,11 +76,11 @@ text-tags
 	}
 	number
 	{
-		foreground{purple}
+		foreground{blue}
 	}
 	operator
 	{
-		foreground{brown}
+		foreground{black}
 	}
 	preprocessor
 	{

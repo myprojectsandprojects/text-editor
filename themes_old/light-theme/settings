@@ -24,16 +24,14 @@ autocomplete-character
 
 languages
 {
-	C++
-	{
-		file-extensions { cpp{} hpp{} c {} h {} }
-	}
-/*
 	C
 	{
 		file-extensions { c {} h {} }
 	}
-*/
+	C++
+	{
+		file-extensions { cpp{} hpp{} c {} h {} }
+	}
 	Rust
 	{
 		file-extensions { rs {} }
@@ -42,17 +40,15 @@ languages
 }
 
 /*
-	#c8ac86 -- beige
-	#c1af9c -- gray
+	#c1af9c -- gray/beige
 	#869491 -- gray/blue
 	#809d77 -- colder green
 	#abb26d -- warmer green
-	#6c9bb1 -- light blue
+	#2787b2 -- light blue
 	#1c529d -- dark blue
 	#d5b669 -- yellow
 	#da823e -- orange
 	#de4f44 -- red
-	#dc7a57 -- grayer red
 	#ac7987 -- purple
 
 	#bfa886 -- gray beige
@@ -64,69 +60,61 @@ text-tags
 {
 	comment
 	{
-		foreground{#869491/* -- gray/blue*/}
+		foreground{green}
 	}
 	identifier
 	{
-		foreground{#c8ac86/* -- beige*/}
-		/*foreground{#b89c76 -- darker beige}*/
-		/*foreground{#c0a786 -- darker grayer beige}*/
+		foreground{black}
 	}
 	keyword
 	{
-		foreground{#d5b669/* -- yellow*/}
-		/*weight{bold}*/
+		foreground{blue}
 	}
 	type
 	{
-		foreground{#da823e/* -- orange*/}
+		foreground{black}
 	}
 	function
 	{
-		foreground{#dc7a57/* -- grayer red*/}
+		foreground{black}
 	}
 	string
 	{
-		foreground{#c1af9c/* -- gray*/}
+		foreground{gray}
 	}
 	number
 	{
-		foreground{#809d77/* -- colder green*/}
+		foreground{purple}
 	}
 	operator
 	{
-		foreground{#c8ac86/* -- beige*/}
-		/*foreground{#dc7a57 -- grayer red}*/
-		/*foreground{#da823e -- orange}*/
+		foreground{brown}
 	}
 	preprocessor
 	{
-		foreground{#6c9bb1/* -- light blue*/}
+		foreground{orange}
 	}
 	unknown
 	{
-		foreground{#de4f44/* -- red*/}
+		foreground{red}
 	}
 	char
 	{
-		foreground{#c1af9c/* -- gray*/}
+		foreground{gray}
 	}
 }
 
-line-highlighting
-{
-	/*color {#1a1a1a}*/
-	color {#000000}
-	
+line-highlighting {
+	color {#f0f0f0}
 }
 
 matching-char-highlighting
 {
 	/*color {#de4f44}*/
-	color {#6a1a1a}
+	color {#00ffff}
 }
 
 scope-highlighting
 {
-	color {#000000}
+	color {#f0f0f0}
 }

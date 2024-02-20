@@ -314,7 +314,7 @@ void *run_command_2(void* command)
 	}
 
 	size = 10000000;
-	output = (char *) malloc(size+1); //@ dynamic buffer
+	output = (char *) malloc(size+1); //@ dynamic buffer  //@ buffer overrun
 
 	long int i;
 	for (i = 0; ((output[i] = fgetc(fd)) != EOF); ++i) {
@@ -477,7 +477,7 @@ void search_handler(GtkButton *button, gpointer data)
 	*/
 
 //	char command[1000];
-	char *command = (char *) malloc(1000);
+	char *command = (char *) malloc(1000); //@ possible buffer overrun?
 	command[0] = 0;
 
 	sprintf(command,

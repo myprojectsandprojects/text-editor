@@ -12,8 +12,8 @@ new stuff easily configurable in here. */
 wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
 left-margin {10}
 search-case-sensitivity {true}
-pixels-above-lines {2}
-pixels-below-lines {2}
+pixels-above-lines {1}
+pixels-below-lines {1}
 
 search-replace {}
 
@@ -28,12 +28,10 @@ languages
 	{
 		file-extensions { cpp{} hpp{} c {} h {} }
 	}
-/*
 	C
 	{
 		file-extensions { c {} h {} }
 	}
-*/
 	Rust
 	{
 		file-extensions { rs {} }
@@ -42,17 +40,15 @@ languages
 }
 
 /*
-	#c8ac86 -- beige
-	#c1af9c -- gray
+	#c1af9c -- gray/beige
 	#869491 -- gray/blue
 	#809d77 -- colder green
 	#abb26d -- warmer green
-	#6c9bb1 -- light blue
+	#2787b2 -- light blue
 	#1c529d -- dark blue
 	#d5b669 -- yellow
 	#da823e -- orange
 	#de4f44 -- red
-	#dc7a57 -- grayer red
 	#ac7987 -- purple
 
 	#bfa886 -- gray beige
@@ -64,59 +60,53 @@ text-tags
 {
 	comment
 	{
-		foreground{#869491/* -- gray/blue*/}
+		foreground{#809d77}
 	}
 	identifier
 	{
-		foreground{#c8ac86/* -- beige*/}
-		/*foreground{#b89c76 -- darker beige}*/
-		/*foreground{#c0a786 -- darker grayer beige}*/
+		foreground{#c8ac86}
 	}
 	keyword
 	{
-		foreground{#d5b669/* -- yellow*/}
+		foreground{#de4f44 /*red*//*#da823e*/ /*orange*/}
 		/*weight{bold}*/
 	}
 	type
 	{
-		foreground{#da823e/* -- orange*/}
+		foreground{#ac7987/*purple*/}
 	}
 	function
 	{
-		foreground{#dc7a57/* -- grayer red*/}
+		foreground{#d5b669/*yellow*//*#de4f44*//*red*/}
 	}
 	string
 	{
-		foreground{#c1af9c/* -- gray*/}
+		foreground{#abb26d/*warmer green*/}
 	}
 	number
 	{
-		foreground{#809d77/* -- colder green*/}
+		foreground{#abb26d/*warmer green*/}
 	}
 	operator
 	{
-		foreground{#c8ac86/* -- beige*/}
-		/*foreground{#dc7a57 -- grayer red}*/
-		/*foreground{#da823e -- orange}*/
+		foreground{/*#c8ac86*/#da823e/*orange*/}
 	}
 	preprocessor
 	{
-		foreground{#6c9bb1/* -- light blue*/}
+		foreground{#da823e/*orange*//*#ac7987*/}
 	}
 	unknown
 	{
-		foreground{#de4f44/* -- red*/}
+		foreground{red}
 	}
 	char
 	{
-		foreground{#c1af9c/* -- gray*/}
+		foreground{#abb26d/*warmer green*/}
 	}
 }
 
-line-highlighting
-{
-	/*color {#1a1a1a}*/
-	color {#000000}
+line-highlighting {
+	color {#1a1a1a}
 	
 }
 
@@ -128,5 +118,5 @@ matching-char-highlighting
 
 scope-highlighting
 {
-	color {#000000}
+	color {#1a1a1a}
 }

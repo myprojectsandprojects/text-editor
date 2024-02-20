@@ -413,6 +413,7 @@ char * get_until(const char *s, char c)
 	return slice;
 }
 
+//@ what if 'path' ends with '/'? '/parent-dir/child-dir/'
 char *get_parent_path_noalloc(char *path)
 {
 	char *last_slash = 0;

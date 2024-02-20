@@ -13,35 +13,27 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
-	font: Droid Sans Mono Regular 11;
-	font: Droid Sans Mono Regular 13;
-	font: Consolas Bold 13;
-	font: Consolas Regular 13;
-	font: Consolas Regular 14;
-	font: Consolas Bold 14;
-	font: DroidSansMonoW01-Bold Regular 11;
-	font: DroidSansMono Regular 13;
-	font: DroidSansMono Regular 11;
-	font: Dejavu Sans Mono Regular 11;
-	font: Dejavu Sans Mono Bold 10.5;
-	font: Dejavu Sans Mono Book Regular 10.5;
-	font: BPMono Regular 11;
-/*	font: BPMono Bold 13;*/
-	font: Courier 10 Pitch Regular 13;
-	font: Courier 10 Pitch Bold 13;
 	font: Courier 10 Pitch Bold 11;
-	font: Iosevka Regular 11;
-	font: Dejavu Sans Mono Book Regular 11;
-	font: JetBrains Mono NL SemiBold 13;
-	font: Courier 10 Pitch Regular 11;
-	font: Courier New Regular 11;
-	font: Courier New Bold 11;
-	font: Liberation Mono Regular 13;
+	font: Jet Brains Mono NL ExtraBold 12;
+	font: Jet Brains Mono NL SemiBold 12;
+	font: Jet Brains Mono NL SemiBold 11;
+	font: Jet Brains Mono NL ExtraBold 11;
+	font: BPMono Bold 13;
+	font: Fura Mono Nerd Font Bold 10.5;
+	font: Fura Mono Nerd Font Medium 12;
+	font: CodeNewRoman Bold 12;
+	font: CodeNewRoman Bold 13;
+	font: Fura Mono Nerd Font Bold 11;
+	font: Fura Mono Nerd Font Bold 11.5;
+	font: Dejavu Sans Mono Bold 11;
+	font: DroidSansMono Regular 13;
+	font: DroidSansMonoW01-Bold Regular 13;
 	font: Dejavu Sans Mono Regular 13;
-	font: Courier New Bold 13;
-	font: BPMono Regular 10;
-	font: BPMono Regular 13;
-	font: BPMono Regular 11;
+	font: Sudo Medium 14;
+	font: Sudo Bold 15;
+	font: Sudo Bold 14;
+	font: Sudo Bold Italic 14;
+	font: DroidSansMonoW01-Bold Regular 11;
 }
 
 /* Rules for all text-entries: */
@@ -49,11 +41,10 @@ and just stick to classes.
 .search-in-files-phrase-entry,
 .search-in-files-pattern-entry
 {
-	/*border: solid 1px black;*/
-	border: solid 1px rgb(200, 200, 200);
+	border: solid 1px black;
 	border-radius: 0;
-	background: white;
-	color: black;
+	background: black;
+	color: #ae7a4f;
 	padding: 7px;
 }
 
@@ -61,12 +52,10 @@ and just stick to classes.
 .search-in-files-phrase-entry:focus,
 .search-in-files-pattern-entry:focus
 {
-	/*border: solid 1px black;*/
-	border: solid 1px IndianRed;
-	border: solid 1px orange;
+	border: solid 1px red;
 	border-radius: 0;
-	background: white;
-	color: black;
+	background: black;
+	color: #ae7a4f;
 	padding: 7px;
 }
 
@@ -132,26 +121,31 @@ and just stick to classes.
 .app-window
 {
 	background: white;
-	color: black;
 	font: Roboto 10;
+	font: Ubuntu 10;
 }
 
 .main-notebook
 {
-	background: white;
-	/*color: black;*/
-	/*border: solid 1px black;*/
-	border: solid 1px rgb(200, 200, 200);
+	background: black;
+	/*
+	color: #ae7a4f;
+	*/
+	color: #ae9784;
 }
 
 .main-notebook tab
 {
 	padding: 10px 16px;
+	border: solid 3px red;
+	border: none;
+	background: black;
+	color: white;
 }
 
 .main-notebook tab:active
 {
-	border-top: solid red 1px;
+	background: #2a1d13;
 }
 
 .search-entry
@@ -160,14 +154,16 @@ and just stick to classes.
 
 .text-view
 {
-	background: white;
-	color: #000000;
+	background: #2a1d13;
+	color: #ae7a4f;
 }
 
 .status-bar {
 	border-top: solid 1px rgb(200, 200, 200);
-	background: white;
-	color: black;
+	border: none;
+	background: black;
+	background: #130d09;
+	color: ae9784;
 	/*	padding: 10px 10px 10px 10px;*/ /* no effect */
 }
 

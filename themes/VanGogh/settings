@@ -12,6 +12,10 @@ new stuff easily configurable in here. */
 wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
 left-margin {10}
 search-case-sensitivity {true}
+/*
+pixels-above-lines {2}
+pixels-below-lines {2}
+*/
 pixels-above-lines {2}
 pixels-below-lines {2}
 
@@ -24,16 +28,16 @@ autocomplete-character
 
 languages
 {
-	C++
-	{
-		file-extensions { cpp{} hpp{} c {} h {} }
-	}
-/*
+	/*
 	C
 	{
 		file-extensions { c {} h {} }
 	}
-*/
+	*/
+	C++
+	{
+		file-extensions { cpp{} hpp{} c {} h {} }
+	}
 	Rust
 	{
 		file-extensions { rs {} }
@@ -41,92 +45,117 @@ languages
 	/*doesnotexist{}*/
 }
 
-/*
-	#c8ac86 -- beige
-	#c1af9c -- gray
-	#869491 -- gray/blue
-	#809d77 -- colder green
-	#abb26d -- warmer green
-	#6c9bb1 -- light blue
-	#1c529d -- dark blue
-	#d5b669 -- yellow
-	#da823e -- orange
-	#de4f44 -- red
-	#dc7a57 -- grayer red
-	#ac7987 -- purple
-
-	#bfa886 -- gray beige
-	#cfaf86 -- bright beige
-*/
-
 /* Tags that can be used by any language highlighting: */
 text-tags
 {
 	comment
 	{
-		foreground{#869491/* -- gray/blue*/}
+		/*
+		foreground{#00ff7c}
+		foreground{#76ee4c}
+		foreground{#00d266}
+		foreground{#98d0f3}
+		*/
+		foreground{#8bbede}
 	}
 	identifier
 	{
-		foreground{#c8ac86/* -- beige*/}
-		/*foreground{#b89c76 -- darker beige}*/
-		/*foreground{#c0a786 -- darker grayer beige}*/
+		/*
+		foreground{#eecb4c}
+		*/
+		foreground{#d4b544}
 	}
 	keyword
 	{
-		foreground{#d5b669/* -- yellow*/}
-		/*weight{bold}*/
+		/*
+		foreground{#E52B50}
+		foreground{white}
+		foreground{#e2e2e2}
+		*/
+		foreground{#cbcbcb}
 	}
 	type
 	{
-		foreground{#da823e/* -- orange*/}
+		/*
+		foreground{#4ceeb3}
+		foreground{#d1ee4c}
+		*/
+		foreground{#c1db46}
 	}
 	function
 	{
-		foreground{#dc7a57/* -- grayer red*/}
+		foreground{#ee9e4c}
 	}
 	string
 	{
-		foreground{#c1af9c/* -- gray*/}
+		/*
+		foreground{#98d0f3}
+		foreground{#ff8a29}
+		foreground{#C0C0C0}
+		foreground{#76ee4c}
+		*/
+		foreground{#6ad644}
 	}
 	number
 	{
-		foreground{#809d77/* -- colder green*/}
+		/*
+		foreground{#ffc721}
+		foreground{#C0C0C0}
+		foreground{#76ee4c}
+		*/
+		foreground{#6ad644}
 	}
 	operator
 	{
-		foreground{#c8ac86/* -- beige*/}
-		/*foreground{#dc7a57 -- grayer red}*/
-		/*foreground{#da823e -- orange}*/
+		/*
+		foreground{#eecb4c}
+		foreground{#C0C0C0}
+		*/
+		foreground{#a7a7a7}
 	}
 	preprocessor
 	{
-		foreground{#6c9bb1/* -- light blue*/}
+		/*
+		foreground{#4ceeb3}
+		*/
+		foreground{#46dba5}
 	}
 	unknown
 	{
-		foreground{#de4f44/* -- red*/}
+		foreground{red}
 	}
 	char
 	{
-		foreground{#c1af9c/* -- gray*/}
+		/*
+		foreground{#76ee4c}
+		*/
+		foreground{#6ad644}
 	}
 }
 
-line-highlighting
-{
-	/*color {#1a1a1a}*/
-	color {#000000}
-	
+line-highlighting {
+	/*
+	color {#f0f0f0}
+	color {#003658}
+	color {#002237}
+	*/
+	color {#002f4c}
 }
 
 matching-char-highlighting
 {
 	/*color {#de4f44}*/
-	color {#6a1a1a}
+	/*color {#00ffff}*/
+	/*color {#0065a4}*/
+	color {#005385}
 }
 
 scope-highlighting
 {
-	color {#000000}
+	/*
+	color {#f0f0f0}
+	color {#003658}
+	color {#002237}
+	*/
+	color {#002f4c}
 }
