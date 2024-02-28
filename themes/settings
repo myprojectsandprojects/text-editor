@@ -12,8 +12,12 @@ new stuff easily configurable in here. */
 wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
 left-margin {10}
 search-case-sensitivity {true}
+/*
 pixels-above-lines {2}
 pixels-below-lines {2}
+*/
+pixels-above-lines {1}
+pixels-below-lines {1}
 
 search-replace {}
 
@@ -41,92 +45,66 @@ languages
 	/*doesnotexist{}*/
 }
 
-/*
-	#c8ac86 -- beige
-	#c1af9c -- gray
-	#869491 -- gray/blue
-	#809d77 -- colder green
-	#abb26d -- warmer green
-	#6c9bb1 -- light blue
-	#1c529d -- dark blue
-	#d5b669 -- yellow
-	#da823e -- orange
-	#de4f44 -- red
-	#dc7a57 -- grayer red
-	#ac7987 -- purple
-
-	#bfa886 -- gray beige
-	#cfaf86 -- bright beige
-*/
-
 /* Tags that can be used by any language highlighting: */
 text-tags
 {
 	comment
 	{
-		foreground{#869491/* -- gray/blue*/}
+		foreground{#586e75}
 	}
 	identifier
 	{
-		foreground{#c8ac86/* -- beige*/}
-		/*foreground{#b89c76 -- darker beige}*/
-		/*foreground{#c0a786 -- darker grayer beige}*/
+		foreground{#839496}
 	}
 	keyword
 	{
-		foreground{#d5b669/* -- yellow*/}
-		/*weight{bold}*/
+		foreground{#268bd2}
 	}
 	type
 	{
-		foreground{#da823e/* -- orange*/}
+		foreground{#859900}
 	}
 	function
 	{
-		foreground{#dc7a57/* -- grayer red*/}
+		foreground{#b58900}
 	}
 	string
 	{
-		foreground{#c1af9c/* -- gray*/}
+		foreground{#2aa198}
 	}
 	number
 	{
-		foreground{#809d77/* -- colder green*/}
+		foreground{#6c71c4}
 	}
 	operator
 	{
-		foreground{#c8ac86/* -- beige*/}
-		/*foreground{#dc7a57 -- grayer red}*/
-		/*foreground{#da823e -- orange}*/
+		foreground{#60777f}
 	}
 	preprocessor
 	{
-		foreground{#6c9bb1/* -- light blue*/}
+		foreground{#cb4b16}
 	}
 	unknown
 	{
-		foreground{#de4f44/* -- red*/}
+		foreground{red}
 	}
 	char
 	{
-		foreground{#c1af9c/* -- gray*/}
+		foreground{#2aa198}
 	}
 }
 
 line-highlighting
 {
-	/*color {#1a1a1a}*/
-	color {#000000}
-	
+	color {#03181e}
 }
 
 matching-char-highlighting
 {
-	/*color {#de4f44}*/
-	color {#6a1a1a}
+	color {#268bd2}
 }
 
 scope-highlighting
 {
-	color {#000000}
+	color {#03181e}
 }

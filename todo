@@ -253,5 +253,7 @@ Cursor should stand out more!
 Undo sucks.
 For "open new line" enter-key makes more sense to me, maybe. Rethink default shortcuts.
 There is a very nice "open file widget" in 4coder, if I remember correctly. Combination of typing, autocompleting and displaying a list of available options. I think it might be a very nice way to browse the file system (?) By default, in open file dialog I spend most of my effort either on finding the correct name in a long list of names or trying to figure out how to use the quick search feature. Its just not the best thing I think. Just not good you know.
+ctrl + tab should switch between tabs (Firefox has this)
+file-browser refresh
 
 

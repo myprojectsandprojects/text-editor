@@ -13,19 +13,20 @@ and just stick to classes.
 .search-in-files-phrase-entry,
 .search-in-files-pattern-entry
 {
-	font: BPMono Bold 11;
-	font: BPMono Bold 13;
-	font: BPMono Bold 12.5;
-	font: BPMono Bold 10.5;
 	font: Dejavu Sans Mono Bold 13;
 	font: Consolas Bold 11;
+	font: Consolas Regular 11;
+	font: Dejavu Sans Mono Regular 10.5;
+	font: BPMono Bold 10.5;
+	font: BPMono Bold 11;
+	font: BPMono Bold 12.5;
+	font: BPMono Bold 13;
+	font: BPMono Regular 10.5;
+	font: BPMono Regular 10;
 	font: Dejavu Sans Mono Bold 10.5;
 	font: Dejavu Sans Mono Regular 11;
-	font: Dejavu Sans Mono Regular 10.5;
 	font: Dejavu Sans Mono Bold 11;
 	font: BPMono Regular 11;
-	font: BPMono Regular 10;
-	font: BPMono Regular 10.5;
 }
 
 .search-entry
@@ -138,15 +139,15 @@ and just stick to classes.
 
 .main-notebook tab:active
 {
-	background: #1a1a1a;
+	background: #101010;
 }
 
 .text-view
 {
 	/*
-	background: #000000;
-	*/
 	background: #1a1a1a;
+	*/
+	background: #101010;
 	color: #c1af9c;
 }
 
@@ -318,4 +319,9 @@ and just stick to classes.
 {
 	color: black;
 	background: rgb(255, 190, 25); /* lighter orangeish */
+}
+
+GtkWidget {
+	-GtkWidget-cursor-color: #ff0000;
+	-GtkWidget-cursor-aspect-ratio: 0.1;
 }

@@ -1184,12 +1184,19 @@ void scope_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *
 	}
 }
 
-void matching_char_highlighting_init(GtkWidget *tab, const char *color)
+void matching_char_highlighting_init(GtkWidget *tab, const char *color_str)
 {
 	GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
-	gtk_text_buffer_create_tag(text_buffer, "matching-char-highlighting", "background", color, NULL);
-	g_signal_connect(text_buffer, "notify::cursor-position",
-		G_CALLBACK(matching_char_highlighting_on_cursor_position_changed), tab);
+//	gtk_text_buffer_create_tag(text_buffer, "matching-char-highlighting", "background", color, NULL);
+
+	GdkRGBA color;
+	if(gdk_rgba_parse(&color, color_str) == TRUE) {
+		gtk_text_buffer_create_tag(text_buffer, "matching-char-highlighting", "underline", PANGO_UNDERLINE_SINGLE, "underline-rgba", &color, NULL);
+		g_signal_connect(text_buffer, "notify::cursor-position",
+			G_CALLBACK(matching_char_highlighting_on_cursor_position_changed), tab);
+	} else {
+		fprintf(stderr, "error: failed to initialize matching-char-highlighting feature for a tab: failed to parse color: \"%s\"\n", color_str);
+	}
 }
 
 void scope_highlighting_init(GtkWidget *tab, const char *color)
