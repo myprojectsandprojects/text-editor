@@ -12,12 +12,12 @@ new stuff easily configurable in here. */
 wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
 left-margin {10}
 search-case-sensitivity {true}
-/*
 pixels-above-lines {2}
 pixels-below-lines {2}
-*/
+/*
 pixels-above-lines {1}
 pixels-below-lines {1}
+*/
 
 search-replace {}
 
@@ -68,44 +68,53 @@ text-tags
 {
 	comment
 	{
-		foreground{#869491/* -- gray/blue*/}
+		foreground{#7a8684/* -- darker gray/blue*/}
+		/*foreground{#869491 -- gray/blue}*/
 	}
 	identifier
 	{
-		foreground{#c8ac86/* -- beige*/}
+		foreground{#b59c7a}
+		/*foreground{#c8ac86 -- beige}*/
 		/*foreground{#b89c76 -- darker beige}*/
 		/*foreground{#c0a786 -- darker grayer beige}*/
 	}
 	keyword
 	{
-		foreground{#d5b669/* -- yellow*/}
+		foreground{#c1a560/* -- darker yellow*/}
+		/*foreground{#d5b669 -- yellow}*/
 		/*weight{bold}*/
 	}
 	type
 	{
-		foreground{#da823e/* -- orange*/}
+		foreground{#c57639/* -- darker orange*/}
+		/*foreground{#da823e -- orange}*/
 	}
 	function
 	{
-		foreground{#dc7a57/* -- grayer red*/}
+		foreground{#c76f4f/* -- darker grayer red*/}
+		/*foreground{#dc7a57 -- grayer red}*/
 	}
 	string
 	{
-		foreground{#c1af9c/* -- gray*/}
+		foreground{#af9f8e/* -- darker gray*/}
+		/*foreground{#c1af9c -- gray}*/
 	}
 	number
 	{
-		foreground{#809d77/* -- colder green*/}
+		foreground{#748e6c/* -- darker colder green*/}
+		/*foreground{#809d77 -- colder green}*/
 	}
 	operator
 	{
-		foreground{#c8ac86/* -- beige*/}
+		foreground{#907d62}
+		/*foreground{#c8ac86 -- beige}*/
 		/*foreground{#dc7a57 -- grayer red}*/
 		/*foreground{#da823e -- orange}*/
 	}
 	preprocessor
 	{
-		foreground{#6c9bb1/* -- light blue*/}
+		foreground{#628da0/* -- darker light blue*/}
+		/*foreground{#6c9bb1 -- light blue}*/
 	}
 	unknown
 	{

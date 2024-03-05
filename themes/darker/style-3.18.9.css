@@ -27,6 +27,8 @@ and just stick to classes.
 	font: Dejavu Sans Mono Regular 11;
 	font: Dejavu Sans Mono Bold 11;
 	font: BPMono Regular 11;
+	font: Liberation Mono Bold 11;
+	font: Liberation Mono Bold 12;
 }
 
 .search-entry
@@ -148,7 +150,8 @@ and just stick to classes.
 	background: #1a1a1a;
 	*/
 	background: #101010;
-	color: #c1af9c;
+	/*color: #c1af9c;*/
+	color: #af9f8e; /* darker */
 }
 
 .status-bar {

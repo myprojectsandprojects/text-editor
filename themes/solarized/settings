@@ -12,8 +12,12 @@ new stuff easily configurable in here. */
 wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
 left-margin {10}
 search-case-sensitivity {true}
+pixels-above-lines {2}
+pixels-below-lines {2}
+/*
 pixels-above-lines {1}
 pixels-below-lines {1}
+*/
 
 search-replace {}
 
@@ -28,10 +32,12 @@ languages
 	{
 		file-extensions { cpp{} hpp{} c {} h {} }
 	}
+/*
 	C
 	{
 		file-extensions { c {} h {} }
 	}
+*/
 	Rust
 	{
 		file-extensions { rs {} }
@@ -39,61 +45,44 @@ languages
 	/*doesnotexist{}*/
 }
 
-/*
-	#c1af9c -- gray/beige
-	#869491 -- gray/blue
-	#809d77 -- colder green
-	#abb26d -- warmer green
-	#2787b2 -- light blue
-	#1c529d -- dark blue
-	#d5b669 -- yellow
-	#da823e -- orange
-	#de4f44 -- red
-	#ac7987 -- purple
-
-	#bfa886 -- gray beige
-	#cfaf86 -- bright beige
-*/
-
 /* Tags that can be used by any language highlighting: */
 text-tags
 {
 	comment
 	{
-		foreground{#809d77}
+		foreground{#586e75}
 	}
 	identifier
 	{
-		foreground{#c8ac86}
+		foreground{#839496}
 	}
 	keyword
 	{
-		foreground{#de4f44 /*red*//*#da823e*/ /*orange*/}
-		/*weight{bold}*/
+		foreground{#268bd2}
 	}
 	type
 	{
-		foreground{#ac7987/*purple*/}
+		foreground{#859900}
 	}
 	function
 	{
-		foreground{#d5b669/*yellow*//*#de4f44*//*red*/}
+		foreground{#b58900}
 	}
 	string
 	{
-		foreground{#abb26d/*warmer green*/}
+		foreground{#2aa198}
 	}
 	number
 	{
-		foreground{#abb26d/*warmer green*/}
+		foreground{#6c71c4}
 	}
 	operator
 	{
-		foreground{/*#c8ac86*/#da823e/*orange*/}
+		foreground{#60777f}
 	}
 	preprocessor
 	{
-		foreground{#da823e/*orange*//*#ac7987*/}
+		foreground{#cb4b16}
 	}
 	unknown
 	{
@@ -101,22 +90,21 @@ text-tags
 	}
 	char
 	{
-		foreground{#abb26d/*warmer green*/}
+		foreground{#2aa198}
 	}
 }
 
-line-highlighting {
-	color {#1a1a1a}
-	
+line-highlighting
+{
+	color {#03181e}
 }
 
 matching-char-highlighting
 {
-	/*color {#de4f44}*/
-	color {#6a1a1a}
+	color {#268bd2}
 }
 
 scope-highlighting
 {
-	color {#1a1a1a}
+	color {#03181e}
 }

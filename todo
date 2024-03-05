@@ -243,12 +243,12 @@ No insisting on storing files on harddisk other than project files
 
 It would be more convenient, I think, if the search in file would search as I type.
 
+Multicursor in Sublime is really nice!!!
 ctrl + left/right is bad. Wanna jump around much faster! From operator -> operator?
 A way to quickly find definitions of functions, structs, enums, etc. And not just in the currently opened file, but in the whole project.
 It should be easier to switch to another theme.
 The state (opened files etc.) should be preserved.
 Is there a better way to do bookmarks?
-Multicursor in Sublime is really nice!
 Cursor should stand out more!
 Undo sucks.
 For "open new line" enter-key makes more sense to me, maybe. Rethink default shortcuts.

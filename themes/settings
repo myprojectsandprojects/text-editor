@@ -12,12 +12,12 @@ new stuff easily configurable in here. */
 wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
 left-margin {10}
 search-case-sensitivity {true}
-/*
 pixels-above-lines {2}
 pixels-below-lines {2}
-*/
+/*
 pixels-above-lines {1}
 pixels-below-lines {1}
+*/
 
 search-replace {}
 
@@ -45,66 +45,102 @@ languages
 	/*doesnotexist{}*/
 }
 
+/*
+	#c8ac86 -- beige
+	#c1af9c -- gray
+	#869491 -- gray/blue
+	#809d77 -- colder green
+	#abb26d -- warmer green
+	#6c9bb1 -- light blue
+	#1c529d -- dark blue
+	#d5b669 -- yellow
+	#da823e -- orange
+	#de4f44 -- red
+	#dc7a57 -- grayer red
+	#ac7987 -- purple
+
+	#bfa886 -- gray beige
+	#cfaf86 -- bright beige
+*/
+
 /* Tags that can be used by any language highlighting: */
 text-tags
 {
 	comment
 	{
-		foreground{#586e75}
+		foreground{#7a8684/* -- darker gray/blue*/}
+		/*foreground{#869491 -- gray/blue}*/
 	}
 	identifier
 	{
-		foreground{#839496}
+		foreground{#b59c7a}
+		/*foreground{#c8ac86 -- beige}*/
+		/*foreground{#b89c76 -- darker beige}*/
+		/*foreground{#c0a786 -- darker grayer beige}*/
 	}
 	keyword
 	{
-		foreground{#268bd2}
+		foreground{#c1a560/* -- darker yellow*/}
+		/*foreground{#d5b669 -- yellow}*/
+		/*weight{bold}*/
 	}
 	type
 	{
-		foreground{#859900}
+		foreground{#c57639/* -- darker orange*/}
+		/*foreground{#da823e -- orange}*/
 	}
 	function
 	{
-		foreground{#b58900}
+		foreground{#c76f4f/* -- darker grayer red*/}
+		/*foreground{#dc7a57 -- grayer red}*/
 	}
 	string
 	{
-		foreground{#2aa198}
+		foreground{#af9f8e/* -- darker gray*/}
+		/*foreground{#c1af9c -- gray}*/
 	}
 	number
 	{
-		foreground{#6c71c4}
+		foreground{#748e6c/* -- darker colder green*/}
+		/*foreground{#809d77 -- colder green}*/
 	}
 	operator
 	{
-		foreground{#60777f}
+		foreground{#907d62}
+		/*foreground{#c8ac86 -- beige}*/
+		/*foreground{#dc7a57 -- grayer red}*/
+		/*foreground{#da823e -- orange}*/
 	}
 	preprocessor
 	{
-		foreground{#cb4b16}
+		foreground{#628da0/* -- darker light blue*/}
+		/*foreground{#6c9bb1 -- light blue}*/
 	}
 	unknown
 	{
-		foreground{red}
+		foreground{#de4f44/* -- red*/}
 	}
 	char
 	{
-		foreground{#2aa198}
+		foreground{#c1af9c/* -- gray*/}
 	}
 }
 
 line-highlighting
 {
-	color {#03181e}
+	/*color {#1a1a1a}*/
+	color {#000000}
+	
 }
 
 matching-char-highlighting
 {
-	color {#268bd2}
+	/*color {#de4f44}*/
+	/*color {#6a1a1a}*/
+	color {#00ff00}
 }
 
 scope-highlighting
 {
-	color {#03181e}
+	color {#000000}
 }
