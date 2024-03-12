@@ -13,35 +13,14 @@ and just stick to classes.
 .search-in-files-pattern-entry,
 .openfile-entry
 {
-	font: Droid Sans Mono Regular 11;
-	font: Droid Sans Mono Regular 13;
-	font: Consolas Bold 13;
-	font: Consolas Regular 13;
-	font: Consolas Regular 14;
-	font: Consolas Bold 14;
-	font: DroidSansMonoW01-Bold Regular 11;
-	font: DroidSansMono Regular 13;
-	font: DroidSansMono Regular 11;
-	font: Dejavu Sans Mono Regular 11;
-	font: Dejavu Sans Mono Bold 10.5;
-	font: Dejavu Sans Mono Book Regular 10.5;
-	font: BPMono Regular 11;
-/*	font: BPMono Bold 13;*/
-	font: Courier 10 Pitch Regular 13;
-	font: Courier 10 Pitch Bold 13;
-	font: Courier 10 Pitch Bold 11;
-	font: Iosevka Regular 11;
-	font: Dejavu Sans Mono Book Regular 11;
-	font: JetBrains Mono NL SemiBold 13;
-	font: Courier 10 Pitch Regular 11;
-	font: Courier New Regular 11;
-	font: Courier New Bold 11;
-	font: Liberation Mono Regular 13;
-	font: Dejavu Sans Mono Regular 13;
-	font: Courier New Bold 13;
 	font: BPMono Regular 10;
-	font: BPMono Regular 13;
-	font: BPMono Regular 11;
+	font: BPMono Regular 10.5;
+	font: BPMono Regular 11.5;
+	font: Noto Sans Mono Bold 11.5;
+	font: NotoSansMonoCondensed Bold 11;
+	font: NotoSansMonoCondensed Bold 10.5;
+	font: NotoSansMonoCondensed Bold 10;
+	font: NotoSansMonoCondensed Bold 11.5;
 }
 
 /* Rules for all text-entries: */
@@ -104,7 +83,8 @@ and just stick to classes.
 	color: black;
 	border: none;
 	border-radius: 0;
-	font: Roboto 10;
+	/*font: Roboto 10;*/
+	font: Ubuntu Nerd Font Condensed 11;
 	padding: 10px;
 }
 
@@ -133,7 +113,8 @@ and just stick to classes.
 {
 	background: white;
 	color: black;
-	font: Roboto 10;
+	/*font: Roboto 10;*/
+	font: Ubuntu Nerd Font Condensed 11;
 }
 
 .main-notebook
@@ -196,8 +177,9 @@ and just stick to classes.
 
 .root-dir-label
 {
-	color: black;
-	font: Roboto Bold 11;
+	color: #666666;
+	/*font: Roboto Bold 11;*/
+	font: Ubuntu Nerd Font Condensed Regular 12;
 }
 
 .sidebar-notebook
@@ -305,4 +287,9 @@ and just stick to classes.
 {
 	color: black;
 	background: rgb(255, 190, 25); /* lighter orangeish */
+}
+
+GtkWidget {
+	-GtkWidget-cursor-color: #ff0000;
+	-GtkWidget-cursor-aspect-ratio: 0.1;
 }

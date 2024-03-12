@@ -56,33 +56,27 @@ char *deleted_text;
 /* The only reason we register this callback is to implement quote-selected-text-feature.
 Problem is that if there is a selection, GTK deletes the selected text before it calls our "insert-text"-handler and we have no way to get that text back.
 Perhaps it would be easier to do autocompleting when handling key-combinations. */
-void on_text_buffer_begin_user_action_4_autocomplete_character(
-	GtkTextBuffer *text_buffer, gpointer data)
+void text_expansion_text_buffer_begin_user_action(GtkTextBuffer *text_buffer, gpointer data)
 {
-	LOG_MSG("on_text_buffer_begin_user_action_4_autocomplete_character()\n");
+	LOG_MSG("%s()\n", __FUNCTION__);
 	if(deleted_text){
 		free(deleted_text);
 		deleted_text = NULL;
 	}
 }
 
-
-void on_text_buffer_delete_range_4_autocomplete_character(
-	GtkTextBuffer *text_buffer,
-	GtkTextIter *start,
-	GtkTextIter *end,
-	gpointer data)
+void text_expansion_text_buffer_delete_range(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end, gpointer data)
 {
-	LOG_MSG("on_text_buffer_delete_range_4_autocomplete_character()\n");
+	LOG_MSG("%s()\n", __FUNCTION__);
 
 	deleted_text = gtk_text_buffer_get_text(text_buffer, start, end, FALSE);
 
 }
 
-void on_text_buffer_insert_text_4_autocomplete_character(GtkTextBuffer *text_buffer,
-	GtkTextIter *location, char *inserted_text, int length, gpointer data)
+void text_expansion_text_buffer_insert_text(GtkTextBuffer *text_buffer, GtkTextIter *location, char *inserted_text, int length, gpointer data)
 {
-	LOG_MSG("on_text_buffer_insert_text_4_autocomplete_character()\n");
+	LOG_MSG("%s()\n", __FUNCTION__);
+	printf("%s()\n", __FUNCTION__);
 
 	if (length == 1) {
 		char ch = inserted_text[0];
@@ -204,27 +198,19 @@ void on_text_buffer_insert_text_4_autocomplete_character(GtkTextBuffer *text_buf
 }
 
 //@ If "enclose_selected_text" is false, we dont need to handle "begin-user-action" and "delete-range" signals at all, which makes me think about factoring the whole thing differently?
-void init_autocomplete_character(GtkTextBuffer *text_buffer, Node *settings, GtkWidget *tab)
+void text_expansion_init(GtkTextBuffer *text_buffer, Node *settings, GtkWidget *tab)
 {
 	LOG_MSG("init_autocomplete_character()\n");
 
 	enclose_selected_text = true;
 	const char *value = settings_get_value(settings, "autocomplete-character/enclose-selected-text");
 	if(value)
-		enclose_selected_text = (strcmp(value, "true") == 0) ? true : false;
+	{
+			enclose_selected_text = (strcmp(value, "true") == 0) ? true : false;
+	}
 	else
+	{
 //		display_error("Setting \"autocomplete-character/enclose-selected-text\" doesnt seem to be set in the settings file.", "Reverting to default value then: true");
-		ERROR("Setting \"autocomplete-character/enclose-selected-text\" doesnt seem to be set in the settings file. (Reverting to default value then: true)")
-
-	gulong id = g_signal_connect(G_OBJECT(text_buffer),
-		"insert-text", G_CALLBACK(on_text_buffer_insert_text_4_autocomplete_character), NULL);
-	tab_add_widget_4_retrieval(tab, AUTOCOMPLETE_CHARACTER_HANDLER_ID, (void *) id); //@ hack
-		// we block the autocomplete-character's "insert-text" handler to prevent it from autocompleting our undos's.
-		// autocomplete-character should only complete user-level insertions, but how do we differentiate between user-level and hmm program-level?
-
-	g_signal_connect(G_OBJECT(text_buffer),
-		"delete-range", G_CALLBACK(on_text_buffer_delete_range_4_autocomplete_character), NULL);
-
-	g_signal_connect(G_OBJECT(text_buffer),
-		"begin-user-action", G_CALLBACK(on_text_buffer_begin_user_action_4_autocomplete_character), NULL);
+			ERROR("Setting \"autocomplete-character/enclose-selected-text\" doesnt seem to be set in the settings file. (Reverting to default value then: true)")
+	}
 }

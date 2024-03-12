@@ -68,41 +68,41 @@ text-tags
 {
 	comment
 	{
-		foreground{#7a8684/* -- darker gray/blue*/}
-		/*foreground{#869491 -- gray/blue}*/
+		/*foreground{#7a8684 -- darker gray/blue}*/
+		foreground{#869491/* -- gray/blue*/}
 	}
 	identifier
 	{
-		foreground{#b59c7a}
-		/*foreground{#c8ac86 -- beige}*/
+		/*foreground{#b59c7a -- darker}*/
+		foreground{#c8ac86/* -- beige*/}
 		/*foreground{#b89c76 -- darker beige}*/
 		/*foreground{#c0a786 -- darker grayer beige}*/
 	}
 	keyword
 	{
-		foreground{#c1a560/* -- darker yellow*/}
-		/*foreground{#d5b669 -- yellow}*/
+		/*foreground{#c1a560 -- darker yellow}*/
+		foreground{#d5b669/* -- yellow*/}
 		/*weight{bold}*/
 	}
 	type
 	{
-		foreground{#c57639/* -- darker orange*/}
-		/*foreground{#da823e -- orange}*/
+		/*foreground{#c57639 -- darker orange}*/
+		foreground{#da823e/* -- orange*/}
 	}
 	function
 	{
-		foreground{#c76f4f/* -- darker grayer red*/}
-		/*foreground{#dc7a57 -- grayer red}*/
+		/*foreground{#c76f4f -- darker grayer red}*/
+		foreground{#dc7a57/* -- grayer red*/}
 	}
 	string
 	{
-		foreground{#af9f8e/* -- darker gray*/}
-		/*foreground{#c1af9c -- gray}*/
+		/*foreground{#af9f8e -- darker gray}*/
+		foreground{#c1af9c/* -- gray*/}
 	}
 	number
 	{
-		foreground{#748e6c/* -- darker colder green*/}
-		/*foreground{#809d77 -- colder green}*/
+		/*foreground{#748e6c -- darker colder green}*/
+		foreground{#809d77/* -- colder green*/}
 	}
 	operator
 	{
@@ -113,8 +113,8 @@ text-tags
 	}
 	preprocessor
 	{
-		foreground{#628da0/* -- darker light blue*/}
-		/*foreground{#6c9bb1 -- light blue}*/
+		/*foreground{#628da0 -- darker light blue}*/
+		foreground{#6c9bb1/* -- light blue*/}
 	}
 	unknown
 	{
@@ -136,7 +136,8 @@ line-highlighting
 matching-char-highlighting
 {
 	/*color {#de4f44}*/
-	color {#6a1a1a}
+	/*color {#6a1a1a}*/
+	color {#00ff00}
 }
 
 scope-highlighting

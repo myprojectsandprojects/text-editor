@@ -156,6 +156,7 @@ void print_tags(GtkTextBuffer *text_buffer){
 
 static void on_insert_text_after(GtkTextBuffer *text_buffer, GtkTextIter *location, gchar *text, gint len, gpointer tab){
 	LOG_MSG("on_insert_text_after()\n");
+	printf("insert text (highlighting)\n");
 
 //	printf("location offset: %d, text: %s, len: %d\n", gtk_text_iter_get_offset(location), text, len);
 //	printf("character at location: %c[%d]\n", gtk_text_iter_get_char(location), gtk_text_iter_get_char(location));
@@ -185,6 +186,7 @@ static void on_insert_text_after(GtkTextBuffer *text_buffer, GtkTextIter *locati
 		gtk_text_buffer_remove_tag_by_name(text_buffer, "line-highlighting", &start_buffer, &end_buffer);
 		gtk_text_buffer_remove_tag_by_name(text_buffer, "matching-char-highlighting", &start_buffer, &end_buffer);
 		gtk_text_buffer_remove_tag_by_name(text_buffer, "scope-highlighting", &start_buffer, &end_buffer);
+		MultiCursor_RemoveTextTags(text_buffer);
 
 		GtkTextIter iter = *location; // changing "location" directly also changes cursor position somehow \_(oo)_/
 		gtk_text_iter_backward_chars(&iter, len); // "location" points at the end of the inserted text and we want to be at the beginning
@@ -194,6 +196,7 @@ static void on_insert_text_after(GtkTextBuffer *text_buffer, GtkTextIter *locati
 		line_highlighting_on_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL);
 		matching_char_highlighting_on_cursor_position_changed(G_OBJECT(text_buffer), NULL, tab);
 		scope_highlighting_on_cursor_position_changed(G_OBJECT(text_buffer), NULL, tab);
+		MultiCursor_AddTextTags(text_buffer);
 		//hack end:
 	}
 }
@@ -213,11 +216,13 @@ static void on_delete_range_after(GtkTextBuffer *text_buffer, GtkTextIter *start
 		gtk_text_buffer_remove_tag_by_name(text_buffer, "line-highlighting", &start_buffer, &end_buffer);
 		gtk_text_buffer_remove_tag_by_name(text_buffer, "matching-char-highlighting", &start_buffer, &end_buffer);
 		gtk_text_buffer_remove_tag_by_name(text_buffer, "scope-highlighting", &start_buffer, &end_buffer);
+		MultiCursor_RemoveTextTags(text_buffer);
 		f(text_buffer, start);
 //		f(text_buffer, &start_buffer, &end_buffer); // highlight the whole buffer
 		line_highlighting_on_text_buffer_cursor_position_changed(G_OBJECT(text_buffer), NULL, NULL);
 		matching_char_highlighting_on_cursor_position_changed(G_OBJECT(text_buffer), NULL, tab);
 		scope_highlighting_on_cursor_position_changed(G_OBJECT(text_buffer), NULL, tab);
+		MultiCursor_AddTextTags(text_buffer);
 		//hack end:
 	}
 }

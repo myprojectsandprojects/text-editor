@@ -255,5 +255,14 @@ For "open new line" enter-key makes more sense to me, maybe. Rethink default sho
 There is a very nice "open file widget" in 4coder, if I remember correctly. Combination of typing, autocompleting and displaying a list of available options. I think it might be a very nice way to browse the file system (?) By default, in open file dialog I spend most of my effort either on finding the correct name in a long list of names or trying to figure out how to use the quick search feature. Its just not the best thing I think. Just not good you know.
 ctrl + tab should switch between tabs (Firefox has this)
 file-browser refresh
+we could remove extra whitespace from empty lines at save-time
+ctrl +/ctrl - to change text size easily
+maybe sometimes we want a message-box assert?
+* autocomplete character? we could make it into some more general kind of feature that automatically "expands" text under cursor to whatever the user wants to configure it to. and puts the cursor somewhere. just to speed up repetitive typing.
+* think about text-expansion feature. do we really need this begin-user-action business? 
+
+* undoing delete-key deletion, when multicursoring, doesnt put the cursor at the right position(?). also text-tags somehow disappear. yeah, undo is totally broken (segfault).
+Clicking on search results seemed buggy.
+SearchInFiles crashed.
 
 

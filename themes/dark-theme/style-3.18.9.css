@@ -13,41 +13,20 @@ and just stick to classes.
 .search-in-files-phrase-entry,
 .search-in-files-pattern-entry
 {
-	font: Iosevka Fixed SS18 SemiBold 13;
-	font: JetBrains Mono NL Bold 12;
-	font: Fira Mono Medium 13;
-	font: Fira Mono Medium 12.5;
-	font: Fira Mono Medium 12;
-	font: FantasqueSansMono Regular 13;
-	font: Cascadia Mono Regular 12;
-	font: AurulentSansMono Nerd Font Mono Regular 12;
-	font: AurulentSansMono Nerd Font Mono Regular 11;
-	font: CodeNewRoman Bold 12;
-	font: InputMono Medium 10.5;
-	font: DroidSansMonoW01-Bold Regular 13;
-	font: DroidSansMono Regular 11;
-	font: Sudo Medium 16;
-	font: Sudo Medium 14;
-	font: DroidSansMono Regular 11;
-	font: DroidSansMonoW01-Bold Regular 11;
-	font: Liberation Mono Regular 13;
-	font: DroidSansMono Regular 13;
-	font: BPMono Bold 11;
-	font: Consolas Bold 11;
-	font: JetBrains Mono NL Medium 12;
-	font: JetBrains Mono NL SemiBold 11;
-	font: Dejavu Sans Mono Regular 11;
-	font: Dejavu Sans Mono Regular 13;
-	font: Dejavu Sans Mono Bold 11;
-	font: Dejavu Sans Mono Bold 10.5;
-	font: BlexMono Nerd Font Mono Regular 12;
-	font: BlexMono Nerd Font Mono Regular 11;
-	font: BPMono Bold 13;
-	font: BPMono Bold 12.5;
-	font: BPMono Bold 10.5;
-	font: BPMono Bold 11;
-	font: BPMono Regular 11;
+	font: Liberation Mono Regular 11.5;
+	font: Consolas Regular 11.5;
+	font: Share Tech Mono Regular 11;
+	font: Share Tech Mono Regular 12;
+	font: Dejavu Sans Mono Bold 11.5;
+	font: Dejavu Sans Mono Regular 11.5;
+	font: BPMono Regular 12.5;
 	font: BPMono Regular 10;
+	font: BPMono Bold 10.5;
+	font: BPMono Bold 12.5;
+	font: BPMono Bold 11.6;
+	font: BPMono Regular 10.5;
+	font: BPMono Regular 11;
+	font: BPMono Regular 11.5;
 }
 
 /* Rules for all text-entries: */
@@ -97,7 +76,8 @@ and just stick to classes.
 	color: black;
 	border: none;
 	border-radius: 0;
-	font: Roboto 10;
+	/*font: Roboto 10;*/
+	font: Ubuntu Nerd Font Condensed 11;
 	padding: 10px;
 }
 
@@ -145,7 +125,8 @@ and just stick to classes.
 {
 	background: #302D2C;
 	color: beige;
-	font: Roboto 10;
+	/*font: Roboto 10;*/
+	font: Ubuntu Nerd Font Condensed 11;
 }
 
 .main-notebook
@@ -207,7 +188,8 @@ and just stick to classes.
 .root-dir-label
 {
 	color: beige;
-	font: Roboto Bold 11;
+	/*font: Roboto Bold 11;*/
+	font: Ubuntu Nerd Font Condensed 11;
 }
 
 .sidebar-notebook
@@ -335,4 +317,9 @@ and just stick to classes.
 {
 	color: black;
 	background: rgb(255, 190, 25); /* lighter orangeish */
+}
+
+GtkWidget {
+	-GtkWidget-cursor-color: #ff0000;
+	-GtkWidget-cursor-aspect-ratio: 0.1;
 }

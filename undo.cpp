@@ -90,20 +90,27 @@ struct UserAction *get_action(struct ActionsStack *actions) {
 // This is a global variable, so it should be initialized to defaults (NULLs in this case) (?)
 struct ActionsStack *tab_actions[100];
 
-gboolean ignore = FALSE;
+//gboolean ignore = FALSE;
 
-void on_text_buffer_delete_range_4undo(
-	GtkTextBuffer *text_buffer,
-	GtkTextIter *start,
-	GtkTextIter *end,
-	gpointer data)
+const int MAX_TABS = 64;
+const int MAX_HANDLERS = 1024;
+struct Undo {
+	int insert_handlers_count;
+	int delete_handlers_count;
+	gulong insert_handlers[MAX_HANDLERS];
+	gulong delete_handlers[MAX_HANDLERS];
+};
+static Undo per_tab_undo_data[MAX_TABS]; // 64 tabs
+
+void undo_text_buffer_delete_range(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end, gpointer data)
 {
-	LOG_MSG("on_text_buffer_delete_range_4undo()\n");
+	LOG_MSG("%s()\n", __FUNCTION__);
+	printf("%s()\n", __FUNCTION__);
 
-	if(ignore == TRUE) {
-		ignore = FALSE;
-		return;
-	}
+//	if(ignore == TRUE) {
+//		ignore = FALSE;
+//		return;
+//	}
 
 	gint start_offset, end_offset;
 	start_offset = gtk_text_iter_get_offset(start);
@@ -170,19 +177,15 @@ void on_text_buffer_delete_range_4undo(
 	}*/
 }
 
-void on_text_buffer_insert_text_4undo(
-	GtkTextBuffer *text_buffer,
-	GtkTextIter *location,
-	char *inserted_text,
-	int length,
-	gpointer data)
+void undo_text_buffer_insert_text(GtkTextBuffer *text_buffer, GtkTextIter *location, char *inserted_text, int length, gpointer data)
 {
 	LOG_MSG("on_text_buffer_insert_text_4undo()\n");
+	printf("%s()\n", __FUNCTION__);
 
-	if(ignore == TRUE) {
-		ignore = FALSE;
-		return;
-	}
+//	if(ignore == TRUE) {
+//		ignore = FALSE;
+//		return;
+//	}
 
 	gint location_offset;
 	location_offset = gtk_text_iter_get_offset(location);
@@ -233,20 +236,66 @@ void on_text_buffer_insert_text_4undo(
 	}*/
 }
 
-void init_undo(GtkWidget *tab)
+void undo_init(gulong insert_handlers[], int insert_handlers_count, gulong *delete_handlers, int delete_handlers_count, unsigned int tab_id)
 {
-	LOG_MSG("init_undo() called\n");
+	LOG_MSG("%s()\n", __FUNCTION__);
+	printf("tab_id: %d\n", tab_id);
 
-	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
+	unsigned int index = tab_id - 1;
+	assert(index < MAX_TABS);
+	for(int i = 0; i < insert_handlers_count; ++i) {
+		per_tab_undo_data[index].insert_handlers[i] = insert_handlers[i];
+		printf("copy'ing insert handler id\n");
+	}
+	for(int i = 0; i < delete_handlers_count; ++i) {
+		per_tab_undo_data[index].delete_handlers[i] = delete_handlers[i];
+		printf("copy'ing delete handler id\n");
+	}
+	per_tab_undo_data[index].insert_handlers_count = insert_handlers_count;
+	per_tab_undo_data[index].delete_handlers_count = delete_handlers_count;
+}
 
-	/* @ Could just pass in tab-id directly? Performance? */
-	g_signal_connect(G_OBJECT(text_buffer), "insert-text", G_CALLBACK(on_text_buffer_insert_text_4undo), tab);
-	g_signal_connect(G_OBJECT(text_buffer), "delete-range", G_CALLBACK(on_text_buffer_delete_range_4undo), tab);
+//@ still just a hack
+//@ oh, I forgot that each tab has its own handlers
+static void text_buffer_insert(GtkTextBuffer *text_buffer, int pos_offset, char *text, unsigned int tab_id)
+{
+	GtkTextIter pos;
+	gtk_text_buffer_get_iter_at_offset(text_buffer, &pos, pos_offset);
+
+	unsigned int index = tab_id - 1;
+
+	for(int handler_index = 0; handler_index < per_tab_undo_data[index].insert_handlers_count; ++handler_index) {
+		g_signal_handler_block(text_buffer, per_tab_undo_data[index].insert_handlers[handler_index]);
+	}
+
+	gtk_text_buffer_insert(text_buffer, &pos, text, -1);
+
+	for(int handler_index = 0; handler_index < per_tab_undo_data[index].insert_handlers_count; ++handler_index) {
+		g_signal_handler_unblock(text_buffer, per_tab_undo_data[index].insert_handlers[handler_index]);
+	}
+}
+static void text_buffer_delete(GtkTextBuffer *text_buffer, int start_offset, int end_offset, unsigned int tab_id)
+{
+	GtkTextIter start, end;
+	gtk_text_buffer_get_iter_at_offset(text_buffer, &start, start_offset);
+	gtk_text_buffer_get_iter_at_offset(text_buffer, &end, end_offset);
+
+	unsigned int index = tab_id - 1;
+
+	for(int handler_index = 0; handler_index < per_tab_undo_data[index].delete_handlers_count; ++handler_index) {
+		g_signal_handler_block(text_buffer, per_tab_undo_data[index].delete_handlers[handler_index]);
+	}
+
+	gtk_text_buffer_delete(text_buffer, &start, &end);
+
+	for(int handler_index = 0; handler_index < per_tab_undo_data[index].delete_handlers_count; ++handler_index) {
+		g_signal_handler_unblock(text_buffer, per_tab_undo_data[index].delete_handlers[handler_index]);
+	}
 }
 
 void actually_undo_last_action(GtkWidget *tab)
 {
-	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
+	LOG_MSG("%s()\n", __FUNCTION__);
 
 	struct TabInfo *tab_info = (struct TabInfo *) g_object_get_data(G_OBJECT(tab), "tab-info");
 	//printf("actually_undo_last_action() for tab number %d called.\n", tab_info->id);
@@ -259,26 +308,34 @@ void actually_undo_last_action(GtkWidget *tab)
 		return;
 	}
 
-	if(action->type == INSERT_ACTION) {
-		GtkTextIter start, end;
-		gtk_text_buffer_get_iter_at_offset(text_buffer, &start, action->location_offset);
-		gtk_text_buffer_get_iter_at_offset(text_buffer, &end, action->location_offset + action->text_length);
-		ignore = TRUE; 
-		gtk_text_buffer_delete(text_buffer, &start, &end);
-	} else { // DELETE_ACTION
-		GtkTextIter location;
-		gtk_text_buffer_get_iter_at_offset(text_buffer, &location, action->start_offset);
-		ignore = TRUE;
+	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
 
-		//@ hack
-		// we block the autocomplete-character's "insert-text" handler to prevent it from autocompleting our undos's.
-		// autocomplete-character should only complete user-level insertions, but how do we differentiate between user-level and hmm program-level?
-//		g_signal_emit_by_name(text_buffer, "begin-user-action");
-		gulong id = (gulong) tab_retrieve_widget(tab, AUTOCOMPLETE_CHARACTER_HANDLER_ID);
-		g_signal_handler_block(text_buffer, id);
-//		gtk_text_buffer_insert(text_buffer, &location, action->deleted_text_buffer, -1);
-		gtk_text_buffer_insert(text_buffer, &location, action->deleted_text, -1);
-		g_signal_handler_unblock(text_buffer, id);
+	if(action->type == INSERT_ACTION) {
+//		GtkTextIter start, end;
+//		gtk_text_buffer_get_iter_at_offset(text_buffer, &start, action->location_offset);
+//		gtk_text_buffer_get_iter_at_offset(text_buffer, &end, action->location_offset + action->text_length);
+//		ignore = TRUE; 
+//		gtk_text_buffer_delete(text_buffer, &start, &end);
+
+		int From = action->location_offset;
+		int To = action->location_offset + action->text_length;
+		text_buffer_delete(text_buffer, From, To, tab_info->id);
+	} else { // DELETE_ACTION
+//		GtkTextIter location;
+//		gtk_text_buffer_get_iter_at_offset(text_buffer, &location, action->start_offset);
+//		ignore = TRUE;
+//
+//		//@ hack
+//		// we block the autocomplete-character's "insert-text" handler to prevent it from autocompleting our undos's.
+//		// autocomplete-character should only complete user-level insertions, but how do we differentiate between user-level and hmm program-level?
+////		g_signal_emit_by_name(text_buffer, "begin-user-action");
+//		gulong id = (gulong) tab_retrieve_widget(tab, AUTOCOMPLETE_CHARACTER_HANDLER_ID);
+//		g_signal_handler_block(text_buffer, id);
+////		gtk_text_buffer_insert(text_buffer, &location, action->deleted_text_buffer, -1);
+//		gtk_text_buffer_insert(text_buffer, &location, action->deleted_text, -1);
+//		g_signal_handler_unblock(text_buffer, id);
+
+		text_buffer_insert(text_buffer, action->start_offset, action->deleted_text, tab_info->id);
 		free(action->deleted_text);
 	}
 

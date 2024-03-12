@@ -13,11 +13,11 @@ wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WR
 left-margin {10}
 search-case-sensitivity {true}
 /*
-pixels-above-lines {1}
-pixels-below-lines {1}
-*/
 pixels-above-lines {2}
 pixels-below-lines {2}
+*/
+pixels-below-lines {1}
+pixels-above-lines {1}
 
 search-replace {}
 
@@ -99,7 +99,8 @@ text-tags
 	}
 	operator
 	{
-		foreground{#c8ac86/* -- beige*/}
+		foreground{#a69071/* -- beige*/}
+		/*foreground{#c8ac86 -- beige}*/
 		/*foreground{#dc7a57 -- grayer red}*/
 		/*foreground{#da823e -- orange}*/
 	}
@@ -125,8 +126,7 @@ line-highlighting
 
 matching-char-highlighting
 {
-	/*color {#de4f44}*/
-	color {#6a1a1a}
+	color {#00ff00}
 }
 
 scope-highlighting

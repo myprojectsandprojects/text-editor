@@ -12,12 +12,12 @@ new stuff easily configurable in here. */
 wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
 left-margin {10}
 search-case-sensitivity {true}
+/*
 pixels-above-lines {1}
 pixels-below-lines {1}
-/*
-pixels-above-lines {2}
-pixels-below-lines {2}
 */
+pixels-above-lines {0}
+pixels-below-lines {0}
 
 search-replace {}
 
@@ -63,28 +63,33 @@ text-tags
 	}
 	type
 	{
-		foreground{black}
+		/*foreground{black}*/
+		foreground{#006666}
 	}
 	function
 	{
-		foreground{brown}
+		/*foreground{brown}*/
+		foreground{#990000}
 		/*weight{bold}*/
 	}
 	string
 	{
-		foreground{gray}
+		/*foreground{gray}*/
+		foreground{#444444}
 	}
 	number
 	{
-		foreground{blue}
+		/*foreground{blue}*/
+		foreground{#006633}
 	}
 	operator
 	{
-		foreground{black}
+		/*foreground{black}*/
+		foreground{#999999}
 	}
 	preprocessor
 	{
-		foreground{orange}
+		foreground{#cc6600}
 	}
 	unknown
 	{
@@ -92,7 +97,8 @@ text-tags
 	}
 	char
 	{
-		foreground{gray}
+		/*foreground{gray}*/
+		foreground{#444444}
 	}
 }
 
@@ -103,10 +109,15 @@ line-highlighting {
 matching-char-highlighting
 {
 	/*color {#de4f44}*/
-	color {#00ffff}
+	color {#ff0000}
 }
 
 scope-highlighting
 {
 	color {#f0f0f0}
+}
+
+extra-cursor
+{
+	color {#ff0000}
 }

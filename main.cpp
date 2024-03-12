@@ -60,6 +60,21 @@ struct Node *settings;
 
 struct CList *tabs; // temp
 
+//@ why is this still not a thing?
+struct Tab {
+	unsigned int id;
+	//...
+	GtkTextView *text_view;
+};
+const unsigned int tabs_max = 3;
+Tab per_tab_data[tabs_max];
+// currently we have (at least) 4 different ways of bookkeeping per tab data
+// - TabInfo
+// - tab_add_widget_4_retrieval()
+// - undo has it's own bookkeeping
+// - then we have some CList of tabs for whatever reason
+// we should get to a point where we only use something simple like this
+
 // Its messy to mix values from variables into these messages. Can we improve?
 //void display_error(const char *primary_message, const char *secondary_message = NULL){
 //	char message[1000]; //@ overflow
@@ -1209,13 +1224,13 @@ void scope_highlighting_init(GtkWidget *tab, const char *color)
 
 GtkWidget *create_tab(const char *file_name)
 {
-	static int count = 1;
+	static unsigned int count = 1;
 	GtkWidget *tab, *scrolled_window;
 	char *tab_title;
 	gchar *contents, *base_name;
 	//GFile *file;
 
-	LOG_MSG("create_tab()\n");
+	LOG_MSG("%s()\n", __FUNCTION__);
 
 	tab = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	//gtk_widget_set_hexpand(tab, TRUE);
@@ -1330,23 +1345,17 @@ GtkWidget *create_tab(const char *file_name)
 //	matching_parenthesis_highlighting_init(text_buffer, tab);
 	{
 		const char *value = settings_get_value(settings, "matching-char-highlighting/color");
-		if (value)
-		{
+		if (value) {
 			matching_char_highlighting_init(tab, value);
-		}
-		else
-		{
+		} else {
 			ERROR("Setting \"matching-char-highlighting/color\" doesnt seem to be set in the settings file!)")
 		}
 	}
 	{
 		const char *value = settings_get_value(settings, "scope-highlighting/color");
-		if (value)
-		{
+		if (value) {
 			scope_highlighting_init(tab, value);
-		}
-		else
-		{
+		} else {
 			ERROR("Setting \"scope-highlighting/color\" doesnt seem to be set in the settings file!")
 		}
 	}
@@ -1357,14 +1366,22 @@ GtkWidget *create_tab(const char *file_name)
 	// autocomplete-identifier
 	autocomplete_identifier_init(tab, text_buffer);
 
-	/* We want autocomplete-character's handler for "insert-text"-signal to be the first handler called.  
+	/* We want text-expansions's handler for "insert-text"-signal to be the first handler called.  
 	(code-highlighting and undo also register callbacks for this signal.) */
-	init_autocomplete_character(text_buffer, settings, tab);
+//	init_autocomplete_character(text_buffer, settings, tab);
+	text_expansion_init(text_buffer, settings, tab);
+	gulong text_expansion_insert_id = g_signal_connect(G_OBJECT(text_buffer), "insert-text", G_CALLBACK(text_expansion_text_buffer_insert_text), NULL);
+	g_signal_connect(G_OBJECT(text_buffer), "delete-range", G_CALLBACK(text_expansion_text_buffer_delete_range), NULL);
+	g_signal_connect(G_OBJECT(text_buffer), "begin-user-action", G_CALLBACK(text_expansion_text_buffer_begin_user_action), NULL);
+//	tab_add_widget_4_retrieval(tab, AUTOCOMPLETE_CHARACTER_HANDLER_ID, (void *) id); //@ hack
+	// we block the autocomplete-character's "insert-text" handler to prevent it from autocompleting our undos's.
+	// autocomplete-character should only complete user-level insertions, but how do we differentiate between user-level and hmm program-level?
 
 	tab_set_unsaved_changes_to(tab, FALSE);
 
-
-	init_undo(tab);
+	/* @ Could just pass in tab-id directly? Performance? */
+	gulong undo_insert_id = g_signal_connect(G_OBJECT(text_buffer), "insert-text", G_CALLBACK(undo_text_buffer_insert_text), tab);
+	gulong undo_delete_id = g_signal_connect(G_OBJECT(text_buffer), "delete-range", G_CALLBACK(undo_text_buffer_delete_range), tab);
 
 	g_signal_connect(G_OBJECT(text_view), "copy-clipboard", G_CALLBACK(text_view_copy_clipboard), NULL);
 	g_signal_connect(G_OBJECT(text_view), "cut-clipboard", G_CALLBACK(text_view_cut_clipboard), NULL);
@@ -1377,6 +1394,25 @@ GtkWidget *create_tab(const char *file_name)
 
 	g_signal_connect(G_OBJECT(text_buffer), "changed", G_CALLBACK(text_buffer_changed), NULL);
 	//g_signal_connect_after(G_OBJECT(text_buffer), "changed", G_CALLBACK(text_buffer_changed_after), NULL);
+
+	MultiCursor_Init(text_buffer, settings);
+	g_signal_connect(text_view, "button-press-event", G_CALLBACK(MultiCursor_TextView_ButtonPress), text_buffer);
+	gulong multicursor_insert_id = g_signal_connect_after(text_buffer, "insert-text", G_CALLBACK(MultiCursor_TextBuffer_InsertText), NULL);
+	gulong multicursor_delete_id = g_signal_connect(text_buffer, "delete-range", G_CALLBACK(MultiCursor_TextBuffer_DeleteRange), NULL);
+
+	gulong insert_handlers[] = {
+		undo_insert_id,
+		multicursor_insert_id,
+		text_expansion_insert_id
+	};
+	gulong delete_handlers[] = {
+		undo_delete_id,
+		multicursor_delete_id
+	};
+	int insert_handlers_count = sizeof(insert_handlers) / sizeof(gulong);
+	int delete_handlers_count = sizeof(delete_handlers) / sizeof(gulong);
+//	printf("insert_handlers_count: %d, delete_handlers_count: %d\n", insert_handlers_count, delete_handlers_count);
+	undo_init(insert_handlers, insert_handlers_count, delete_handlers, delete_handlers_count, tab_info->id);
 
 	// I think it makes sense to do this as the very last thing,
 	// because, in theory, update_settings(), which iterates over these tabs,
@@ -1459,7 +1495,7 @@ gboolean on_app_window_key_press(GtkWidget *window, GdkEvent *event, gpointer us
 	#define NO_MODIFIERS 0x2000000 // Value of key_event->state if no (known) modifiers are set.
 
 	GdkEventKey *key_event = (GdkEventKey *) event;
-	printf("on_app_window_key_press(): hardware keycode: %d\n", key_event->hardware_keycode);
+//	printf("on_app_window_key_press(): hardware keycode: %d\n", key_event->hardware_keycode);
 
 	unsigned short int modifiers = 0;
 	if(key_event->state & GDK_CONTROL_MASK) {
@@ -2194,8 +2230,7 @@ Cant call set_root_dir() here because it expects file-browser and root-navigatio
 If we used some kind of event/signal-thing, which allows abstractions to register callbacks to be executed in response to events like "root-directory-change" we wouldnt have to worry about that. Because then the code that individual-abstractions need to run would be provided by them in the form of callbacks and wouldnt be hardcoded into set_root_dir function.
 */
 
-	char *home_dir = getenv("HOME");
-	assert(home_dir);
+	char *home_dir = getenv("HOME"); assert(home_dir);
 	//printf("home directory: %s\n", home_dir);
 	snprintf(root_dir, ROOT_DIR_SIZE, "%s", home_dir);
 
@@ -2377,6 +2412,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 	g_signal_connect(app_window, "key-press-event",
 						G_CALLBACK(on_app_window_key_press), NULL);
+
 /*
 	// thats a double-click:
 	g_signal_connect(app_window, "button-press-event",
@@ -2390,6 +2426,11 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	//gtk_paned_add2(GTK_PANED(paned), notebook);
 	gtk_paned_add2(GTK_PANED(paned), nb_container);
 	gtk_container_add(GTK_CONTAINER(app_window), paned);
+
+	g_signal_connect(app_window, "key-press-event",
+		G_CALLBACK(MultiCursor_ApplicationWindow_KeyPress), NULL);
+	g_signal_connect(app_window, "key-release-event",
+		G_CALLBACK(MultiCursor_ApplicationWindow_KeyRelease), NULL);
 
 	gtk_widget_show_all(app_window);
 

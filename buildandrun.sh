@@ -1,3 +1,4 @@
+#	-Wall -Wextra\
 g++ -g\
 	-Wno-deprecated-declarations\
 	main.cpp\
@@ -15,8 +16,9 @@ g++ -g\
 	autocomplete-identifier.cpp\
 	root-navigation.cpp\
 	open.cpp\
-	autocomplete-character.cpp\
+	text-expansion.cpp\
 	hotloader.cpp\
 	tests.cpp\
+	multi-cursor-ability.cpp\
 	lib.cpp\
 	$(pkg-config --cflags gtk+-3.0) $(pkg-config --libs gtk+-3.0) && ./a.out

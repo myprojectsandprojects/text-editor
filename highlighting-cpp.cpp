@@ -465,8 +465,12 @@ void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *location) {
 //	long before, after;
 //	before = get_time_us();
 	while (!gtk_text_iter_is_end(&i)) {
-		for (gunichar c = gtk_text_iter_get_char(&i);
-			isspace(c); gtk_text_iter_forward_char(&i), c = gtk_text_iter_get_char(&i));
+		for
+		(
+			gunichar c = gtk_text_iter_get_char(&i);
+			isspace(c);
+			gtk_text_iter_forward_char(&i), c = gtk_text_iter_get_char(&i)
+		);
 //		printf("first non-whitespace index: %d\n", gtk_text_iter_get_offset(&i)); // offset jumps from 0 immediately to 2???
 //		printf("first non-whitespace character: %lc\n", c);
 //		break;

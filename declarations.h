@@ -45,7 +45,7 @@ void *visible_tab_retrieve_widget(GtkNotebook *notebook, enum WidgetName widget_
 GtkWidget *get_visible_tab(GtkNotebook *notebook);
 
 struct TabInfo {
-	unsigned id;
+	unsigned int id;
 	const char *file_name; // NULL if no file associated with the tab.
 	const char *title;
 	gboolean unsaved_changes;
@@ -216,7 +216,9 @@ int parse_str(const char *str2parse,
 #define DO_NOTHING 3
 
 /* undo.cpp: */
-void init_undo(GtkWidget *tab);
+void undo_init(gulong insert_handlers[], int insert_handlers_count, gulong *delete_handlers, int delete_handlers_count, unsigned int tab_id);
+void undo_text_buffer_insert_text(GtkTextBuffer *text_buffer, GtkTextIter *location, char *inserted_text, int length, gpointer data);
+void undo_text_buffer_delete_range(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end, gpointer data);
 void actually_undo_last_action(GtkWidget *tab);
 
 /* highlighting.cpp: */
@@ -305,7 +307,11 @@ GtkWidget *create_openfile_widget(void);
 gboolean display_openfile_dialog(GdkEventKey *key_event);
 
 /* autocomplete-character.cpp */
-void init_autocomplete_character(GtkTextBuffer *text_buffer, Node *settings, GtkWidget *tab);
+//void init_autocomplete_character(GtkTextBuffer *text_buffer, Node *settings, GtkWidget *tab);
+void text_expansion_init(GtkTextBuffer *text_buffer, Node *settings, GtkWidget *tab);
+void text_expansion_text_buffer_begin_user_action(GtkTextBuffer *text_buffer, gpointer data);
+void text_expansion_text_buffer_delete_range(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end, gpointer data);
+void text_expansion_text_buffer_insert_text(GtkTextBuffer *text_buffer, GtkTextIter *location, char *inserted_text, int length, gpointer data);
 
 /* tests.cpp */
 void test_table(void);
@@ -316,6 +322,17 @@ int test_case_parse_str(const char *str2parse,
 	const char *expected_replace_with_str);
 void test_parse_str(void);
 void test_get_word_with_allocate(void);
+
+
+/* multi-cursor-ability.cpp*/
+gboolean MultiCursor_ApplicationWindow_KeyPress(GtkWidget *self, GdkEventKey *event, gpointer user_data);
+gboolean MultiCursor_ApplicationWindow_KeyRelease(GtkWidget *self, GdkEventKey *event, gpointer user_data);
+gboolean MultiCursor_TextView_ButtonPress(GtkWidget *self, GdkEventButton *event, gpointer text_buffer);
+void MultiCursor_TextBuffer_InsertText(GtkTextBuffer *Self, /*const*/ GtkTextIter *Location, gchar *Text, gint Len, gpointer UserData);
+void MultiCursor_TextBuffer_DeleteRange(GtkTextBuffer *Self, /*const*/ GtkTextIter *Start, /*const*/ GtkTextIter *End, gpointer UserData);
+void MultiCursor_Init(GtkTextBuffer *text_buffer, Node *settings);
+void MultiCursor_AddTextTags(GtkTextBuffer *TextBuffer);
+void MultiCursor_RemoveTextTags(GtkTextBuffer *TextBuffer);
 
 
 //#define PRINT_LOG_MESSAGES
