@@ -261,6 +261,10 @@ maybe sometimes we want a message-box assert?
 * autocomplete character? we could make it into some more general kind of feature that automatically "expands" text under cursor to whatever the user wants to configure it to. and puts the cursor somewhere. just to speed up repetitive typing.
 * think about text-expansion feature. do we really need this begin-user-action business? 
 * ctrl+z (undo) and ctrl+shift+z (redo)
+* double click should select a whole identifier?
+
+- where is a function called?
+- wanna see definition of a struct
 
 Clicking on search results seemed buggy.
 SearchInFiles crashed.

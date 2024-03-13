@@ -61,13 +61,16 @@ struct Node *settings;
 struct CList *tabs; // temp
 
 //@ why is this still not a thing?
-struct Tab {
-	unsigned int id;
+// 'Tab' could be confused with tab-key
+struct MainNotebookPage
+{
+	unsigned long int id;
 	//...
-	GtkTextView *text_view;
+	//GtkTextView *text_view;
 };
-const unsigned int tabs_max = 3;
-Tab per_tab_data[tabs_max];
+
+const int MAIN_NOTEBOOK_PAGES_MAX = 16;
+MainNotebookPage main_notebook_pages[MAIN_NOTEBOOK_PAGES_MAX];
 // currently we have (at least) 4 different ways of bookkeeping per tab data
 // - TabInfo
 // - tab_add_widget_4_retrieval()
@@ -1230,15 +1233,14 @@ void scope_highlighting_init(GtkWidget *tab, const char *color)
 
 GtkWidget *create_tab(const char *file_name)
 {
-	static unsigned int count = 1;
-	GtkWidget *tab, *scrolled_window;
+	static unsigned int count = 1;//@ why not from 0? invalid tab id?
 	char *tab_title;
 	gchar *contents, *base_name;
 	//GFile *file;
 
 	LOG_MSG("%s()\n", __FUNCTION__);
 
-	tab = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	GtkWidget *tab = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	//gtk_widget_set_hexpand(tab, TRUE);
 
 	struct TabInfo *tab_info;
@@ -1257,7 +1259,7 @@ GtkWidget *create_tab(const char *file_name)
 	count += 1;
 	g_object_set_data(G_OBJECT(tab), "tab-info", tab_info);
 
-	scrolled_window = gtk_scrolled_window_new(NULL, NULL);
+	GtkWidget *scrolled_window = gtk_scrolled_window_new(NULL, NULL);
 	//gtk_style_context_add_class (gtk_widget_get_style_context(scrolled_window), "scrolled-window");
 	gtk_widget_set_vexpand(scrolled_window, TRUE);
 
@@ -1680,7 +1682,7 @@ void on_notebook_switch_page(GtkNotebook *notebook, GtkWidget *tab, guint page_n
 
 gboolean create_empty_tab(GdkEventKey *key_event)
 {
-	create_tab(NULL);
+	create_tab();
 	return TRUE;
 }
 
@@ -2433,16 +2435,11 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	gtk_paned_add2(GTK_PANED(paned), nb_container);
 	gtk_container_add(GTK_CONTAINER(app_window), paned);
 
-	g_signal_connect(app_window, "key-press-event",
-		G_CALLBACK(MultiCursor_ApplicationWindow_KeyPress), NULL);
-	g_signal_connect(app_window, "key-release-event",
-		G_CALLBACK(MultiCursor_ApplicationWindow_KeyRelease), NULL);
-
 	gtk_widget_show_all(app_window);
 
 	gtk_widget_hide(sidebar_container); // let's make sidebar hidden at startup
 
-	create_tab(NULL); // re-factor: create_tab() could just create the tab widget, it doesnt have to depend on the notebook at all (?)
+	create_tab(); // re-factor: create_tab() could just create the tab widget, it doesnt have to depend on the notebook at all (?)
 
 /*
 	for (int i = 0; i < 90; ++i) {

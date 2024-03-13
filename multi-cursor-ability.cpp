@@ -21,39 +21,6 @@ possible cursor positions:
 
 #include "declarations.h"
 
-static bool LeftControlDown = false;
-
-//static bool IsPreviousCursorPos = false;
-//static GtkTextIter PreviousCursorPos;
-
-//static bool AreHandlersRegistered = false;
-
-gboolean MultiCursor_ApplicationWindow_KeyPress(GtkWidget *self, GdkEventKey *event, gpointer user_data)
-{
-//	fprintf(stderr, "%s\n", __FUNCTION__);
-
-//	printf("%u\n", event->hardware_keycode);
-//	printf("%u, %u\n", event->keyval, GDK_KEY_Control_L);
-	if(event->keyval == GDK_KEY_Control_L)
-	{
-		LeftControlDown = true;
-	}
-
-	return FALSE;
-}
-
-gboolean MultiCursor_ApplicationWindow_KeyRelease(GtkWidget *self, GdkEventKey *event, gpointer user_data)
-{
-//	fprintf(stderr, "%s\n", __FUNCTION__);
-
-	if(event->keyval == GDK_KEY_Control_L)
-	{
-		LeftControlDown = false;
-	}
-
-	return FALSE;
-}
-
 //@ multiple tabs
 static const int ExtraCursorsMax = 4;
 static GtkTextMark *ExtraCursors[ExtraCursorsMax];
@@ -82,10 +49,12 @@ void MultiCursor_AddTextTags(GtkTextBuffer *TextBuffer)
 gboolean MultiCursor_TextView_ButtonPress(GtkWidget *self, GdkEventButton *event, gpointer text_buffer)
 {
 	printf("button (%u) press!\n", event->button);
+	bool ControlDown = (event->state & GDK_CONTROL_MASK);
+//	printf("%d\n", ControlDown);
 
 	if(event->button == 1)
 	{
-		if(LeftControlDown)
+		if(ControlDown)
 		{
 			if(ExtraCursorsIndex < ExtraCursorsMax)
 			{

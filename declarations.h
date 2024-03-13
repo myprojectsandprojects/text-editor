@@ -183,7 +183,7 @@ const char *settings_get_value(Node *settings, const char *path);
 //void display_error(const char *primary_message, const char *secondary_message);
 void add_menu_item(GtkMenu *menu, const char *label, GCallback callback, gpointer data);
 void refresh_application_title(void);
-GtkWidget *create_tab(const char *file_name);
+GtkWidget *create_tab(const char *file_name = NULL);
 void set_root_dir(const char *path);
 void add_class(GtkWidget *widget, const char *class_name);
 void remove_class(GtkWidget *widget, const char *class_name);
@@ -325,8 +325,6 @@ void test_get_word_with_allocate(void);
 
 
 /* multi-cursor-ability.cpp*/
-gboolean MultiCursor_ApplicationWindow_KeyPress(GtkWidget *self, GdkEventKey *event, gpointer user_data);
-gboolean MultiCursor_ApplicationWindow_KeyRelease(GtkWidget *self, GdkEventKey *event, gpointer user_data);
 gboolean MultiCursor_TextView_ButtonPress(GtkWidget *self, GdkEventButton *event, gpointer text_buffer);
 void MultiCursor_TextBuffer_InsertText(GtkTextBuffer *Self, /*const*/ GtkTextIter *Location, gchar *Text, gint Len, gpointer UserData);
 void MultiCursor_TextBuffer_DeleteRange(GtkTextBuffer *Self, /*const*/ GtkTextIter *Start, /*const*/ GtkTextIter *End, gpointer UserData);
