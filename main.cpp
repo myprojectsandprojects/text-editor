@@ -736,7 +736,7 @@ void on_adjustment_value_changed(GtkAdjustment *adj, gpointer user_data)
 //@ should inform the user and/or use default values
 void configure_text_view(GtkTextView *text_view, struct Node *settings)
 {
-	LOG_MSG("configure_text_view()\n");
+	LOG_MSG("%s()\n", __FUNCTION__);
 
 //	gtk_text_view_set_cursor_visible(text_view, FALSE);
 
@@ -750,6 +750,12 @@ void configure_text_view(GtkTextView *text_view, struct Node *settings)
 		const char *value_str = settings_get_value(settings, "pixels-below-lines");
 		assert(value_str);
 		gtk_text_view_set_pixels_below_lines(text_view, atoi(value_str));
+	}
+
+	{
+		const char *value_str = settings_get_value(settings, "pixels-inside-wrap");
+		assert(value_str);
+		gtk_text_view_set_pixels_inside_wrap(text_view, atoi(value_str));
 	}
 
 	{

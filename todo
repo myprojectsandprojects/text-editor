@@ -260,8 +260,8 @@ ctrl +/ctrl - to change text size easily
 maybe sometimes we want a message-box assert?
 * autocomplete character? we could make it into some more general kind of feature that automatically "expands" text under cursor to whatever the user wants to configure it to. and puts the cursor somewhere. just to speed up repetitive typing.
 * think about text-expansion feature. do we really need this begin-user-action business? 
+* ctrl+z (undo) and ctrl+shift+z (redo)
 
-* undoing delete-key deletion, when multicursoring, doesnt put the cursor at the right position(?). also text-tags somehow disappear. yeah, undo is totally broken (segfault).
 Clicking on search results seemed buggy.
 SearchInFiles crashed.
 

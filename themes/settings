@@ -18,6 +18,7 @@ pixels-below-lines {1}
 */
 pixels-above-lines {0}
 pixels-below-lines {0}
+pixels-inside-wrap {0}
 
 search-replace {}
 
