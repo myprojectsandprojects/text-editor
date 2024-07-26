@@ -67,7 +67,12 @@ void highlighting_init(GtkWidget *tab, Node *settings){
 //				continue;
 //			}
 
-			g_object_set(G_OBJECT(gtk_text_tag), attribute_name->name, attribute_value->name, NULL);
+			if(strcmp(attribute_name->name, "weight") == 0) {
+				int num_value = atoi(attribute_value->name);
+				g_object_set(G_OBJECT(gtk_text_tag), attribute_name->name, num_value, NULL);
+			} else {
+				g_object_set(G_OBJECT(gtk_text_tag), attribute_name->name, attribute_value->name, NULL);
+			}
 		}
 	}
 

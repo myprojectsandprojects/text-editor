@@ -52,7 +52,6 @@ text-tags
 	identifier
 	{
 		foreground{black}
-		/*weight{bold}*/
 	}
 	keyword
 	{
@@ -67,7 +66,7 @@ text-tags
 	{
 		/*foreground{brown}*/
 		foreground{#990000}
-		/*weight{bold}*/
+		weight{900}
 	}
 	string
 	{
@@ -83,6 +82,7 @@ text-tags
 	{
 		/*foreground{black}*/
 		foreground{#999999}
+		weight{900}
 	}
 	preprocessor
 	{
