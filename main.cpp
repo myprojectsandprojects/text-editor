@@ -2345,6 +2345,11 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(CTRL, 44, less_fancy_toggle_notebook); // ctrl + j
 
 
+	// Overwrite global settings:
+	GtkSettings *gtk_settings = gtk_settings_get_default();
+	g_object_set(gtk_settings, "gtk-cursor-blink", FALSE, NULL);
+
+
 	//@ Different GTK versions require different CSS. Themes I wrote for 3.18.9 do not work on 3.24.34 and 3.24.43. So what should we do here?
 	
 	settings = parse_settings_file(settings_file_path);
