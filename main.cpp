@@ -2356,8 +2356,10 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 		css_file_used = "themes/style-3.24.34.css";
 	} else if(gtk_version_major == 3 && gtk_version_minor == 24 && gtk_version_micro == 43) {
 		css_file_used = "themes/style-3.24.43.css";
+	} else {
+		css_file_used = "themes/style-3.24.43.css";
 	}
-	assert(css_file_used != NULL); // We dont have CSS for the version of GTK in use!
+//	assert(css_file_used != NULL); // We dont have CSS for the version of GTK in use!
 
 	apply_css_from_file((void *)css_file_used);
 	hotloader_register_callback(css_file_used, apply_css_from_file, (void *)css_file_used);
