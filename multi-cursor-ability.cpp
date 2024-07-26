@@ -224,7 +224,8 @@ void MultiCursor_TextBuffer_DeleteRange(GtkTextBuffer *Self, /*const*/ GtkTextIt
 
 void MultiCursor_Init(GtkTextBuffer *text_buffer, Node *settings)
 {
-	fprintf(stderr, "%s\n", __FUNCTION__);
+//	fprintf(stderr, "%s\n", __FUNCTION__);
+	LOG_MSG("NEW: %s\n", __FUNCTION__);
 
 	const char *color_str = settings_get_value(settings, "extra-cursor/color");
 	assert(color_str);

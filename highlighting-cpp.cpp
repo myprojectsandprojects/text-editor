@@ -540,9 +540,9 @@ void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *location) {
 		Token *last = &(tokens.data[tokens.count-1]);
 		gtk_text_buffer_remove_all_tags(text_buffer, &first->start, &last->end);
 
-		char *text = gtk_text_buffer_get_text(text_buffer, &(first->start), &(last->end), FALSE);
-		printf("highlighted range:\n---\n%s\n---\n", text);
-		free(text);
+//		char *text = gtk_text_buffer_get_text(text_buffer, &(first->start), &(last->end), FALSE);
+//		printf("highlighted range:\n---\n%s\n---\n", text);
+//		free(text);
 	}
 //	after = get_time_us();
 //	printf("ELAPSED ON REMOVING TAGS: %ld\n", after - before);

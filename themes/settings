@@ -12,8 +12,8 @@ new stuff easily configurable in here. */
 wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
 left-margin {10}
 search-case-sensitivity {true}
-pixels-above-lines {1}
-pixels-below-lines {1}
+pixels-above-lines {0}
+pixels-below-lines {0}
 pixels-inside-wrap {0}
 
 search-replace {}
@@ -66,7 +66,7 @@ text-tags
 	{
 		/*foreground{brown}*/
 		foreground{#990000}
-		weight{900}
+		/*weight{900}*/
 	}
 	string
 	{
@@ -82,7 +82,7 @@ text-tags
 	{
 		/*foreground{black}*/
 		foreground{#999999}
-		weight{900}
+		/*weight{900}*/
 	}
 	preprocessor
 	{

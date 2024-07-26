@@ -541,7 +541,7 @@ gboolean autocomplete_emacs_style(GdkEventKey *key_event)
 // initializes autocomplete-identifier-feature for a tab
 void autocomplete_identifier_init(GtkWidget *tab, GtkTextBuffer *text_buffer)
 {
-	printf("initialize_identifier_autocompletion()\n");
+	LOG_MSG("initialize_identifier_autocompletion()\n");
 
 	GtkTextIter start, end;
 	gtk_text_buffer_get_bounds(text_buffer, &start, &end);
