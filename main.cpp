@@ -52,8 +52,8 @@ const char *search_icon_path = "themes/icons/search.png";
 const char *settings_file_path = "themes/settings";
 const char *settings_file_path_ifnotheme = "themes/settings-no-theme"; // if we dont style widgets because we are unsure if the GTK version we are currently using supports our style, we take settings from this file.
 //const char *css_file_path = "/home/eero/all/text-editor/themes/style.css";
-const char *css_file_path = "themes/style-3.18.9.css";
-bool use_theme = false;
+//const char *css_file_path = "themes/style-3.18.9.css";
+//bool use_theme = false;
 
 struct Node *settings;
 
@@ -2345,21 +2345,22 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(CTRL, 44, less_fancy_toggle_notebook); // ctrl + j
 
 
-	// other GTK versions might brake our theme
-	if (gtk_version_major == 3 && gtk_version_minor == 18 && gtk_version_micro == 9) {
-		settings = parse_settings_file(settings_file_path);
-
-		apply_css_from_file((void *)css_file_path);
-		hotloader_register_callback(css_file_path, apply_css_from_file, (void *)css_file_path);
-	} else {
-		settings = parse_settings_file(settings_file_path_ifnotheme);
-
-		if (gtk_version_major == 3 && gtk_version_minor == 24 && gtk_version_micro == 34) {
-			const char *x = "themes/style-3.24.34.css";
-			apply_css_from_file((void *)x);
-			hotloader_register_callback(x, apply_css_from_file, (void *)x);
-		}
+	//@ Different GTK versions require different CSS. Themes I wrote for 3.18.9 do not work on 3.24.34 and 3.24.43. So what should we do here?
+	
+	settings = parse_settings_file(settings_file_path);
+	
+	const char *css_file_used = NULL;
+	if(gtk_version_major == 3 && gtk_version_minor == 18 && gtk_version_micro == 9) {
+		css_file_used = "themes/style-3.18.9.css";
+	} else if(gtk_version_major == 3 && gtk_version_minor == 24 && gtk_version_micro == 34) {
+		css_file_used = "themes/style-3.24.34.css";
+	} else if(gtk_version_major == 3 && gtk_version_minor == 24 && gtk_version_micro == 43) {
+		css_file_used = "themes/style-3.24.43.css";
 	}
+	assert(css_file_used != NULL); // We dont have CSS for the version of GTK in use!
+
+	apply_css_from_file((void *)css_file_used);
+	hotloader_register_callback(css_file_used, apply_css_from_file, (void *)css_file_used);
 
 //	hotloader_register_callback(settings_file_path, update_settings, NULL);
 

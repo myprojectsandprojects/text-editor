@@ -1,6 +1,7 @@
 .text-view {
 	font-family: Liberation Mono;
+	/*font-family: DejavuSansM Nerd Font;*/
 	font-size: 15px;
-	font-weight: regular;
+	/*font-weight: Regular;*/
 	background-color: rgb(0,0,0);
 }
