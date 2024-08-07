@@ -1,0 +1,10 @@
+
+- ctrl + left/right
+- Double-click should select a whole identifier
+- Triple-click should select a line (even when a line is wrapped!)
+
+---
+Get rid of numpad keybindings
+---
+Did I brake bold font support for 3.18?
+---

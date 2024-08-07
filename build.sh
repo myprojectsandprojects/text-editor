@@ -1,6 +1,7 @@
 #	-Wall -Wextra\
+#g++ -O1\
 #g++ -g\
-g++ -O1\
+g++\
 	-Wno-deprecated-declarations\
 	main.cpp\
 	tab.cpp\

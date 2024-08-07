@@ -824,6 +824,8 @@ static void set_highlighting_based_on_file_extension(GtkWidget *tab, Node *setti
 }
 
 void line_highlighting_on_text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data){
+	long t1 = get_time_us();
+
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
 
 	GtkTextIter cursor_pos;
@@ -841,6 +843,9 @@ void line_highlighting_on_text_buffer_cursor_position_changed(GObject *object, G
 	gtk_text_buffer_remove_tag_by_name(text_buffer, "line-highlighting", &start_buffer, &end_buffer);
 
 	gtk_text_buffer_apply_tag_by_name(text_buffer, "line-highlighting", &start_line, &end_line);
+
+	long t2 = get_time_us();
+	printf("line higlighting took: %ldus\n", t2 - t1);
 }
 
 void line_highlighting_init(GtkTextBuffer *text_buffer, const char *color){
@@ -848,23 +853,17 @@ void line_highlighting_init(GtkTextBuffer *text_buffer, const char *color){
 
 	assert(color);
 
-	gtk_text_buffer_create_tag(text_buffer,
-		"line-highlighting",
-		"paragraph-background", color,
-		NULL);
+	gtk_text_buffer_create_tag(text_buffer, "line-highlighting", "paragraph-background", color, NULL);
 
-	g_signal_connect(text_buffer,
-		"notify::cursor-position",
-		G_CALLBACK(line_highlighting_on_text_buffer_cursor_position_changed),
-		NULL);
+	g_signal_connect(text_buffer, "notify::cursor-position",	G_CALLBACK(line_highlighting_on_text_buffer_cursor_position_changed),	NULL);
 }
 
 //@ also comments probably
 bool is_inside_literal(GtkTextIter *iter)
 {
 	bool result = false;
+
 	GSList *text_tags = gtk_text_iter_get_tags(iter);
-	GSList *p = text_tags;
 	for(GSList *p = text_tags; p != NULL; p = p->next)
 	{
 		GtkTextTag *text_tag = (GtkTextTag *) p->data;
@@ -1053,6 +1052,8 @@ bool is_inside_literal(GtkTextIter *iter)
 
 void matching_char_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
 {
+	long t1 = get_time_us();
+
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
 	
 	GtkTextIter start_buffer, end_buffer;
@@ -1128,10 +1129,15 @@ void matching_char_highlighting_on_cursor_position_changed(GObject *object, GPar
 			}
 		}
 	}
+
+	long t2 = get_time_us();
+	printf("matching char higlighting took: %ldus\n", t2 - t1);
 }
 
 void scope_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
 {
+	long t1 = get_time_us();
+
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
 	
 	GtkTextIter start_buffer, end_buffer;
@@ -1206,29 +1212,35 @@ void scope_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *
 			}
 		}
 	}
+
+	long t2 = get_time_us();
+	printf("scope higlighting took: %ldus\n", t2 - t1);
 }
 
 void matching_char_highlighting_init(GtkWidget *tab, const char *color_str)
 {
 	GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
-//	gtk_text_buffer_create_tag(text_buffer, "matching-char-highlighting", "background", color, NULL);
+	gtk_text_buffer_create_tag(text_buffer, "matching-char-highlighting", "background", color_str, NULL);
+	g_signal_connect(text_buffer, "notify::cursor-position", G_CALLBACK(matching_char_highlighting_on_cursor_position_changed), tab);
 
-	GdkRGBA color;
-	if(gdk_rgba_parse(&color, color_str) == TRUE) {
-		gtk_text_buffer_create_tag(text_buffer, "matching-char-highlighting", "underline", PANGO_UNDERLINE_SINGLE, "underline-rgba", &color, NULL);
-		g_signal_connect(text_buffer, "notify::cursor-position",
-			G_CALLBACK(matching_char_highlighting_on_cursor_position_changed), tab);
-	} else {
-		fprintf(stderr, "error: failed to initialize matching-char-highlighting feature for a tab: failed to parse color: \"%s\"\n", color_str);
-	}
+/*
+gtk_text_buffer_remove_tag_by_name() call is much slower if we create the tag this way:
+*/
+//	GdkRGBA color;
+//	if(gdk_rgba_parse(&color, color_str) == TRUE) {
+//		gtk_text_buffer_create_tag(text_buffer, "matching-char-highlighting", "underline", PANGO_UNDERLINE_SINGLE, "underline-rgba", &color, NULL);
+//		g_signal_connect(text_buffer, "notify::cursor-position",
+//			G_CALLBACK(matching_char_highlighting_on_cursor_position_changed), tab);
+//	} else {
+//		fprintf(stderr, "error: failed to initialize matching-char-highlighting feature for a tab: failed to parse color: \"%s\"\n", color_str);
+//	}
 }
 
 void scope_highlighting_init(GtkWidget *tab, const char *color)
 {
 	GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
 	gtk_text_buffer_create_tag(text_buffer, "scope-highlighting", "paragraph-background", color, NULL);
-	g_signal_connect(text_buffer, "notify::cursor-position",
-		G_CALLBACK(scope_highlighting_on_cursor_position_changed), tab);
+	g_signal_connect(text_buffer, "notify::cursor-position", G_CALLBACK(scope_highlighting_on_cursor_position_changed), tab);
 }
 
 GtkWidget *create_tab(const char *file_name)
@@ -1335,10 +1347,9 @@ GtkWidget *create_tab(const char *file_name)
 	int page = gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, NULL);
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page);
 
-//	select_highlighting_based_on_file_extension(tab, settings, file_name);
-//
-//	// if the value is set in settings, we should do line highlighting, otherwise not
-//	highlighting_current_line_enable_or_disable(settings, text_buffer);
+	/*
+	If we combined line highlighting, '{}' highlighting and '()' highlighting into one callback, we would be more efficient, but I tested performance while all of them turned off, and honestly, the win would be insignificant. So I am too lazy to do that.
+	*/
 	{
 		const char *value = settings_get_value(settings, "line-highlighting/color");
 
@@ -1349,22 +1360,20 @@ GtkWidget *create_tab(const char *file_name)
 			line_highlighting_init(text_buffer, "black");
 		}
 	}
-	
-//	matching_parenthesis_highlighting_init(text_buffer, tab);
-	{
-		const char *value = settings_get_value(settings, "matching-char-highlighting/color");
-		if (value) {
-			matching_char_highlighting_init(tab, value);
-		} else {
-			ERROR("Setting \"matching-char-highlighting/color\" doesnt seem to be set in the settings file!)")
-		}
-	}
 	{
 		const char *value = settings_get_value(settings, "scope-highlighting/color");
 		if (value) {
 			scope_highlighting_init(tab, value);
 		} else {
 			ERROR("Setting \"scope-highlighting/color\" doesnt seem to be set in the settings file!")
+		}
+	}
+	{
+		const char *value = settings_get_value(settings, "matching-char-highlighting/color");
+		if (value) {
+			matching_char_highlighting_init(tab, value);
+		} else {
+			ERROR("Setting \"matching-char-highlighting/color\" doesnt seem to be set in the settings file!)")
 		}
 	}
 
@@ -2348,6 +2357,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	// Overwrite global settings:
 	GtkSettings *gtk_settings = gtk_settings_get_default();
 	g_object_set(gtk_settings, "gtk-cursor-blink", FALSE, NULL);
+	g_object_set(gtk_settings, "gtk-cursor-aspect-ratio", 0.07, NULL); // default: 0.040000
 
 
 	//@ Different GTK versions require different CSS. Themes I wrote for 3.18.9 do not work on 3.24.34 and 3.24.43. So what should we do here?
