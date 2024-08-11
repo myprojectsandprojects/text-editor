@@ -15,8 +15,7 @@ static gboolean init(GtkTextView **pview, GtkTextBuffer **pbuffer)
 	GtkTextView *view;
 	GtkTextBuffer *buffer; 
 
-	view = GTK_TEXT_VIEW(
-		visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
+	view = GTK_TEXT_VIEW(visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_VIEW));
 
 	if (view == NULL) {
 		LOG_MSG("init(): no tabs open -> exiting\n");
@@ -1542,213 +1541,45 @@ gboolean move_cursor_closing(GdkEventKey *key_event)
 //	return TRUE;
 //}
 
-gboolean cursor_short_jump_left(GdkEventKey *key_event) {
-	printf("cursor_short_jump_left()\n");
-
-	GtkTextView *text_view;
-	GtkTextBuffer *text_buffer;
-	if (!init(&text_view, &text_buffer)) return FALSE;
-
-	GtkTextIter iter;
-	get_cursor_position(text_buffer, NULL, &iter, NULL);
-
-	GtkTextIter cursor_pos = iter;
-
-	gtk_text_iter_backward_char(&iter);
-	gunichar ch = gtk_text_iter_get_char(&iter);
-
-	if (g_unichar_isalpha(ch) && g_unichar_islower(ch))
-	{
-		// lowercase alpha
-		do {
-			if (!gtk_text_iter_backward_char(&iter)) break;
-			ch = gtk_text_iter_get_char(&iter);
-		} while (g_unichar_isalpha(ch) && g_unichar_islower(ch));
-	}
-	else if (g_unichar_isalpha(ch) && g_unichar_isupper(ch))
-	{
-		// uppercase alpha
-		do {
-			if (!gtk_text_iter_backward_char(&iter)) break;
-			ch = gtk_text_iter_get_char(&iter);
-		} while (g_unichar_isalpha(ch) && g_unichar_isupper(ch));
-	}
-	else if (g_unichar_isdigit(ch))
-	{
-		// digit
-		do {
-			if (!gtk_text_iter_backward_char(&iter)) break;
-			ch = gtk_text_iter_get_char(&iter);
-		} while (g_unichar_isdigit(ch));
-	}
-	else if (g_unichar_ispunct(ch))
-	{
-		// punctuation
-		do {
-			if (!gtk_text_iter_backward_char(&iter)) break;
-			ch = gtk_text_iter_get_char(&iter);
-		} while (g_unichar_ispunct(ch));
-	}
-	else if (g_unichar_isspace(ch))
-	{
-		// whitespace
-		do {
-			if (!gtk_text_iter_backward_char(&iter)) break;
-			ch = gtk_text_iter_get_char(&iter);
-		} while (g_unichar_isspace(ch));
-	}
-	else
-	{
-		// everything else?
-	}
-
-	//@ this is not quite correct
-	if (!gtk_text_iter_is_start(&iter))
-		gtk_text_iter_forward_char(&iter);
-
-	if (key_event->state & GDK_SHIFT_MASK) {
-		// Check if we already have a selection.
-		// If so, then add to the existing selection
-		GtkTextIter sel_start, sel_end, new_sel_bound;
-		if (gtk_text_buffer_get_selection_bounds(text_buffer, &sel_start, &sel_end)) {
-			if (gtk_text_iter_compare(&sel_start, &cursor_pos) == 0) {
-				// sel_start is where the cursor is
-				new_sel_bound = sel_end;
-			} else {
-				// sel_end is where the cursor is
-				new_sel_bound = sel_start;
-			}
-		} else {
-			new_sel_bound = cursor_pos;
-		}
-		// 1st insertion, 2nd selection-bound
-		gtk_text_buffer_select_range(text_buffer, &iter, &new_sel_bound);
-	} else {
-		gtk_text_buffer_place_cursor(text_buffer, &iter);
-	}
-
-	// if the cursor has moved outside the visible region, then scroll
-	gtk_text_view_scroll_to_iter(text_view, &iter, 0.0, FALSE, 0.0, 0.0);
-
-	return TRUE;
-}
-
-gboolean cursor_short_jump_right(GdkEventKey *key_event) {
-	printf("cursor_short_jump_right()\n");
-
-	GtkTextView *text_view;
-	GtkTextBuffer *text_buffer;
-	if (!init(&text_view, &text_buffer)) return FALSE;
-
-	GtkTextIter iter;
-	get_cursor_position(text_buffer, NULL, &iter, NULL);
-
-	GtkTextIter cursor_pos = iter;
-
-	gunichar ch = gtk_text_iter_get_char(&iter);
-
-	if (g_unichar_isalpha(ch) && g_unichar_islower(ch))
-	{
-		// lowercase alpha
-		do {
-			if (!gtk_text_iter_forward_char(&iter)) break;
-			ch = gtk_text_iter_get_char(&iter);
-		} while (g_unichar_isalpha(ch) && g_unichar_islower(ch));
-	}
-	else if (g_unichar_isalpha(ch) && g_unichar_isupper(ch))
-	{
-		// uppercase alpha
-		do {
-			if (!gtk_text_iter_forward_char(&iter)) break;
-			ch = gtk_text_iter_get_char(&iter);
-		} while (g_unichar_isalpha(ch) && g_unichar_isupper(ch));
-	}
-	else if (g_unichar_isdigit(ch))
-	{
-		// digit
-		do {
-			if (!gtk_text_iter_forward_char(&iter)) break;
-			ch = gtk_text_iter_get_char(&iter);
-		} while (g_unichar_isdigit(ch));
-	}
-	else if (g_unichar_ispunct(ch))
-	{
-		// punctuation
-		do {
-			if (!gtk_text_iter_forward_char(&iter)) break;
-			ch = gtk_text_iter_get_char(&iter);
-		} while (g_unichar_ispunct(ch));
-	}
-	else if (g_unichar_isspace(ch))
-	{
-		// whitespace
-		do {
-			if (!gtk_text_iter_forward_char(&iter)) break;
-			ch = gtk_text_iter_get_char(&iter);
-		} while (g_unichar_isspace(ch));
-	}
-	else
-	{
-		// everything else?
-	}
-
-//	if (!gtk_text_iter_is_start(&iter))
-//		gtk_text_iter_forward_char(&iter);
-
-	if (key_event->state & GDK_SHIFT_MASK) {
-		// Check if we already have a selection.
-		// If so, then add to the existing selection
-		GtkTextIter sel_start, sel_end, new_sel_bound;
-		if (gtk_text_buffer_get_selection_bounds(text_buffer, &sel_start, &sel_end)) {
-			if (gtk_text_iter_compare(&sel_start, &cursor_pos) == 0) {
-				// sel_start is where the cursor is
-				new_sel_bound = sel_end;
-			} else {
-				// sel_end is where the cursor is
-				new_sel_bound = sel_start;
-			}
-		} else {
-			new_sel_bound = cursor_pos;
-		}
-		// 1st insertion, 2nd selection-bound
-		gtk_text_buffer_select_range(text_buffer, &iter, &new_sel_bound);
-	} else {
-		gtk_text_buffer_place_cursor(text_buffer, &iter);
-	}
-
-	// if the cursor has moved outside the visible region, then scroll
-	gtk_text_view_scroll_to_iter(text_view, &iter, 0.0, FALSE, 0.0, 0.0);
-
-	return TRUE;
-}
-
-gboolean cursor_long_jump_left(GdkEventKey *key_event) {
-	printf("cursor_long_jump_left()\n");
-
-	GtkTextView *text_view;
-	GtkTextBuffer *text_buffer;
-	if (!init(&text_view, &text_buffer)) return FALSE;
-
-	GtkTextIter iter;
-	get_cursor_position(text_buffer, NULL, &iter, NULL);
-
-	GtkTextIter cursor_pos = iter;
-
-	gtk_text_iter_backward_char(&iter);
-	gunichar ch = gtk_text_iter_get_char(&iter);
-
-	if (g_unichar_isalnum(ch) || ch == '_')
-	{
-		do {
-			if (!gtk_text_iter_backward_char(&iter)) break;
-			ch = gtk_text_iter_get_char(&iter);
-		} while (g_unichar_isalnum(ch) || ch == '_');
-	} else {
-		do {
-			if (!gtk_text_iter_backward_char(&iter)) break;
-			ch = gtk_text_iter_get_char(&iter);
-		} while (!(g_unichar_isalnum(ch) || ch == '_'));
-	}
+//gboolean cursor_short_jump_left(GdkEventKey *key_event) {
+//	printf("cursor_short_jump_left()\n");
+//
+//	GtkTextView *text_view;
+//	GtkTextBuffer *text_buffer;
+//	if (!init(&text_view, &text_buffer)) return FALSE;
+//
+//	GtkTextIter iter;
+//	get_cursor_position(text_buffer, NULL, &iter, NULL);
+//
+//	GtkTextIter cursor_pos = iter;
+//
+//	gtk_text_iter_backward_char(&iter);
+//	gunichar ch = gtk_text_iter_get_char(&iter);
+//
+//	if (g_unichar_isalpha(ch) && g_unichar_islower(ch))
+//	{
+//		// lowercase alpha
+//		do {
+//			if (!gtk_text_iter_backward_char(&iter)) break;
+//			ch = gtk_text_iter_get_char(&iter);
+//		} while (g_unichar_isalpha(ch) && g_unichar_islower(ch));
+//	}
+//	else if (g_unichar_isalpha(ch) && g_unichar_isupper(ch))
+//	{
+//		// uppercase alpha
+//		do {
+//			if (!gtk_text_iter_backward_char(&iter)) break;
+//			ch = gtk_text_iter_get_char(&iter);
+//		} while (g_unichar_isalpha(ch) && g_unichar_isupper(ch));
+//	}
+//	else if (g_unichar_isdigit(ch))
+//	{
+//		// digit
+//		do {
+//			if (!gtk_text_iter_backward_char(&iter)) break;
+//			ch = gtk_text_iter_get_char(&iter);
+//		} while (g_unichar_isdigit(ch));
+//	}
 //	else if (g_unichar_ispunct(ch))
 //	{
 //		// punctuation
@@ -1768,99 +1599,328 @@ gboolean cursor_long_jump_left(GdkEventKey *key_event) {
 //	else
 //	{
 //		// everything else?
-//		assert(false);
 //	}
+//
+//	//@ this is not quite correct
+//	if (!gtk_text_iter_is_start(&iter))
+//		gtk_text_iter_forward_char(&iter);
+//
+//	if (key_event->state & GDK_SHIFT_MASK) {
+//		// Check if we already have a selection.
+//		// If so, then add to the existing selection
+//		GtkTextIter sel_start, sel_end, new_sel_bound;
+//		if (gtk_text_buffer_get_selection_bounds(text_buffer, &sel_start, &sel_end)) {
+//			if (gtk_text_iter_compare(&sel_start, &cursor_pos) == 0) {
+//				// sel_start is where the cursor is
+//				new_sel_bound = sel_end;
+//			} else {
+//				// sel_end is where the cursor is
+//				new_sel_bound = sel_start;
+//			}
+//		} else {
+//			new_sel_bound = cursor_pos;
+//		}
+//		// 1st insertion, 2nd selection-bound
+//		gtk_text_buffer_select_range(text_buffer, &iter, &new_sel_bound);
+//	} else {
+//		gtk_text_buffer_place_cursor(text_buffer, &iter);
+//	}
+//
+//	// if the cursor has moved outside the visible region, then scroll
+//	gtk_text_view_scroll_to_iter(text_view, &iter, 0.0, FALSE, 0.0, 0.0);
+//
+//	return TRUE;
+//}
 
-	//@ this is not quite correct
-	if (!gtk_text_iter_is_start(&iter))
-		gtk_text_iter_forward_char(&iter);
-
-	if (key_event->state & GDK_SHIFT_MASK) {
-		// Check if we already have a selection.
-		// If so, then add to the existing selection
-		GtkTextIter sel_start, sel_end, new_sel_bound;
-		if (gtk_text_buffer_get_selection_bounds(text_buffer, &sel_start, &sel_end)) {
-			if (gtk_text_iter_compare(&sel_start, &cursor_pos) == 0) {
-				// sel_start is where the cursor is
-				new_sel_bound = sel_end;
-			} else {
-				// sel_end is where the cursor is
-				new_sel_bound = sel_start;
-			}
-		} else {
-			new_sel_bound = cursor_pos;
-		}
-		// 1st insertion, 2nd selection-bound
-		gtk_text_buffer_select_range(text_buffer, &iter, &new_sel_bound);
-	} else {
-		gtk_text_buffer_place_cursor(text_buffer, &iter);
-	}
-
-	// if the cursor has moved outside the visible region, then scroll
-	gtk_text_view_scroll_to_iter(text_view, &iter, 0.0, FALSE, 0.0, 0.0);
-
-	return TRUE;
-}
-
-gboolean cursor_long_jump_right(GdkEventKey *key_event) {
-	printf("cursor_long_jump_right()\n");
-
-	GtkTextView *text_view;
-	GtkTextBuffer *text_buffer;
-	if (!init(&text_view, &text_buffer)) return FALSE;
-
-	GtkTextIter iter;
-	get_cursor_position(text_buffer, NULL, &iter, NULL);
-
-	GtkTextIter cursor_pos = iter;
-
-	gunichar ch = gtk_text_iter_get_char(&iter);
-	if (g_unichar_isalnum(ch) || ch == '_') {
-		while ((g_unichar_isalnum(ch) || ch == '_') && gtk_text_iter_forward_char(&iter)) {
-			ch = gtk_text_iter_get_char(&iter);
-		}
-	} else {
-		while ((!(g_unichar_isalnum(ch) || ch == '_')) && gtk_text_iter_forward_char(&iter)) {
-			ch = gtk_text_iter_get_char(&iter);
-		}
-	}
-
-//	if (g_unichar_isalnum(ch) || ch == '_')
+//gboolean cursor_short_jump_right(GdkEventKey *key_event) {
+//	printf("cursor_short_jump_right()\n");
+//
+//	GtkTextView *text_view;
+//	GtkTextBuffer *text_buffer;
+//	if (!init(&text_view, &text_buffer)) return FALSE;
+//
+//	GtkTextIter iter;
+//	get_cursor_position(text_buffer, NULL, &iter, NULL);
+//
+//	GtkTextIter cursor_pos = iter;
+//
+//	gunichar ch = gtk_text_iter_get_char(&iter);
+//
+//	if (g_unichar_isalpha(ch) && g_unichar_islower(ch))
 //	{
+//		// lowercase alpha
 //		do {
 //			if (!gtk_text_iter_forward_char(&iter)) break;
+//			ch = gtk_text_iter_get_char(&iter);
+//		} while (g_unichar_isalpha(ch) && g_unichar_islower(ch));
+//	}
+//	else if (g_unichar_isalpha(ch) && g_unichar_isupper(ch))
+//	{
+//		// uppercase alpha
+//		do {
+//			if (!gtk_text_iter_forward_char(&iter)) break;
+//			ch = gtk_text_iter_get_char(&iter);
+//		} while (g_unichar_isalpha(ch) && g_unichar_isupper(ch));
+//	}
+//	else if (g_unichar_isdigit(ch))
+//	{
+//		// digit
+//		do {
+//			if (!gtk_text_iter_forward_char(&iter)) break;
+//			ch = gtk_text_iter_get_char(&iter);
+//		} while (g_unichar_isdigit(ch));
+//	}
+//	else if (g_unichar_ispunct(ch))
+//	{
+//		// punctuation
+//		do {
+//			if (!gtk_text_iter_forward_char(&iter)) break;
+//			ch = gtk_text_iter_get_char(&iter);
+//		} while (g_unichar_ispunct(ch));
+//	}
+//	else if (g_unichar_isspace(ch))
+//	{
+//		// whitespace
+//		do {
+//			if (!gtk_text_iter_forward_char(&iter)) break;
+//			ch = gtk_text_iter_get_char(&iter);
+//		} while (g_unichar_isspace(ch));
+//	}
+//	else
+//	{
+//		// everything else?
+//	}
+//
+////	if (!gtk_text_iter_is_start(&iter))
+////		gtk_text_iter_forward_char(&iter);
+//
+//	if (key_event->state & GDK_SHIFT_MASK) {
+//		// Check if we already have a selection.
+//		// If so, then add to the existing selection
+//		GtkTextIter sel_start, sel_end, new_sel_bound;
+//		if (gtk_text_buffer_get_selection_bounds(text_buffer, &sel_start, &sel_end)) {
+//			if (gtk_text_iter_compare(&sel_start, &cursor_pos) == 0) {
+//				// sel_start is where the cursor is
+//				new_sel_bound = sel_end;
+//			} else {
+//				// sel_end is where the cursor is
+//				new_sel_bound = sel_start;
+//			}
+//		} else {
+//			new_sel_bound = cursor_pos;
+//		}
+//		// 1st insertion, 2nd selection-bound
+//		gtk_text_buffer_select_range(text_buffer, &iter, &new_sel_bound);
+//	} else {
+//		gtk_text_buffer_place_cursor(text_buffer, &iter);
+//	}
+//
+//	// if the cursor has moved outside the visible region, then scroll
+//	gtk_text_view_scroll_to_iter(text_view, &iter, 0.0, FALSE, 0.0, 0.0);
+//
+//	return TRUE;
+//}
+
+//gboolean cursor_long_jump_left(GdkEventKey *key_event) {
+//	printf("cursor_long_jump_left()\n");
+//
+//	GtkTextView *text_view;
+//	GtkTextBuffer *text_buffer;
+//	if (!init(&text_view, &text_buffer)) return FALSE;
+//
+//	GtkTextIter iter;
+//	get_cursor_position(text_buffer, NULL, &iter, NULL);
+//
+//	GtkTextIter cursor_pos = iter;
+//
+//	gtk_text_iter_backward_char(&iter);
+//	gunichar ch = gtk_text_iter_get_char(&iter);
+//
+//	if (g_unichar_isalnum(ch) || ch == '_') {
+//		do {
+//			if (!gtk_text_iter_backward_char(&iter)) break;
 //			ch = gtk_text_iter_get_char(&iter);
 //		} while (g_unichar_isalnum(ch) || ch == '_');
 //	} else {
 //		do {
-//			if (!gtk_text_iter_forward_char(&iter)) break;
+//			if (!gtk_text_iter_backward_char(&iter)) break;
 //			ch = gtk_text_iter_get_char(&iter);
 //		} while (!(g_unichar_isalnum(ch) || ch == '_'));
 //	}
-//	else if (g_unichar_ispunct(ch))
-//	{
-//		// punctuation
-//		do {
-//			if (!gtk_text_iter_forward_char(&iter)) break;
-//			ch = gtk_text_iter_get_char(&iter);
-//		} while (g_unichar_ispunct(ch));
-//	}
-//	else if (g_unichar_isspace(ch))
-//	{
-//		// whitespace
-//		do {
-//			if (!gtk_text_iter_forward_char(&iter)) break;
-//			ch = gtk_text_iter_get_char(&iter);
-//		} while (g_unichar_isspace(ch));
-//	}
-//	else
-//	{
-//		// everything else?
-//		assert(false);
-//	}
-
+////	else if (g_unichar_ispunct(ch))
+////	{
+////		// punctuation
+////		do {
+////			if (!gtk_text_iter_backward_char(&iter)) break;
+////			ch = gtk_text_iter_get_char(&iter);
+////		} while (g_unichar_ispunct(ch));
+////	}
+////	else if (g_unichar_isspace(ch))
+////	{
+////		// whitespace
+////		do {
+////			if (!gtk_text_iter_backward_char(&iter)) break;
+////			ch = gtk_text_iter_get_char(&iter);
+////		} while (g_unichar_isspace(ch));
+////	}
+////	else
+////	{
+////		// everything else?
+////		assert(false);
+////	}
+//
+//	//@ this is not quite correct
 //	if (!gtk_text_iter_is_start(&iter))
 //		gtk_text_iter_forward_char(&iter);
+//
+//	if (key_event->state & GDK_SHIFT_MASK) {
+//		// Check if we already have a selection.
+//		// If so, then add to the existing selection
+//		GtkTextIter sel_start, sel_end, new_sel_bound;
+//		if (gtk_text_buffer_get_selection_bounds(text_buffer, &sel_start, &sel_end)) {
+//			if (gtk_text_iter_compare(&sel_start, &cursor_pos) == 0) {
+//				// sel_start is where the cursor is
+//				new_sel_bound = sel_end;
+//			} else {
+//				// sel_end is where the cursor is
+//				new_sel_bound = sel_start;
+//			}
+//		} else {
+//			new_sel_bound = cursor_pos;
+//		}
+//		// 1st insertion, 2nd selection-bound
+//		gtk_text_buffer_select_range(text_buffer, &iter, &new_sel_bound);
+//	} else {
+//		gtk_text_buffer_place_cursor(text_buffer, &iter);
+//	}
+//
+//	// if the cursor has moved outside the visible region, then scroll
+//	gtk_text_view_scroll_to_iter(text_view, &iter, 0.0, FALSE, 0.0, 0.0);
+//
+//	return TRUE;
+//}
+
+//gboolean cursor_long_jump_right(GdkEventKey *key_event) {
+//	LOG_MSG("cursor_long_jump_right()\n");
+//
+//	GtkTextView *text_view;
+//	GtkTextBuffer *text_buffer;
+//	if (!init(&text_view, &text_buffer)) {
+//		return FALSE;
+//	}
+//
+//	GtkTextIter iter;
+//	get_cursor_position(text_buffer, NULL, &iter, NULL);
+//
+//	GtkTextIter cursor_pos = iter;
+//
+//	gunichar ch = gtk_text_iter_get_char(&iter);
+//	if (g_unichar_isalnum(ch) || ch == '_') {
+//		while ((g_unichar_isalnum(ch) || ch == '_') && gtk_text_iter_forward_char(&iter)) {
+//			ch = gtk_text_iter_get_char(&iter);
+//		}
+//	} else {
+//		while ((!(g_unichar_isalnum(ch) || ch == '_')) && gtk_text_iter_forward_char(&iter)) {
+//			ch = gtk_text_iter_get_char(&iter);
+//		}
+//	}
+//
+////	if (g_unichar_isalnum(ch) || ch == '_')
+////	{
+////		do {
+////			if (!gtk_text_iter_forward_char(&iter)) break;
+////			ch = gtk_text_iter_get_char(&iter);
+////		} while (g_unichar_isalnum(ch) || ch == '_');
+////	} else {
+////		do {
+////			if (!gtk_text_iter_forward_char(&iter)) break;
+////			ch = gtk_text_iter_get_char(&iter);
+////		} while (!(g_unichar_isalnum(ch) || ch == '_'));
+////	}
+////	else if (g_unichar_ispunct(ch))
+////	{
+////		// punctuation
+////		do {
+////			if (!gtk_text_iter_forward_char(&iter)) break;
+////			ch = gtk_text_iter_get_char(&iter);
+////		} while (g_unichar_ispunct(ch));
+////	}
+////	else if (g_unichar_isspace(ch))
+////	{
+////		// whitespace
+////		do {
+////			if (!gtk_text_iter_forward_char(&iter)) break;
+////			ch = gtk_text_iter_get_char(&iter);
+////		} while (g_unichar_isspace(ch));
+////	}
+////	else
+////	{
+////		// everything else?
+////		assert(false);
+////	}
+//
+////	if (!gtk_text_iter_is_start(&iter))
+////		gtk_text_iter_forward_char(&iter);
+//
+//	if (key_event->state & GDK_SHIFT_MASK) {
+//		// Check if we already have a selection.
+//		// If so, then add to the existing selection
+//		GtkTextIter sel_start, sel_end, new_sel_bound;
+//		if (gtk_text_buffer_get_selection_bounds(text_buffer, &sel_start, &sel_end)) {
+//			if (gtk_text_iter_compare(&sel_start, &cursor_pos) == 0) {
+//				// sel_start is where the cursor is
+//				new_sel_bound = sel_end;
+//			} else {
+//				// sel_end is where the cursor is
+//				new_sel_bound = sel_start;
+//			}
+//		} else {
+//			new_sel_bound = cursor_pos;
+//		}
+//		// 1st insertion, 2nd selection-bound
+//		gtk_text_buffer_select_range(text_buffer, &iter, &new_sel_bound);
+//	} else {
+//		gtk_text_buffer_place_cursor(text_buffer, &iter);
+//	}
+//
+//	// if the cursor has moved outside the visible region, then scroll
+//	gtk_text_view_scroll_to_iter(text_view, &iter, 0.0, FALSE, 0.0, 0.0);
+//
+//	return TRUE;
+//}
+
+gboolean cursor_jump_forward(GdkEventKey *key_event) {
+	printf("cursor_jump_forward()\n");
+
+	GtkTextView *text_view = NULL;
+	GtkTextBuffer *text_buffer = NULL;
+	if (!init(&text_view, &text_buffer)) {
+		return FALSE;
+	}
+	assert(text_view != NULL && text_buffer != NULL);
+
+	GtkTextIter iter;
+	get_cursor_position(text_buffer, NULL, &iter, NULL);
+
+	GtkTextIter cursor_pos = iter;
+
+	gunichar ch;
+	
+	ch = gtk_text_iter_get_char(&iter);
+	while(!(ch == '_' || g_unichar_isalnum(ch))) {
+		if(!gtk_text_iter_forward_char(&iter)) {
+			break;
+		}
+		ch = gtk_text_iter_get_char(&iter);
+	}
+
+	ch = gtk_text_iter_get_char(&iter);
+	while(ch == '_' || g_unichar_isalnum(ch)) {
+		if(!gtk_text_iter_forward_char(&iter)) {
+			break;
+		}
+		ch = gtk_text_iter_get_char(&iter);
+	}
 
 	if (key_event->state & GDK_SHIFT_MASK) {
 		// Check if we already have a selection.
@@ -1889,6 +1949,74 @@ gboolean cursor_long_jump_right(GdkEventKey *key_event) {
 	return TRUE;
 }
 
+gboolean cursor_jump_backward(GdkEventKey *key_event) {
+	printf("cursor_jump_backward()\n");
+
+	GtkTextView *text_view = NULL;
+	GtkTextBuffer *text_buffer = NULL;
+	if (!init(&text_view, &text_buffer)) {
+		return FALSE;
+	}
+	assert(text_view != NULL && text_buffer != NULL);
+
+	GtkTextIter iter;
+	get_cursor_position(text_buffer, NULL, &iter, NULL);
+
+	GtkTextIter cursor_pos = iter;
+
+	gtk_text_iter_backward_char(&iter);
+
+	gunichar ch;
+	bool hit_start_buffer = false;
+	
+	ch = gtk_text_iter_get_char(&iter);
+	while(!(ch == '_' || g_unichar_isalnum(ch))) {
+		if(!gtk_text_iter_backward_char(&iter)) {
+			hit_start_buffer = true;
+			break;
+		}
+		ch = gtk_text_iter_get_char(&iter);
+	}
+
+	ch = gtk_text_iter_get_char(&iter);
+	while(ch == '_' || g_unichar_isalnum(ch)) {
+		if(!gtk_text_iter_backward_char(&iter)) {
+			hit_start_buffer = true;
+			break;
+		}
+		ch = gtk_text_iter_get_char(&iter);
+	}
+
+	if(!hit_start_buffer) {
+		gtk_text_iter_forward_char(&iter);
+	}
+
+	if (key_event->state & GDK_SHIFT_MASK) {
+		// Check if we already have a selection.
+		// If so, then add to the existing selection
+		GtkTextIter sel_start, sel_end, new_sel_bound;
+		if (gtk_text_buffer_get_selection_bounds(text_buffer, &sel_start, &sel_end)) {
+			if (gtk_text_iter_compare(&sel_start, &cursor_pos) == 0) {
+				// sel_start is where the cursor is
+				new_sel_bound = sel_end;
+			} else {
+				// sel_end is where the cursor is
+				new_sel_bound = sel_start;
+			}
+		} else {
+			new_sel_bound = cursor_pos;
+		}
+		// 1st insertion, 2nd selection-bound
+		gtk_text_buffer_select_range(text_buffer, &iter, &new_sel_bound);
+	} else {
+		gtk_text_buffer_place_cursor(text_buffer, &iter);
+	}
+
+	// if the cursor has moved outside the visible region, then scroll
+	gtk_text_view_scroll_to_iter(text_view, &iter, 0.0, FALSE, 0.0, 0.0);
+
+	return TRUE;
+}
 
 gboolean move_cursor_up(GdkEventKey *key_event)
 {

@@ -8,3 +8,30 @@ Get rid of numpad keybindings
 ---
 Did I brake bold font support for 3.18?
 ---
+Search box animation doesnt feel good. Maybe get rid of it entirely. Simplify.
+---
+Fix @@!
+---
+ctrl[ + shift] + left/right
+
+When dealing with source code (not plain text):
+	word (alphabetic characters, digits, underscores) vs non-word (everything else)
+	example words: cat, cat123, 123, _cat, _cat123
+	123
+	1.23
+	0xab
+	1.2e1
+
+FORWARD:
+middle/start -> end
+end -> end next
+outside -> end
+
+BACKWARD:
+middle/end -> start
+start -> start previous
+outside -> start
+
+what is a word? (alphabetic, digits, underscores)
+
+ctrl + left/right -- jump

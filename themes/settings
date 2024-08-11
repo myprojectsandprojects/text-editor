@@ -12,8 +12,8 @@ new stuff easily configurable in here. */
 wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
 left-margin {10}
 search-case-sensitivity {true}
-pixels-above-lines {0}
-pixels-below-lines {0}
+pixels-above-lines {1}
+pixels-below-lines {1}
 pixels-inside-wrap {0}
 
 search-replace {}
@@ -47,40 +47,42 @@ text-tags
 {
 	comment
 	{
-		foreground{green}
+		foreground{#666666}
 	}
 	identifier
 	{
-		foreground{black}
+		foreground{#aaaaaa}
 	}
 	keyword
 	{
-		foreground{blue}
+		foreground{#bbbbbb}
 		weight{900}
 	}
 	type
 	{
-		foreground{#006666}
+		foreground{#3399aa}
 	}
 	function
 	{
-		foreground{#990000}
+		foreground{#cc6633}
+		/*foreground{#5533aa}*/
+		/*foreground{#cc3333}*/
 	}
 	string
 	{
-		foreground{#444444}
+		foreground{#55aa33}
 	}
 	number
 	{
-		foreground{#006633}
+		foreground{#117744}
 	}
 	operator
 	{
-		foreground{#999999}
+		foreground{#888888}
 	}
 	preprocessor
 	{
-		foreground{#cc6600}
+		foreground{#aaaa00}
 	}
 	unknown
 	{
@@ -88,26 +90,26 @@ text-tags
 	}
 	char
 	{
-		foreground{#444444}
+		foreground{#55aa33}
 	}
 }
 
 line-highlighting
 {
-	color {#f0f0f0}
+	color {#000000}
 }
 
 matching-char-highlighting
 {
-	color {#c0c0c0}
+	color {#555555}
 }
 
 scope-highlighting
 {
-	color {#f0f0f0}
+	color {#000000}
 }
 
 extra-cursor
 {
-	color {#ff0000}
+	color {red}
 }

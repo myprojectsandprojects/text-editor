@@ -1,20 +1,64 @@
 .text-view, .search-entry {
-	font-family: ComicShannsMono Nerd Font Mono;
-	font-size: 14.5px;
-	/*font-size: 16.5px;*/
-	/*font-weight: Regular;*/
+	/*
+	font-weight: 900;
+	font-weight: 500;
+	font-size: 21px;
+	*/
+	/*
+	font-family: Sudo;
+	font-size: 18px;
+	font-size: 19px;
+	*/
+
+	font-family: DejaVuSansM Nerd Font;
+	font-size: 15px;
+	font-size: 14px;
+
+	font-weight: 400;
+	font-weight: 500;
 }
 
-/*
-.text-view * {
-	background-color: rgb(0,0,0);
-	color: white;
-	caret-color: #ff0000;
+.text-view text {
+	background-color: #222222;
+	color: #aaaaaa;
+	caret-color: red;
 }
-*/
 
-/*
 .search-entry {
+	background-color: #222222;
+	color: #aaaaaa;
+	caret-color: red;
+}
+
+.text-view > text > selection, .search-entry selection {
 	background-color: red;
+}
+
+/*
+.status-bar {
+	background-color: #cc6633;
+	background-color: #994422;
+	color: #ffffff;
+}
+
+.code-highlighting-menu-button * {
+	background-color: purple;
+	border: 0;
+	padding: 0;
+	margin: 0;
+}
+
+button *, button.image-button *, button.text-button *{
+	background-image: none;
+	background-color: red;
+	border-width: 3px;
+	padding: 0;
+	margin: 0;
+	border-radius: 15px;
+	box-shadow: none;
+}
+
+button:hover * {
+	background: yellow;
 }
 */

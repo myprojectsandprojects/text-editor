@@ -1483,7 +1483,7 @@ char *get_file_name_from_user(GtkFileChooserAction dialog_type)
 }
 
 #define CTRL	1 // 0001
-#define ALT	2 // 0010
+#define ALT		2 // 0010
 #define SHIFT	4 // 0100
 #define ALTGR	8 // 1000
 
@@ -1496,8 +1496,9 @@ gboolean (*key_combinations[SIZE_MODIFIERS][SIZE_KEYCODES][MAX_HANDLERS])(GdkEve
 
 void add_keycombination_handler(int modifiers, int keycode, gboolean (*handler)(GdkEventKey *key_event))
 {
-	LOG_MSG("add_keycombination_handler(): modifiers: %d, keycode: %d\n",
-		modifiers, keycode);
+	LOG_MSG("add_keycombination_handler(): modifiers: %d, keycode: %d\n", modifiers, keycode);
+
+	//@@ What if key combinations array is full (all key combinations have max number of handlers)? Wouldnt we simply just iterate over arbitrary memory until we find NULL somewhere or crash?
 	int i = 0;
 	while (key_combinations[modifiers][keycode][i] != NULL) {
 		i += 1;
@@ -1512,7 +1513,7 @@ gboolean on_app_window_key_press(GtkWidget *window, GdkEvent *event, gpointer us
 	#define NO_MODIFIERS 0x2000000 // Value of key_event->state if no (known) modifiers are set.
 
 	GdkEventKey *key_event = (GdkEventKey *) event;
-//	printf("on_app_window_key_press(): hardware keycode: %d\n", key_event->hardware_keycode);
+	printf("on_app_window_key_press(): hardware keycode: %d\n", key_event->hardware_keycode);
 
 	unsigned short int modifiers = 0;
 	if(key_event->state & GDK_CONTROL_MASK) {
@@ -1527,14 +1528,8 @@ gboolean on_app_window_key_press(GtkWidget *window, GdkEvent *event, gpointer us
 	if(key_event->state & GDK_MOD5_MASK) {
 		modifiers |= ALTGR;
 	}
-/*
-	if(key_combinations[modifiers][key_event->hardware_keycode] != NULL) {
-		if((*key_combinations[modifiers][key_event->hardware_keycode])(key_event)) {
-			return TRUE; // We have dealt with the key-press and nothing else should happen!
-		}
-	}
-*/
-	for (int i = 0; key_combinations[modifiers][key_event->hardware_keycode][i] != NULL; ++i) {
+
+	for (int i = 0; i < MAX_HANDLERS && key_combinations[modifiers][key_event->hardware_keycode][i] != NULL; ++i) {
 		if((*key_combinations[modifiers][key_event->hardware_keycode][i])(key_event)) {
 			return TRUE; // We have dealt with the key-press and nothing else should happen!
 		}
@@ -2231,11 +2226,6 @@ gboolean update_settings(gpointer user_arg)
 	return FALSE; // dont call us again
 }
 
-//gboolean test_func(void *data) {
-//	INFO("test_func() with \"%s\"", (const char *)data);
-//	return FALSE;
-//}
-
 void activate_handler(GtkApplication *app, gpointer data)
 {
 	LOG_MSG("activate_handler() called\n");
@@ -2287,14 +2277,19 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	// if the cursor is at the end of a word, it jumps to the end of the next word
 	// and I might like that more than what we currently have
 	// Its just that the default "steps into" identifiers, which I dont like.
-	add_keycombination_handler(CTRL, 113, cursor_long_jump_left); // ctrl + <left arrow>
-	add_keycombination_handler(CTRL, 114, cursor_long_jump_right); // ctrl + <right arrow>
-	add_keycombination_handler(CTRL | SHIFT, 113, cursor_long_jump_left);
-	add_keycombination_handler(CTRL | SHIFT, 114, cursor_long_jump_right);
-	add_keycombination_handler(ALT, 113, cursor_short_jump_left); // ctrl + <left arrow>
-	add_keycombination_handler(ALT, 114, cursor_short_jump_right); // ctrl + <right arrow>
-	add_keycombination_handler(ALT | SHIFT, 113, cursor_short_jump_left);
-	add_keycombination_handler(ALT | SHIFT, 114, cursor_short_jump_right);
+//	add_keycombination_handler(CTRL, 113, cursor_long_jump_left); // ctrl + <left arrow>
+//	add_keycombination_handler(CTRL, 114, cursor_long_jump_right); // ctrl + <right arrow>
+//	add_keycombination_handler(CTRL | SHIFT, 113, cursor_long_jump_left);
+//	add_keycombination_handler(CTRL | SHIFT, 114, cursor_long_jump_right);
+//	add_keycombination_handler(ALT, 113, cursor_short_jump_left); // ctrl + <left arrow>
+//	add_keycombination_handler(ALT, 114, cursor_short_jump_right); // ctrl + <right arrow>
+//	add_keycombination_handler(ALT | SHIFT, 113, cursor_short_jump_left);
+//	add_keycombination_handler(ALT | SHIFT, 114, cursor_short_jump_right);
+
+	add_keycombination_handler(CTRL, 114, cursor_jump_forward); // ctrl + <right arrow>
+	add_keycombination_handler(CTRL, 113, cursor_jump_backward); // ctrl + <left arrow>
+	add_keycombination_handler(CTRL | SHIFT, 114, cursor_jump_forward); // ctrl + shift + <right arrow>
+	add_keycombination_handler(CTRL | SHIFT, 113, cursor_jump_backward); // ctrl + shift + <left arrow>
 
 	add_keycombination_handler(CTRL, 111, move_cursor_up); // ctrl + <up>
 	add_keycombination_handler(CTRL, 116, move_cursor_down); // ctrl + <down>
