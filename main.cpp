@@ -1243,6 +1243,91 @@ void scope_highlighting_init(GtkWidget *tab, const char *color)
 	g_signal_connect(text_buffer, "notify::cursor-position", G_CALLBACK(scope_highlighting_on_cursor_position_changed), tab);
 }
 
+gboolean click_selection_handler(GtkWidget *text_view, GdkEvent *event, gpointer _) {
+	assert(event->type == GDK_BUTTON_PRESS
+		|| event->type == GDK_DOUBLE_BUTTON_PRESS
+		|| event->type == GDK_TRIPLE_BUTTON_PRESS);
+
+	GdkEventButton *button_event = (GdkEventButton *)event;
+
+	/*
+	Normally: 1 -- left, 2 -- middle, 3 -- right
+	*/
+	if(button_event->button == 1) {
+		GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+
+		GtkTextIter click_location;
+		gint buf_x, buf_y;
+		gtk_text_view_window_to_buffer_coords(GTK_TEXT_VIEW(text_view), GTK_TEXT_WINDOW_TEXT, button_event->x, button_event->y, &buf_x, &buf_y);
+		gtk_text_view_get_iter_at_location(GTK_TEXT_VIEW(text_view), &click_location, buf_x, buf_y);
+	
+		if(event->type == GDK_DOUBLE_BUTTON_PRESS) {
+//			printf("DOUBLE-CLICK (x: %f, y: %f)\n", button_event->x, button_event->y);
+
+			GtkTextIter selection_start = click_location; // cursor
+			GtkTextIter selection_end = click_location;
+
+			bool hit_start_buffer = false;
+
+			// Are we highlighting a word or a non-word?
+			gunichar ch = gtk_text_iter_get_char(&click_location);
+			if(ch == '_' || g_unichar_isalnum(ch)) {
+				do {
+					if(!gtk_text_iter_forward_char(&selection_end)) {
+						break;
+					}
+					ch = gtk_text_iter_get_char(&selection_end);
+				} while(ch == '_' || g_unichar_isalnum(ch));
+
+				do {
+					if(!gtk_text_iter_backward_char(&selection_start)) {
+						hit_start_buffer = true;
+						break;
+					}
+					ch = gtk_text_iter_get_char(&selection_start);
+				} while(ch == '_' || g_unichar_isalnum(ch));
+			} else {
+				do {
+					if(!gtk_text_iter_forward_char(&selection_end)) {
+						break;
+					}
+					ch = gtk_text_iter_get_char(&selection_end);
+				} while(!(ch == '_' || g_unichar_isalnum(ch)));
+
+				do {
+					if(!gtk_text_iter_backward_char(&selection_start)) {
+						hit_start_buffer = true;
+						break;
+					}
+					ch = gtk_text_iter_get_char(&selection_start);
+				} while(!(ch == '_' || g_unichar_isalnum(ch)));
+			}
+
+			if(!hit_start_buffer) {
+				gtk_text_iter_forward_char(&selection_start);
+			}
+
+			gtk_text_buffer_select_range(text_buffer, &selection_start, &selection_end);
+		} else if(event->type == GDK_TRIPLE_BUTTON_PRESS) {
+//			printf("TRIPLE-CLICK\n");
+
+			GtkTextIter selection_start = click_location; // cursor
+			GtkTextIter selection_end = click_location;
+			
+			gtk_text_iter_set_line_offset(&selection_start, 0);
+			gtk_text_iter_forward_line(&selection_end);
+
+			gtk_text_buffer_select_range(text_buffer, &selection_start, &selection_end);
+		} else {
+//			printf("SINGLE-CLICK\n");
+
+			gtk_text_buffer_place_cursor(text_buffer, &click_location);
+		}
+	}
+
+	return TRUE;
+}
+
 GtkWidget *create_tab(const char *file_name)
 {
 	static unsigned int count = 1;//@ why not from 0? invalid tab id?
@@ -1430,6 +1515,8 @@ GtkWidget *create_tab(const char *file_name)
 	int delete_handlers_count = sizeof(delete_handlers) / sizeof(gulong);
 //	printf("insert_handlers_count: %d, delete_handlers_count: %d\n", insert_handlers_count, delete_handlers_count);
 	undo_init(insert_handlers, insert_handlers_count, delete_handlers, delete_handlers_count, tab_info->id);
+
+	g_signal_connect(text_view, "button-press-event", G_CALLBACK(click_selection_handler), NULL);
 
 	// I think it makes sense to do this as the very last thing,
 	// because, in theory, update_settings(), which iterates over these tabs,

@@ -1914,7 +1914,7 @@ gboolean cursor_jump_forward(GdkEventKey *key_event) {
 		ch = gtk_text_iter_get_char(&iter);
 	}
 
-	ch = gtk_text_iter_get_char(&iter);
+//	ch = gtk_text_iter_get_char(&iter);
 	while(ch == '_' || g_unichar_isalnum(ch)) {
 		if(!gtk_text_iter_forward_char(&iter)) {
 			break;
@@ -1978,7 +1978,7 @@ gboolean cursor_jump_backward(GdkEventKey *key_event) {
 		ch = gtk_text_iter_get_char(&iter);
 	}
 
-	ch = gtk_text_iter_get_char(&iter);
+//	ch = gtk_text_iter_get_char(&iter);
 	while(ch == '_' || g_unichar_isalnum(ch)) {
 		if(!gtk_text_iter_backward_char(&iter)) {
 			hit_start_buffer = true;
