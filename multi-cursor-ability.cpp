@@ -33,6 +33,7 @@ void MultiCursor_RemoveTextTags(GtkTextBuffer *TextBuffer)
 	gtk_text_buffer_get_bounds(TextBuffer, &StartBuffer, &EndBuffer);
 	gtk_text_buffer_remove_tag_by_name(TextBuffer, "extra-cursor", &StartBuffer, &EndBuffer);
 }
+
 void MultiCursor_AddTextTags(GtkTextBuffer *TextBuffer)
 {
 	for(int i = 0; i < ExtraCursorsIndex; ++i)
@@ -48,7 +49,7 @@ void MultiCursor_AddTextTags(GtkTextBuffer *TextBuffer)
 
 gboolean MultiCursor_TextView_ButtonPress(GtkWidget *self, GdkEventButton *event, gpointer text_buffer)
 {
-	printf("button (%u) press!\n", event->button);
+//	printf("button (%u) press!\n", event->button);
 	bool ControlDown = (event->state & GDK_CONTROL_MASK);
 //	printf("%d\n", ControlDown);
 

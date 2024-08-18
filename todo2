@@ -1,10 +1,6 @@
-
-- ctrl + left/right
-- Double-click should select a whole identifier
-- Triple-click should select a line (even when a line is wrapped!)
-
 ---
 Get rid of numpad keybindings
+ctrl + tab -> change active tab
 ---
 Did I brake bold font support for 3.18?
 ---
@@ -35,3 +31,32 @@ outside -> start
 what is a word? (alphabetic, digits, underscores)
 
 ctrl + left/right -- jump
+
+---
+
+mouse selection:
+
+1BUTTON_PRESS -> place cursor
+2BUTTON_PRESS -> select word/non-word
+3BUTTON_PRESS -> select line
+
+Before user releases the button, we are in a selection mode. The type of selection mode depends on the type of button press:
+	1BUTTON_PRESS -> expand by character
+	2BUTTON_PRESS -> expand by word/non-word
+	3BUTTON_PRESS -> expand by line
+
+The selection is between the initial selection and the mouse (if mouse moves over a word, the selection is expanded by that word)
+The cursor is always on the side closer to the beginning of the buffer.
+
+Honestly, I didnt even know about the different modes of selection until I started looking at the way it is designed by GTK very carefully. So is it important to do it exactly this way? Even if it means more or more complicated code? I dont think so.
+
+If I want to select precise characters, I can use a mouse to do it, but updating a selection by word or by line is not important. (?)
+
+Sublime also does that.
+
+---
+
+/*
+return value: TRUE/FALSE, whether it found the boundry or hit the end of buffer
+*/
+gboolean next_word_boundry(GtkTextIter *iter, GtkTextBuffer *buffer)

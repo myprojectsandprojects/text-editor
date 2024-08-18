@@ -96,7 +96,7 @@ text-tags
 
 line-highlighting
 {
-	color {#000000}
+	color {#191919}
 }
 
 matching-char-highlighting
@@ -106,7 +106,7 @@ matching-char-highlighting
 
 scope-highlighting
 {
-	color {#000000}
+	color {#191919}
 }
 
 extra-cursor

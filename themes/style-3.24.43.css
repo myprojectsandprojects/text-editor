@@ -1,19 +1,20 @@
 .text-view, .search-entry {
-	/*
+/*
 	font-weight: 900;
 	font-weight: 500;
 	font-size: 21px;
+	font-size: 19px;
 	font-family: Sudo;
 	font-size: 18px;
-	font-size: 19px;
-	*/
+*/
 
 /*
-	font-size: 14px;
 	font-weight: 400;
+	font-family: Liberation Mono;
 */
 	font-family: DejaVuSansM Nerd Font;
 	font-size: 15px;
+	font-size: 14px;
 
 	font-weight: 500;
 }

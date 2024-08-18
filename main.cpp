@@ -71,6 +71,8 @@ struct MainNotebookPage
 
 const int MAIN_NOTEBOOK_PAGES_MAX = 16;
 MainNotebookPage main_notebook_pages[MAIN_NOTEBOOK_PAGES_MAX];
+//array<int> valid_tab_indexes;
+//array<MainNotebookPage> main_notebook_pages;
 // currently we have (at least) 4 different ways of bookkeeping per tab data
 // - TabInfo
 // - tab_add_widget_4_retrieval()
@@ -90,6 +92,24 @@ MainNotebookPage main_notebook_pages[MAIN_NOTEBOOK_PAGES_MAX];
 //
 //	fprintf(stderr, "%s", message);
 //}
+
+/*
+@ these shouldn't be global, they should be per tab
+*/
+enum SelectionGranularity {
+	SELECTION_GRANULARITY_NONE = 0, // we are not updating a selection (left mouse button is not down)
+	SELECTION_GRANULARITY_CHARACTER,
+	SELECTION_GRANULARITY_WORD,
+	SELECTION_GRANULARITY_LINE,
+};
+
+SelectionGranularity button_press_selection_granularity;
+GtkTextMark *button_press_position; // single press
+GtkTextMark *button_press_selection_start, *button_press_selection_end; // double- and triple-press
+int button_press_mark_count; // 0
+
+//const int MAX_TEST_MARKS = 10000;
+//GtkTextMark *test_marks[MAX_TEST_MARKS];
 
 struct Node *get_node(struct Node *root, const char *apath) {
 	struct Node *result = NULL;
@@ -845,7 +865,7 @@ void line_highlighting_on_text_buffer_cursor_position_changed(GObject *object, G
 	gtk_text_buffer_apply_tag_by_name(text_buffer, "line-highlighting", &start_line, &end_line);
 
 	long t2 = get_time_us();
-	printf("line higlighting took: %ldus\n", t2 - t1);
+	LOG_MSG("line higlighting took: %ldus\n", t2 - t1);
 }
 
 void line_highlighting_init(GtkTextBuffer *text_buffer, const char *color){
@@ -1131,7 +1151,7 @@ void matching_char_highlighting_on_cursor_position_changed(GObject *object, GPar
 	}
 
 	long t2 = get_time_us();
-	printf("matching char higlighting took: %ldus\n", t2 - t1);
+	LOG_MSG("matching char higlighting took: %ldus\n", t2 - t1);
 }
 
 void scope_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
@@ -1214,7 +1234,7 @@ void scope_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *
 	}
 
 	long t2 = get_time_us();
-	printf("scope higlighting took: %ldus\n", t2 - t1);
+	LOG_MSG("scope higlighting took: %ldus\n", t2 - t1);
 }
 
 void matching_char_highlighting_init(GtkWidget *tab, const char *color_str)
@@ -1243,34 +1263,44 @@ void scope_highlighting_init(GtkWidget *tab, const char *color)
 	g_signal_connect(text_buffer, "notify::cursor-position", G_CALLBACK(scope_highlighting_on_cursor_position_changed), tab);
 }
 
-gboolean click_selection_handler(GtkWidget *text_view, GdkEvent *event, gpointer _) {
+//bool char_table[255]; // lookup table to check if a character is part of a word or not
+// we could have multiple lookup table's (ctrl + left/right vs alt + left/right)
+//void make_char_table(bool char_table[], const char *characters) {} // takes characters that are part of a word
+//bool char_table_is_word(char char, bool char_table[]);
+//bool next_word_boundary(GtkTextIter *iter, bool char_table[]) {}
+//bool prev_word_boundary(GtkTextIter *iter, bool char_table[]) {}
+
+gboolean text_view_mouse_button_press(GtkTextView *view, GdkEventButton *event, gpointer _) {
 	assert(event->type == GDK_BUTTON_PRESS
 		|| event->type == GDK_DOUBLE_BUTTON_PRESS
 		|| event->type == GDK_TRIPLE_BUTTON_PRESS);
 
-	GdkEventButton *button_event = (GdkEventButton *)event;
-
 	/*
 	Normally: 1 -- left, 2 -- middle, 3 -- right
 	*/
-	if(button_event->button == 1) {
-		GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+	if(event->button == 1) {
+		GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
 
-		GtkTextIter click_location;
 		gint buf_x, buf_y;
-		gtk_text_view_window_to_buffer_coords(GTK_TEXT_VIEW(text_view), GTK_TEXT_WINDOW_TEXT, button_event->x, button_event->y, &buf_x, &buf_y);
-		gtk_text_view_get_iter_at_location(GTK_TEXT_VIEW(text_view), &click_location, buf_x, buf_y);
-	
-		if(event->type == GDK_DOUBLE_BUTTON_PRESS) {
-//			printf("DOUBLE-CLICK (x: %f, y: %f)\n", button_event->x, button_event->y);
+		gtk_text_view_window_to_buffer_coords(view, GTK_TEXT_WINDOW_TEXT, event->x, event->y, &buf_x, &buf_y);
+		GtkTextIter button_press_pos;
+		gtk_text_view_get_iter_at_location(view, &button_press_pos, buf_x, buf_y);
 
-			GtkTextIter selection_start = click_location; // cursor
-			GtkTextIter selection_end = click_location;
+		if(event->type == GDK_2BUTTON_PRESS || event->type == GDK_3BUTTON_PRESS) {
+			assert(button_press_position != NULL);
+			gtk_text_buffer_delete_mark(buffer, button_press_position); button_press_mark_count -= 1;
+		}
+
+		if(event->type == GDK_DOUBLE_BUTTON_PRESS) {
+//			printf("2PRESS\n");
+
+			GtkTextIter selection_start = button_press_pos; // cursor
+			GtkTextIter selection_end = button_press_pos;
 
 			bool hit_start_buffer = false;
 
 			// Are we highlighting a word or a non-word?
-			gunichar ch = gtk_text_iter_get_char(&click_location);
+			gunichar ch = gtk_text_iter_get_char(&button_press_pos);
 			if(ch == '_' || g_unichar_isalnum(ch)) {
 				do {
 					if(!gtk_text_iter_forward_char(&selection_end)) {
@@ -1307,21 +1337,217 @@ gboolean click_selection_handler(GtkWidget *text_view, GdkEvent *event, gpointer
 				gtk_text_iter_forward_char(&selection_start);
 			}
 
-			gtk_text_buffer_select_range(text_buffer, &selection_start, &selection_end);
-		} else if(event->type == GDK_TRIPLE_BUTTON_PRESS) {
-//			printf("TRIPLE-CLICK\n");
+			gtk_text_buffer_select_range(buffer, &selection_start, &selection_end);
 
-			GtkTextIter selection_start = click_location; // cursor
-			GtkTextIter selection_end = click_location;
+			button_press_selection_granularity = SELECTION_GRANULARITY_WORD;
+			button_press_selection_start = gtk_text_buffer_create_mark(buffer, NULL, &selection_start, FALSE); button_press_mark_count += 1;
+			button_press_selection_end = gtk_text_buffer_create_mark(buffer, NULL, &selection_end, FALSE); button_press_mark_count += 1;
+		} else if(event->type == GDK_TRIPLE_BUTTON_PRESS) {
+//			printf("3PRESS\n");
+
+			GtkTextIter selection_start = button_press_pos; // cursor
+			GtkTextIter selection_end = button_press_pos;
 			
 			gtk_text_iter_set_line_offset(&selection_start, 0);
 			gtk_text_iter_forward_line(&selection_end);
 
-			gtk_text_buffer_select_range(text_buffer, &selection_start, &selection_end);
-		} else {
-//			printf("SINGLE-CLICK\n");
+			gtk_text_buffer_select_range(buffer, &selection_start, &selection_end);
 
-			gtk_text_buffer_place_cursor(text_buffer, &click_location);
+			button_press_selection_granularity = SELECTION_GRANULARITY_LINE;
+			button_press_selection_start = gtk_text_buffer_create_mark(buffer, NULL, &selection_start, FALSE); button_press_mark_count += 1;
+			button_press_selection_end = gtk_text_buffer_create_mark(buffer, NULL, &selection_end, FALSE); button_press_mark_count += 1;
+		} else {
+//			printf("PRESS\n");
+
+			gtk_text_buffer_place_cursor(buffer, &button_press_pos);
+
+			button_press_selection_granularity = SELECTION_GRANULARITY_CHARACTER;
+			button_press_position = gtk_text_buffer_create_mark(buffer, NULL, &button_press_pos, FALSE); button_press_mark_count += 1;
+//			printf("Creating bunch of marks\n");
+//			for(int i = 0; i < MAX_TEST_MARKS; ++i) {
+//				test_marks[i] = gtk_text_buffer_create_mark(buffer, NULL, &button_press_pos, FALSE);
+//			}
+		}
+	} else {
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+gboolean text_view_mouse_button_release(GtkTextView *view, GdkEventButton *event, gpointer _) {
+	assert(event->type == GDK_BUTTON_RELEASE);
+
+	if(event->button == 1) {
+//		printf("BUTTON RELEASE\n");
+
+		GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
+
+		if(button_press_selection_granularity == SELECTION_GRANULARITY_WORD || button_press_selection_granularity == SELECTION_GRANULARITY_LINE) {
+			gtk_text_buffer_delete_mark(buffer, button_press_selection_start); button_press_mark_count -= 1;
+			gtk_text_buffer_delete_mark(buffer, button_press_selection_end); button_press_mark_count -= 1;
+		} else {
+			assert(button_press_selection_granularity == SELECTION_GRANULARITY_CHARACTER);
+			gtk_text_buffer_delete_mark(buffer, button_press_position); button_press_mark_count -= 1;
+		}
+
+		assert(button_press_mark_count == 0);
+
+		button_press_selection_granularity = SELECTION_GRANULARITY_NONE;
+//		GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
+//		for(int i = 0; i < MAX_TEST_MARKS; ++i) {
+//			gtk_text_buffer_delete_mark(buffer, test_marks[i]);
+//		}
+	} else {
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+gboolean text_view_mouse_move(GtkTextView *view, GdkEventMotion *event, gpointer _) {
+//	printf("MOUSE MOVE (x: %f, y: %f)\n", event->x, event->y);
+	
+	if(button_press_selection_granularity != SELECTION_GRANULARITY_NONE) {
+		GtkTextIter mouse_pos;
+		gint buf_x, buf_y;
+		gtk_text_view_window_to_buffer_coords(view, GTK_TEXT_WINDOW_TEXT, event->x, event->y, &buf_x, &buf_y);
+		gtk_text_view_get_iter_at_location(view, &mouse_pos, buf_x, buf_y);
+
+		if(button_press_selection_granularity == SELECTION_GRANULARITY_CHARACTER) {
+//			assert(button_press_selection_start == NULL);
+//			assert(button_press_selection_end == NULL);
+//			assert(button_press_position != NULL);
+
+			GtkTextIter start, end;
+
+			start = mouse_pos;
+	
+			GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
+			gtk_text_buffer_get_iter_at_mark(buffer, &end, button_press_position);
+
+//			assert(gtk_text_iter_compare(&start, &end) != 0);
+			gtk_text_buffer_select_range(buffer, &start, &end);
+		} else if(button_press_selection_granularity == SELECTION_GRANULARITY_WORD) {
+//			assert(button_press_selection_start != NULL);
+//			assert(button_press_selection_end != NULL);
+//			assert(button_press_position == NULL);
+
+			GtkTextIter selection_start, selection_end;
+			GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
+			gtk_text_buffer_get_iter_at_mark(buffer, &selection_start, button_press_selection_start);
+			gtk_text_buffer_get_iter_at_mark(buffer, &selection_end, button_press_selection_end);
+
+			assert(gtk_text_iter_compare(&selection_start, &selection_end) <= 0);
+			bool mouse_before_start = (gtk_text_iter_compare(&mouse_pos, &selection_start) < 0) ? true : false;
+			bool mouse_after_end = (gtk_text_iter_compare(&mouse_pos, &selection_end) > 0) ? true : false;
+			if(mouse_before_start) {
+				bool hit_start_buffer = false;
+
+				GtkTextIter iter = mouse_pos;
+				gunichar ch = gtk_text_iter_get_char(&iter);
+				if(ch == '_' || g_unichar_isalnum(ch)) {
+					do {
+						if(!gtk_text_iter_backward_char(&iter)) {
+							hit_start_buffer = true;
+							break;
+						}
+						ch = gtk_text_iter_get_char(&iter);
+					} while(ch == '_' || g_unichar_isalnum(ch));
+				} else {
+					do {
+						if(!gtk_text_iter_backward_char(&iter)) {
+							hit_start_buffer = true;
+							break;
+						}
+						ch = gtk_text_iter_get_char(&iter);
+					} while(!(ch == '_' || g_unichar_isalnum(ch)));
+				}
+	
+				if(!hit_start_buffer) {
+					gtk_text_iter_forward_char(&iter);
+				}
+
+				gtk_text_buffer_select_range(buffer, &iter, &selection_end);
+			} else if(mouse_after_end) {
+				GtkTextIter iter = mouse_pos;
+				gunichar ch = gtk_text_iter_get_char(&iter);
+				if(ch == '_' || g_unichar_isalnum(ch)) {
+					do {
+						if(!gtk_text_iter_forward_char(&iter)) {
+							break;
+						}
+						ch = gtk_text_iter_get_char(&iter);
+					} while(ch == '_' || g_unichar_isalnum(ch));
+				} else {
+					do {
+						if(!gtk_text_iter_forward_char(&iter)) {
+							break;
+						}
+						ch = gtk_text_iter_get_char(&iter);
+					} while(!(ch == '_' || g_unichar_isalnum(ch)));
+				}
+	
+				gtk_text_buffer_select_range(buffer, &iter, &selection_start);
+			} else {
+				// mouse at original
+
+				gtk_text_buffer_select_range(buffer, &selection_start, &selection_end);
+			}
+		} else if(button_press_selection_granularity == SELECTION_GRANULARITY_LINE) {
+//			assert(button_press_selection_start != NULL);
+//			assert(button_press_selection_end != NULL);
+//			assert(button_press_position == NULL);
+
+			GtkTextIter selection_start, selection_end;
+			GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
+			gtk_text_buffer_get_iter_at_mark(buffer, &selection_start, button_press_selection_start);
+			gtk_text_buffer_get_iter_at_mark(buffer, &selection_end, button_press_selection_end);
+
+			gint start_line = gtk_text_iter_get_line(&selection_start);
+//			gint end_line = gtk_text_iter_get_line(&selection_end);
+//			printf("start line: %d, end line: %d\n", start_line, end_line);
+			gint mouse_line = gtk_text_iter_get_line(&mouse_pos);
+//			printf("mouse line: %d\n", mouse_line);
+
+			if(mouse_line < start_line) {
+				GtkTextIter iter = mouse_pos;
+				gtk_text_iter_set_line_offset(&iter, 0);
+				gtk_text_buffer_select_range(buffer, &iter, &selection_end);
+			} else if(mouse_line > start_line) {
+				GtkTextIter iter = mouse_pos;
+				gtk_text_iter_forward_line(&iter);
+				gtk_text_buffer_select_range(buffer, &iter, &selection_start);
+			} else {
+				assert(mouse_line == start_line);
+				gtk_text_buffer_select_range(buffer, &selection_start, &selection_end);
+			}
+		} else {
+			assert(false);
+		}
+
+//		bool scroll_up = false;
+//		bool scroll_down = false;
+//		bool scroll_left = false;
+//		bool scroll_right = false;
+//
+//		if(buf_y < visible_rect.y) {scroll_up = true;}
+//		if(buf_x < visible_rect.x) {scroll_left = true;}
+//		if(buf_y > visible_rect.y + visible_rect.height) {scroll_down = true;}
+//		if(buf_x > visible_rect.x + visible_rect.width) {scroll_right = true;}
+//
+//		if(???) {
+//			gdouble sensitivity = 0.01;
+//			gdouble vertical_pos = (vertical_scroll?) ? (up) ? 0.0 + sensitivity : 1.0 - sensitivity;
+//			gdouble horizontal_pos = (left) ? 0.0 + sensitivity : 1.0 - sensitivity;
+//			gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(view), &start, 0.0, TRUE, horizontal_alignment, vertical_alignment);
+//		}
+
+		// scroll if the user has moved the mouse pointer outside the visible area of the text buffer
+		GdkRectangle visible_rect;
+		gtk_text_view_get_visible_rect(view, &visible_rect);
+		if(buf_x <= visible_rect.x || buf_x >= visible_rect.x + visible_rect.width || buf_y <= visible_rect.y || buf_y >= visible_rect.y + visible_rect.height) {
+			gtk_text_view_scroll_to_iter(view, &mouse_pos, 0.0, FALSE, 0.0, 0.0);
 		}
 	}
 
@@ -1516,7 +1742,9 @@ GtkWidget *create_tab(const char *file_name)
 //	printf("insert_handlers_count: %d, delete_handlers_count: %d\n", insert_handlers_count, delete_handlers_count);
 	undo_init(insert_handlers, insert_handlers_count, delete_handlers, delete_handlers_count, tab_info->id);
 
-	g_signal_connect(text_view, "button-press-event", G_CALLBACK(click_selection_handler), NULL);
+	g_signal_connect(text_view, "button-press-event", G_CALLBACK(text_view_mouse_button_press), NULL);
+	g_signal_connect(text_view, "button-release-event", G_CALLBACK(text_view_mouse_button_release), NULL);
+	g_signal_connect(text_view, "motion-notify-event", G_CALLBACK(text_view_mouse_move), NULL);
 
 	// I think it makes sense to do this as the very last thing,
 	// because, in theory, update_settings(), which iterates over these tabs,
