@@ -1,11 +1,9 @@
 ---
 Get rid of numpad keybindings
-ctrl + tab -> change active tab
 ---
 Did I brake bold font support for 3.18?
 ---
 Search box animation doesnt feel good. Maybe get rid of it entirely. Simplify.
-Search Box and cursor? And why is the mouse pointer disappearing?
 ---
 Fix @@!
 ---
@@ -65,6 +63,8 @@ gboolean next_word_boundry(GtkTextIter *iter, GtkTextBuffer *buffer)
 ---
 
 imagine I could filter files and directories in file browser. say, switch off directories, or, switch on .cpp files and .hpp files. and it would be really easy. you just toggle some buttons. and you can define your own button based on simple rules. would that be a cool feature?
+
+or show all image files in this directory, but also image files in subdirectories recursively
 
 ---
 

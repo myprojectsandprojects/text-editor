@@ -2591,7 +2591,7 @@ gboolean update_settings(gpointer user_arg)
 
 void activate_handler(GtkApplication *app, gpointer data)
 {
-	LOG_MSG("activate_handler() called\n");
+	LOG_MSG("%s()\n", __FUNCTION__);
 
 	tabs = new_list(); // temp
 
@@ -2697,15 +2697,17 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(CTRL, 57, create_empty_tab); // ctrl + n
 	add_keycombination_handler(CTRL, 58, close_tab); // ctrl + m
 
-	add_keycombination_handler(CTRL, 21, tab_navigate_next); // ctrl + "the key left from backspace"
-	add_keycombination_handler(CTRL, 20, tab_navigate_previous); // ctrl + "the key left from the key left from backspace"
+//	add_keycombination_handler(CTRL, 21, tab_navigate_next); // ctrl + "the key left from backspace"
+//	add_keycombination_handler(CTRL, 20, tab_navigate_previous); // ctrl + "the key left from the key left from backspace"
+	add_keycombination_handler(CTRL, 23, tab_navigate_next); // ctrl + tab
+	add_keycombination_handler(CTRL | SHIFT, 23, tab_navigate_previous); // ctrl + shift + tab
 
 	add_keycombination_handler(CTRL, 39, do_save); // ctrl + s
 	add_keycombination_handler(CTRL, 32, do_open); // ctrl + o
 
-//	add_keycombination_handler(CTRL, 41, toggle_search_entry); // ctrl + f
+	add_keycombination_handler(CTRL, 41, toggle_search_entry); // ctrl + f
 //	add_keycombination_handler(0, 37, toggle_search_entry); // ctrl
-	add_keycombination_handler(0, 106, toggle_search_entry); // numpad /
+//	add_keycombination_handler(0, 106, toggle_search_entry); // numpad /
 	add_keycombination_handler(CTRL, 43, display_openfile_dialog); // ctrl + h
 
 	add_keycombination_handler(CTRL, 42, less_fancy_toggle_sidebar); // ctrl + g

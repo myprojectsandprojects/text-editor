@@ -338,7 +338,8 @@ void MultiCursor_RemoveTextTags(GtkTextBuffer *TextBuffer);
 #define PRINT_LOG_MESSAGES
 #ifdef PRINT_LOG_MESSAGES
 	//#define LOG_MSG(...) printf(__VA_ARGS__)
-	#define LOG_MSG(format, ...) printf("[%s:%d] " format, __FILE__, __LINE__, ##__VA_ARGS__)
+//	#define LOG_MSG(format, ...) printf("[%s:%d] " format, __FILE__, __LINE__, ##__VA_ARGS__)
+	#define LOG_MSG(format, ...) printf("\x1b[38;5;242m[%s:%d]\x1b[0m " format, __FILE__, __LINE__, ##__VA_ARGS__) // Hardcoded terminal colors might not be compatible with a different color theme.
 #else
 	#define LOG_MSG(...) 0
 #endif
