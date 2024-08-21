@@ -5,6 +5,7 @@ ctrl + tab -> change active tab
 Did I brake bold font support for 3.18?
 ---
 Search box animation doesnt feel good. Maybe get rid of it entirely. Simplify.
+Search Box and cursor? And why is the mouse pointer disappearing?
 ---
 Fix @@!
 ---
@@ -60,3 +61,15 @@ Sublime also does that.
 return value: TRUE/FALSE, whether it found the boundry or hit the end of buffer
 */
 gboolean next_word_boundry(GtkTextIter *iter, GtkTextBuffer *buffer)
+
+---
+
+imagine I could filter files and directories in file browser. say, switch off directories, or, switch on .cpp files and .hpp files. and it would be really easy. you just toggle some buttons. and you can define your own button based on simple rules. would that be a cool feature?
+
+---
+
+Jump to a function definition. A function definition in where? Internet? Local partition? So we arrive at an idea of a project. It limits the scope of our responsibilities.
+
+We can think of a project as a list of files. And then we predigest data in these files into some helpful data structures which are going to make searching for function definitions, type definitions etc. super fast. What if we updated them every time new data is saved on disk? Just parse everything all over again? Sounds very simple, but how slow is it gonna get?
+
+Can a project be thought of as a directory? Just a branch of a filesystem tree? We already have a file browser. So what if it was possible to just click on a directory or a file and select "make this into a C++ project" or "make this into a HTML, CSS, JS project" or "make this into my custom whatver project". For "C++ project" you would maybe write code that parses throught .cpp or .cxx etc. files. But really anything you can do with a directory or a file could happen.

@@ -93,7 +93,7 @@ gboolean MultiCursor_TextView_ButtonPress(GtkWidget *self, GdkEventButton *event
 static bool IsOurInsert = false;
 void MultiCursor_TextBuffer_InsertText(GtkTextBuffer *Self, /*const*/ GtkTextIter *Location, gchar *Text, gint Len, gpointer UserData)
 {
-	printf("%s()\n", __FUNCTION__);
+	LOG_MSG("%s()\n", __FUNCTION__);
 
 	if(!IsOurInsert)
 	{

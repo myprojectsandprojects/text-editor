@@ -1275,6 +1275,10 @@ gboolean text_view_mouse_button_press(GtkTextView *view, GdkEventButton *event, 
 		|| event->type == GDK_DOUBLE_BUTTON_PRESS
 		|| event->type == GDK_TRIPLE_BUTTON_PRESS);
 
+	if(!gtk_widget_is_focus(GTK_WIDGET(view))) {
+		gtk_widget_grab_focus(GTK_WIDGET(view));
+	}
+
 	/*
 	Normally: 1 -- left, 2 -- middle, 3 -- right
 	*/
@@ -1407,6 +1411,22 @@ gboolean text_view_mouse_button_release(GtkTextView *view, GdkEventButton *event
 
 gboolean text_view_mouse_move(GtkTextView *view, GdkEventMotion *event, gpointer _) {
 //	printf("MOUSE MOVE (x: %f, y: %f)\n", event->x, event->y);
+
+	long t1 = get_time_us();
+	GdkWindow *window = gtk_text_view_get_window(view, GTK_TEXT_WINDOW_TEXT);
+	GdkCursor *cursor = gdk_window_get_cursor(window);
+	GdkCursorType cursor_type = gdk_cursor_get_cursor_type(cursor);
+//	printf("cursor: %p, %d\n", cursor, cursor_type);
+	if(cursor_type == GDK_BLANK_CURSOR) {
+		GdkDisplay *display = gtk_widget_get_display (GTK_WIDGET (view));
+		GdkCursor *new_cursor = gdk_cursor_new_from_name(display, "text"); // this seems to be the cursor set by GTK at first
+//		GdkCursor *new_cursor = gdk_cursor_new_for_display(display, GDK_X_CURSOR);
+//		GdkCursor *new_cursor = gdk_cursor_new_for_display(display, GDK_LAST_CURSOR); //?
+		gdk_window_set_cursor(window, new_cursor); //@@ cleans up the old cursor? is that the right cursor?
+		g_object_unref(new_cursor);
+	}
+	long t2 = get_time_us();
+	long duration = t2 - t1;
 	
 	if(button_press_selection_granularity != SELECTION_GRANULARITY_NONE) {
 		GtkTextIter mouse_pos;
@@ -1552,6 +1572,22 @@ gboolean text_view_mouse_move(GtkTextView *view, GdkEventMotion *event, gpointer
 	}
 
 	return TRUE;
+}
+
+void text_view_mouse__buffer_changed(GtkTextBuffer *buffer, gpointer _view) {
+	GtkTextView *view = GTK_TEXT_VIEW(_view);
+
+	GdkWindow *window = gtk_text_view_get_window(view, GTK_TEXT_WINDOW_TEXT);
+	GdkCursor *cursor = gdk_window_get_cursor(window);
+	GdkCursorType cursor_type = gdk_cursor_get_cursor_type(cursor);
+	if(cursor_type != GDK_BLANK_CURSOR) {
+		GdkDisplay *display = gtk_widget_get_display (GTK_WIDGET (view));
+		GdkCursor *new_cursor = gdk_cursor_new_from_name(display, "none");
+//		GdkCursor *new_cursor = gdk_cursor_new_for_display(display, GDK_X_CURSOR);
+//		GdkCursor *new_cursor = gdk_cursor_new_for_display(display, GDK_LAST_CURSOR); //?
+		gdk_window_set_cursor(window, new_cursor); //@@ cleans up the old cursor?
+		g_object_unref(new_cursor);
+	}
 }
 
 GtkWidget *create_tab(const char *file_name)
@@ -1746,6 +1782,18 @@ GtkWidget *create_tab(const char *file_name)
 	g_signal_connect(text_view, "button-release-event", G_CALLBACK(text_view_mouse_button_release), NULL);
 	g_signal_connect(text_view, "motion-notify-event", G_CALLBACK(text_view_mouse_move), NULL);
 
+	/*
+	GTK seems to have some default handler that makes the mouse pointer disappear as we start typing.
+	This is undone when the mouse moves, by default.
+	But since we dont rely on default mouse-move handler anymore, we ourselves have to make the cursor to reappear.
+	That's all fine, but I can't figure out how to tell GTK that we made the cursor visible again.
+	As far as GTK is concerned the cursor is still gone.
+	Because GTK will not make the cursor disappear when it thinks its already disappeared, GTK will make the cursor disappear only once, and from then on, it refuses to do it again.
+	At least something along those lines seems to be happening. I havent really read the GTK code or anything.
+	This means that we have to make the cursor disappear and make it visible again ourselves.
+	*/
+	g_signal_connect_after(text_buffer, "changed", G_CALLBACK(text_view_mouse__buffer_changed), text_view);
+
 	// I think it makes sense to do this as the very last thing,
 	// because, in theory, update_settings(), which iterates over these tabs,
 	// might be called at any time.
@@ -1828,7 +1876,7 @@ gboolean on_app_window_key_press(GtkWidget *window, GdkEvent *event, gpointer us
 	#define NO_MODIFIERS 0x2000000 // Value of key_event->state if no (known) modifiers are set.
 
 	GdkEventKey *key_event = (GdkEventKey *) event;
-	printf("on_app_window_key_press(): hardware keycode: %d\n", key_event->hardware_keycode);
+	LOG_MSG("on_app_window_key_press(): hardware keycode: %d\n", key_event->hardware_keycode);
 
 	unsigned short int modifiers = 0;
 	if(key_event->state & GDK_CONTROL_MASK) {

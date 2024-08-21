@@ -76,7 +76,6 @@ void text_expansion_text_buffer_delete_range(GtkTextBuffer *text_buffer, GtkText
 void text_expansion_text_buffer_insert_text(GtkTextBuffer *text_buffer, GtkTextIter *location, char *inserted_text, int length, gpointer data)
 {
 	LOG_MSG("%s()\n", __FUNCTION__);
-	printf("%s()\n", __FUNCTION__);
 
 	if (length == 1) {
 		char ch = inserted_text[0];

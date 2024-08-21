@@ -335,7 +335,7 @@ void MultiCursor_AddTextTags(GtkTextBuffer *TextBuffer);
 void MultiCursor_RemoveTextTags(GtkTextBuffer *TextBuffer);
 
 
-//#define PRINT_LOG_MESSAGES
+#define PRINT_LOG_MESSAGES
 #ifdef PRINT_LOG_MESSAGES
 	//#define LOG_MSG(...) printf(__VA_ARGS__)
 	#define LOG_MSG(format, ...) printf("[%s:%d] " format, __FILE__, __LINE__, ##__VA_ARGS__)

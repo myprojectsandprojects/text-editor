@@ -160,8 +160,7 @@ void print_tags(GtkTextBuffer *text_buffer){
 }
 
 static void on_insert_text_after(GtkTextBuffer *text_buffer, GtkTextIter *location, gchar *text, gint len, gpointer tab){
-	LOG_MSG("on_insert_text_after()\n");
-	printf("insert text (highlighting)\n");
+	LOG_MSG("%s()\n", __FUNCTION__);
 
 //	printf("location offset: %d, text: %s, len: %d\n", gtk_text_iter_get_offset(location), text, len);
 //	printf("character at location: %c[%d]\n", gtk_text_iter_get_char(location), gtk_text_iter_get_char(location));

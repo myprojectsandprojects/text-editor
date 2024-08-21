@@ -179,8 +179,7 @@ void undo_text_buffer_delete_range(GtkTextBuffer *text_buffer, GtkTextIter *star
 
 void undo_text_buffer_insert_text(GtkTextBuffer *text_buffer, GtkTextIter *location, char *inserted_text, int length, gpointer data)
 {
-	LOG_MSG("on_text_buffer_insert_text_4undo()\n");
-	printf("%s()\n", __FUNCTION__);
+	LOG_MSG("%s()\n", __FUNCTION__);
 
 //	if(ignore == TRUE) {
 //		ignore = FALSE;
@@ -239,17 +238,15 @@ void undo_text_buffer_insert_text(GtkTextBuffer *text_buffer, GtkTextIter *locat
 void undo_init(gulong insert_handlers[], int insert_handlers_count, gulong *delete_handlers, int delete_handlers_count, unsigned int tab_id)
 {
 	LOG_MSG("%s()\n", __FUNCTION__);
-	printf("tab_id: %d\n", tab_id);
+//	printf("tab_id: %d\n", tab_id);
 
 	unsigned int index = tab_id - 1;
 	assert(index < MAX_TABS);
 	for(int i = 0; i < insert_handlers_count; ++i) {
 		per_tab_undo_data[index].insert_handlers[i] = insert_handlers[i];
-		printf("copy'ing insert handler id\n");
 	}
 	for(int i = 0; i < delete_handlers_count; ++i) {
 		per_tab_undo_data[index].delete_handlers[i] = delete_handlers[i];
-		printf("copy'ing delete handler id\n");
 	}
 	per_tab_undo_data[index].insert_handlers_count = insert_handlers_count;
 	per_tab_undo_data[index].delete_handlers_count = delete_handlers_count;
