@@ -60,25 +60,70 @@ struct Node *settings;
 
 struct CList *tabs; // temp
 
-//@ why is this still not a thing?
+enum SelectionGranularity {
+	SELECTION_GRANULARITY_NONE = 0, // we are not updating a selection (left mouse button is not down)
+	SELECTION_GRANULARITY_CHARACTER,
+	SELECTION_GRANULARITY_WORD,
+	SELECTION_GRANULARITY_LINE,
+};
+
+// MouseState / MouseData / MouseSelectionState ?
+struct TextViewMouseSelectionState {
+	GtkTextMark *press_position; // single press
+	GtkTextMark *original_selection_start, *original_selection_end; // double- and triple-press
+	SelectionGranularity selection_granularity;
+	int mark_count; // 0
+};
+
 // 'Tab' could be confused with tab-key
-struct MainNotebookPage
-{
-	unsigned long int id;
+//struct SidebarNotebookPage
+struct NotebookPage {
+/*
+We store each NotebookPage in an array at an index which is also it's id.
+*/
+	int id; //-1 -- invalid id
+
+	bool in_use; // When a tab is closed, this is set to false
+
+	/*
+	This state is initialized at (left) mouse press and cleaned up at (left) mouse release.
+	So if we disallow user to switch between pages and close pages (everything that changes the visible page) while (left) mouse button is down,
+	then why not just have one instance of this as opposed to one for each page?
+	@@Right now we dont expect the visible page to change underneath us in between button press and button release.
+	One solution would be to not allow that to happen, ever. Block all keybindings while left mouse button is down, for example.
+	Another would be to somehow gracefully handle these situations.
+	*/
+	TextViewMouseSelectionState mouse_selection_state;
+//	struct {
+//		GtkTextMark *position;
+//		GtkTextMark *original_selection_start, *original_selection_end;
+//		SelectionGranularity selection_granularity;
+//	} textview_button_press;
+
 	//...
 	//GtkTextView *text_view;
 };
 
-const int MAIN_NOTEBOOK_PAGES_MAX = 16;
-MainNotebookPage main_notebook_pages[MAIN_NOTEBOOK_PAGES_MAX];
-//array<int> valid_tab_indexes;
-//array<MainNotebookPage> main_notebook_pages;
+const int NOTEBOOK_MAX_PAGES = 64;
+NotebookPage notebook_pages[NOTEBOOK_MAX_PAGES]; // index's are also id's
+NotebookPage *visible_page; // 0
+int first_unused_page_id; // 0
+
 // currently we have (at least) 4 different ways of bookkeeping per tab data
 // - TabInfo
 // - tab_add_widget_4_retrieval()
 // - undo has it's own bookkeeping
 // - then we have some CList of tabs for whatever reason
 // we should get to a point where we only use something simple like this
+
+/*
+- access currently active (visible) page's data
+- iterate over pages (when applying changed settings)
+- go from a pointer to a text view to an id of a page to which the text view belongs to?
+
+need to keep track of what's closed
+we dont necessarily want to reuse page id's because I can imagine it causing confusion in some cirmustances
+*/
 
 // Its messy to mix values from variables into these messages. Can we improve?
 //void display_error(const char *primary_message, const char *secondary_message = NULL){
@@ -93,23 +138,13 @@ MainNotebookPage main_notebook_pages[MAIN_NOTEBOOK_PAGES_MAX];
 //	fprintf(stderr, "%s", message);
 //}
 
-/*
-@ these shouldn't be global, they should be per tab
-*/
-enum SelectionGranularity {
-	SELECTION_GRANULARITY_NONE = 0, // we are not updating a selection (left mouse button is not down)
-	SELECTION_GRANULARITY_CHARACTER,
-	SELECTION_GRANULARITY_WORD,
-	SELECTION_GRANULARITY_LINE,
-};
-
-SelectionGranularity button_press_selection_granularity;
-GtkTextMark *button_press_position; // single press
-GtkTextMark *button_press_selection_start, *button_press_selection_end; // double- and triple-press
-int button_press_mark_count; // 0
-
 //const int MAX_TEST_MARKS = 10000;
 //GtkTextMark *test_marks[MAX_TEST_MARKS];
+
+const int NUM_ASCII_CHARS = 128; // only ' '(32) ... '~'(126) are printable characters
+//bool ascii_chars_plain[NUM_ASCII_CHARS];
+bool ascii_chars[NUM_ASCII_CHARS];// use character's ascii value as an index to determine if character belongs to a class of characters that form words
+// For a shorter jump (as I imagine it) it's not enough to use a different lookup table. camelCase and PascalCase the words begin with an uppercase, it's a different logic.
 
 struct Node *get_node(struct Node *root, const char *apath) {
 	struct Node *result = NULL;
@@ -1263,17 +1298,94 @@ void scope_highlighting_init(GtkWidget *tab, const char *color)
 	g_signal_connect(text_buffer, "notify::cursor-position", G_CALLBACK(scope_highlighting_on_cursor_position_changed), tab);
 }
 
-//bool char_table[255]; // lookup table to check if a character is part of a word or not
-// we could have multiple lookup table's (ctrl + left/right vs alt + left/right)
-//void make_char_table(bool char_table[], const char *characters) {} // takes characters that are part of a word
-//bool char_table_is_word(char char, bool char_table[]);
-//bool next_word_boundary(GtkTextIter *iter, bool char_table[]) {}
-//bool prev_word_boundary(GtkTextIter *iter, bool char_table[]) {}
+bool is_word(unsigned int ch) {
+	return (ch < NUM_ASCII_CHARS) ? ascii_chars[ch] : true;
+}
 
-gboolean text_view_mouse_button_press(GtkTextView *view, GdkEventButton *event, gpointer _) {
+void next_word_boundary(GtkTextIter *iter) {
+	gunichar ch = gtk_text_iter_get_char(iter);
+	if(is_word(ch)) {
+		do {
+			if(!gtk_text_iter_forward_char(iter)) {
+				break;
+			}
+			ch = gtk_text_iter_get_char(iter);
+//		} while(ch == '_' || g_unichar_isalnum(ch));
+		} while(is_word(ch));
+	} else {
+		do {
+			if(!gtk_text_iter_forward_char(iter)) {
+				break;
+			}
+			ch = gtk_text_iter_get_char(iter);
+//		} while(!(ch == '_' || g_unichar_isalnum(ch)));
+		} while(!is_word(ch));
+	}
+
+/*
+	do {
+		ch = get_char(iter);
+		if(!is_word(ch)) {
+			break;
+		}
+	} while(forward(iter))
+
+	while(forward(iter)) {
+		ch = get_char(iter);
+		if(!is_word(ch)) {
+			break;
+		}
+	}
+*/
+}
+
+void prev_word_boundary(GtkTextIter *iter) {
+	bool hit_start_buffer = false;
+
+	gunichar ch = gtk_text_iter_get_char(iter);
+	if(is_word(ch)) {
+		do {
+			if(!gtk_text_iter_backward_char(iter)) {
+				hit_start_buffer = true;
+				break;
+			}
+			ch = gtk_text_iter_get_char(iter);
+		} while(is_word(ch));
+	} else {
+		do {
+			if(!gtk_text_iter_backward_char(iter)) {
+				hit_start_buffer = true;
+				break;
+			}
+			ch = gtk_text_iter_get_char(iter);
+		} while(is_word(ch));
+	}
+
+	if(!hit_start_buffer) {
+		gtk_text_iter_forward_char(iter);
+	}
+}
+
+void show_cursor(GtkTextView *view, bool should_show_cursor) {
+	GdkWindow *window = gtk_text_view_get_window(view, GTK_TEXT_WINDOW_TEXT); // text-view has multiple windows
+	GdkCursor *cursor = gdk_window_get_cursor(window);
+	GdkCursorType cursor_type = gdk_cursor_get_cursor_type(cursor);
+	bool make_cursor = should_show_cursor ? (cursor_type == GDK_BLANK_CURSOR) : (cursor_type != GDK_BLANK_CURSOR);
+	if(make_cursor) {
+		GdkDisplay *display = gtk_widget_get_display (GTK_WIDGET (view));
+		GdkCursor *new_cursor = gdk_cursor_new_from_name(display, (should_show_cursor ? "text" : "none"));
+		gdk_window_set_cursor(window, new_cursor); //@@ cleans up the old cursor?
+		g_object_unref(new_cursor);
+	}
+}
+
+gboolean textview_button_press(GtkTextView *view, GdkEventButton *event, gpointer _page) {
 	assert(event->type == GDK_BUTTON_PRESS
 		|| event->type == GDK_DOUBLE_BUTTON_PRESS
 		|| event->type == GDK_TRIPLE_BUTTON_PRESS);
+
+	NotebookPage *page = (NotebookPage *)_page;
+	TextViewMouseSelectionState *state = &page->mouse_selection_state;
 
 	if(!gtk_widget_is_focus(GTK_WIDGET(view))) {
 		gtk_widget_grab_focus(GTK_WIDGET(view));
@@ -1287,260 +1399,182 @@ gboolean text_view_mouse_button_press(GtkTextView *view, GdkEventButton *event, 
 
 		gint buf_x, buf_y;
 		gtk_text_view_window_to_buffer_coords(view, GTK_TEXT_WINDOW_TEXT, event->x, event->y, &buf_x, &buf_y);
-		GtkTextIter button_press_pos;
-		gtk_text_view_get_iter_at_location(view, &button_press_pos, buf_x, buf_y);
+		GtkTextIter button_press_position;
+		gtk_text_view_get_iter_at_location(view, &button_press_position, buf_x, buf_y);
 
 		if(event->type == GDK_2BUTTON_PRESS || event->type == GDK_3BUTTON_PRESS) {
-			assert(button_press_position != NULL);
-			gtk_text_buffer_delete_mark(buffer, button_press_position); button_press_mark_count -= 1;
+			assert(state->press_position != NULL);
+			gtk_text_buffer_delete_mark(buffer, state->press_position); state->mark_count -= 1;
 		}
 
-		if(event->type == GDK_DOUBLE_BUTTON_PRESS) {
-//			printf("2PRESS\n");
+		if(event->type == GDK_2BUTTON_PRESS) {
+			printf("2PRESS (page id: %d)\n", page->id);
+//			printf("%p\n", view);
 
-			GtkTextIter selection_start = button_press_pos; // cursor
-			GtkTextIter selection_end = button_press_pos;
+			GtkTextIter start = button_press_position; // cursor
+			GtkTextIter end = button_press_position;
 
-			bool hit_start_buffer = false;
+			prev_word_boundary(&start);
+			next_word_boundary(&end);
+			gtk_text_buffer_select_range(buffer, &start, &end);
 
-			// Are we highlighting a word or a non-word?
-			gunichar ch = gtk_text_iter_get_char(&button_press_pos);
-			if(ch == '_' || g_unichar_isalnum(ch)) {
-				do {
-					if(!gtk_text_iter_forward_char(&selection_end)) {
-						break;
-					}
-					ch = gtk_text_iter_get_char(&selection_end);
-				} while(ch == '_' || g_unichar_isalnum(ch));
+			state->selection_granularity = SELECTION_GRANULARITY_WORD;
+			state->original_selection_start = gtk_text_buffer_create_mark(buffer, NULL, &start, FALSE); state->mark_count += 1;
+			state->original_selection_end = gtk_text_buffer_create_mark(buffer, NULL, &end, FALSE); state->mark_count += 1;
+		} else if(event->type == GDK_3BUTTON_PRESS) {
+			printf("3PRESS (page id: %d)\n", page->id);
+//			printf("%p\n", view);
 
-				do {
-					if(!gtk_text_iter_backward_char(&selection_start)) {
-						hit_start_buffer = true;
-						break;
-					}
-					ch = gtk_text_iter_get_char(&selection_start);
-				} while(ch == '_' || g_unichar_isalnum(ch));
-			} else {
-				do {
-					if(!gtk_text_iter_forward_char(&selection_end)) {
-						break;
-					}
-					ch = gtk_text_iter_get_char(&selection_end);
-				} while(!(ch == '_' || g_unichar_isalnum(ch)));
-
-				do {
-					if(!gtk_text_iter_backward_char(&selection_start)) {
-						hit_start_buffer = true;
-						break;
-					}
-					ch = gtk_text_iter_get_char(&selection_start);
-				} while(!(ch == '_' || g_unichar_isalnum(ch)));
-			}
-
-			if(!hit_start_buffer) {
-				gtk_text_iter_forward_char(&selection_start);
-			}
-
-			gtk_text_buffer_select_range(buffer, &selection_start, &selection_end);
-
-			button_press_selection_granularity = SELECTION_GRANULARITY_WORD;
-			button_press_selection_start = gtk_text_buffer_create_mark(buffer, NULL, &selection_start, FALSE); button_press_mark_count += 1;
-			button_press_selection_end = gtk_text_buffer_create_mark(buffer, NULL, &selection_end, FALSE); button_press_mark_count += 1;
-		} else if(event->type == GDK_TRIPLE_BUTTON_PRESS) {
-//			printf("3PRESS\n");
-
-			GtkTextIter selection_start = button_press_pos; // cursor
-			GtkTextIter selection_end = button_press_pos;
+			GtkTextIter start = button_press_position; // cursor
+			GtkTextIter end = button_press_position;
 			
-			gtk_text_iter_set_line_offset(&selection_start, 0);
-			gtk_text_iter_forward_line(&selection_end);
+			gtk_text_iter_set_line_offset(&start, 0);
+			gtk_text_iter_forward_line(&end);
+			gtk_text_buffer_select_range(buffer, &start, &end);
 
-			gtk_text_buffer_select_range(buffer, &selection_start, &selection_end);
-
-			button_press_selection_granularity = SELECTION_GRANULARITY_LINE;
-			button_press_selection_start = gtk_text_buffer_create_mark(buffer, NULL, &selection_start, FALSE); button_press_mark_count += 1;
-			button_press_selection_end = gtk_text_buffer_create_mark(buffer, NULL, &selection_end, FALSE); button_press_mark_count += 1;
+			state->selection_granularity = SELECTION_GRANULARITY_LINE;
+			state->original_selection_start = gtk_text_buffer_create_mark(buffer, NULL, &start, FALSE); state->mark_count += 1;
+			state->original_selection_end = gtk_text_buffer_create_mark(buffer, NULL, &end, FALSE); state->mark_count += 1;
 		} else {
-//			printf("PRESS\n");
+			printf("PRESS (page id: %d)\n", page->id);
+//			printf("%p\n", view);
 
-			gtk_text_buffer_place_cursor(buffer, &button_press_pos);
+			gtk_text_buffer_place_cursor(buffer, &button_press_position);
 
-			button_press_selection_granularity = SELECTION_GRANULARITY_CHARACTER;
-			button_press_position = gtk_text_buffer_create_mark(buffer, NULL, &button_press_pos, FALSE); button_press_mark_count += 1;
+			state->selection_granularity = SELECTION_GRANULARITY_CHARACTER;
+			state->press_position = gtk_text_buffer_create_mark(buffer, NULL, &button_press_position, FALSE); state->mark_count += 1;
 //			printf("Creating bunch of marks\n");
 //			for(int i = 0; i < MAX_TEST_MARKS; ++i) {
 //				test_marks[i] = gtk_text_buffer_create_mark(buffer, NULL, &button_press_pos, FALSE);
 //			}
 		}
+
+		return TRUE;
 	} else {
 		return FALSE;
 	}
-
-	return TRUE;
 }
 
-gboolean text_view_mouse_button_release(GtkTextView *view, GdkEventButton *event, gpointer _) {
+gboolean textview_button_release(GtkTextView *view, GdkEventButton *event, gpointer _page) {
 	assert(event->type == GDK_BUTTON_RELEASE);
 
+	//@@ We are assuming that we are on a same tab/page where the button went down!
+
+	NotebookPage *page = (NotebookPage *)_page;
+	TextViewMouseSelectionState *state = &page->mouse_selection_state;
+
+	/*
+	Normally: 1 -- left, 2 -- middle, 3 -- right
+	*/
 	if(event->button == 1) {
-//		printf("BUTTON RELEASE\n");
+		printf("BUTTON RELEASE (page id: %d)\n", page->id);
+//		printf("%p\n", view);
 
 		GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
 
-		if(button_press_selection_granularity == SELECTION_GRANULARITY_WORD || button_press_selection_granularity == SELECTION_GRANULARITY_LINE) {
-			gtk_text_buffer_delete_mark(buffer, button_press_selection_start); button_press_mark_count -= 1;
-			gtk_text_buffer_delete_mark(buffer, button_press_selection_end); button_press_mark_count -= 1;
+		if(state->selection_granularity == SELECTION_GRANULARITY_WORD || state->selection_granularity == SELECTION_GRANULARITY_LINE) {
+			gtk_text_buffer_delete_mark(buffer, state->original_selection_start); state->mark_count -= 1;
+			gtk_text_buffer_delete_mark(buffer, state->original_selection_end); state->mark_count -= 1;
 		} else {
-			assert(button_press_selection_granularity == SELECTION_GRANULARITY_CHARACTER);
-			gtk_text_buffer_delete_mark(buffer, button_press_position); button_press_mark_count -= 1;
+			assert(state->selection_granularity == SELECTION_GRANULARITY_CHARACTER);
+			gtk_text_buffer_delete_mark(buffer, state->press_position); state->mark_count -= 1;
 		}
 
-		assert(button_press_mark_count == 0);
+		assert(state->mark_count == 0);
 
-		button_press_selection_granularity = SELECTION_GRANULARITY_NONE;
+		state->selection_granularity = SELECTION_GRANULARITY_NONE;
 //		GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
 //		for(int i = 0; i < MAX_TEST_MARKS; ++i) {
 //			gtk_text_buffer_delete_mark(buffer, test_marks[i]);
 //		}
+
+		return TRUE;
 	} else {
 		return FALSE;
 	}
-
-	return TRUE;
 }
 
-gboolean text_view_mouse_move(GtkTextView *view, GdkEventMotion *event, gpointer _) {
+gboolean textview_mouse_move(GtkTextView *view, GdkEventMotion *event, gpointer _page) {
 //	printf("MOUSE MOVE (x: %f, y: %f)\n", event->x, event->y);
 
-	long t1 = get_time_us();
-	GdkWindow *window = gtk_text_view_get_window(view, GTK_TEXT_WINDOW_TEXT);
-	GdkCursor *cursor = gdk_window_get_cursor(window);
-	GdkCursorType cursor_type = gdk_cursor_get_cursor_type(cursor);
-//	printf("cursor: %p, %d\n", cursor, cursor_type);
-	if(cursor_type == GDK_BLANK_CURSOR) {
-		GdkDisplay *display = gtk_widget_get_display (GTK_WIDGET (view));
-		GdkCursor *new_cursor = gdk_cursor_new_from_name(display, "text"); // this seems to be the cursor set by GTK at first
-//		GdkCursor *new_cursor = gdk_cursor_new_for_display(display, GDK_X_CURSOR);
-//		GdkCursor *new_cursor = gdk_cursor_new_for_display(display, GDK_LAST_CURSOR); //?
-		gdk_window_set_cursor(window, new_cursor); //@@ cleans up the old cursor? is that the right cursor?
-		g_object_unref(new_cursor);
-	}
-	long t2 = get_time_us();
-	long duration = t2 - t1;
-	
-	if(button_press_selection_granularity != SELECTION_GRANULARITY_NONE) {
-		GtkTextIter mouse_pos;
+	//@@ We are assuming that we are on a same tab/page where the button went down!
+
+	NotebookPage *page = (NotebookPage *)_page;
+	TextViewMouseSelectionState *state = &page->mouse_selection_state;
+
+	show_cursor(view, true);
+
+	if(state->selection_granularity != SELECTION_GRANULARITY_NONE) {
+		GtkTextIter mouse_position;
 		gint buf_x, buf_y;
 		gtk_text_view_window_to_buffer_coords(view, GTK_TEXT_WINDOW_TEXT, event->x, event->y, &buf_x, &buf_y);
-		gtk_text_view_get_iter_at_location(view, &mouse_pos, buf_x, buf_y);
+		gtk_text_view_get_iter_at_location(view, &mouse_position, buf_x, buf_y);
+	
+		GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
 
-		if(button_press_selection_granularity == SELECTION_GRANULARITY_CHARACTER) {
+		if(state->selection_granularity == SELECTION_GRANULARITY_CHARACTER) {
 //			assert(button_press_selection_start == NULL);
 //			assert(button_press_selection_end == NULL);
 //			assert(button_press_position != NULL);
 
-			GtkTextIter start, end;
+//			GtkTextBuffer *state_buffer = gtk_text_mark_get_buffer(state->press_position);
+//			assert(buffer == state_buffer);
 
-			start = mouse_pos;
-	
-			GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
-			gtk_text_buffer_get_iter_at_mark(buffer, &end, button_press_position);
+			GtkTextIter start;
+			start = mouse_position;
+
+			GtkTextIter end;
+			gtk_text_buffer_get_iter_at_mark(buffer, &end, state->press_position);
 
 //			assert(gtk_text_iter_compare(&start, &end) != 0);
 			gtk_text_buffer_select_range(buffer, &start, &end);
-		} else if(button_press_selection_granularity == SELECTION_GRANULARITY_WORD) {
+		} else if(state->selection_granularity == SELECTION_GRANULARITY_WORD) {
 //			assert(button_press_selection_start != NULL);
 //			assert(button_press_selection_end != NULL);
 //			assert(button_press_position == NULL);
 
-			GtkTextIter selection_start, selection_end;
-			GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
-			gtk_text_buffer_get_iter_at_mark(buffer, &selection_start, button_press_selection_start);
-			gtk_text_buffer_get_iter_at_mark(buffer, &selection_end, button_press_selection_end);
+			GtkTextIter original_start, original_end;
+			gtk_text_buffer_get_iter_at_mark(buffer, &original_start, state->original_selection_start);
+			gtk_text_buffer_get_iter_at_mark(buffer, &original_end, state->original_selection_end);
 
-			assert(gtk_text_iter_compare(&selection_start, &selection_end) <= 0);
-			bool mouse_before_start = (gtk_text_iter_compare(&mouse_pos, &selection_start) < 0) ? true : false;
-			bool mouse_after_end = (gtk_text_iter_compare(&mouse_pos, &selection_end) > 0) ? true : false;
-			if(mouse_before_start) {
-				bool hit_start_buffer = false;
+			assert(gtk_text_iter_compare(&original_start, &original_end) <= 0);
+			bool mouse_before_original = (gtk_text_iter_compare(&mouse_position, &original_start) < 0) ? true : false;
+			bool mouse_after_original = (gtk_text_iter_compare(&mouse_position, &original_end) > 0) ? true : false;
 
-				GtkTextIter iter = mouse_pos;
-				gunichar ch = gtk_text_iter_get_char(&iter);
-				if(ch == '_' || g_unichar_isalnum(ch)) {
-					do {
-						if(!gtk_text_iter_backward_char(&iter)) {
-							hit_start_buffer = true;
-							break;
-						}
-						ch = gtk_text_iter_get_char(&iter);
-					} while(ch == '_' || g_unichar_isalnum(ch));
-				} else {
-					do {
-						if(!gtk_text_iter_backward_char(&iter)) {
-							hit_start_buffer = true;
-							break;
-						}
-						ch = gtk_text_iter_get_char(&iter);
-					} while(!(ch == '_' || g_unichar_isalnum(ch)));
-				}
-	
-				if(!hit_start_buffer) {
-					gtk_text_iter_forward_char(&iter);
-				}
-
-				gtk_text_buffer_select_range(buffer, &iter, &selection_end);
-			} else if(mouse_after_end) {
-				GtkTextIter iter = mouse_pos;
-				gunichar ch = gtk_text_iter_get_char(&iter);
-				if(ch == '_' || g_unichar_isalnum(ch)) {
-					do {
-						if(!gtk_text_iter_forward_char(&iter)) {
-							break;
-						}
-						ch = gtk_text_iter_get_char(&iter);
-					} while(ch == '_' || g_unichar_isalnum(ch));
-				} else {
-					do {
-						if(!gtk_text_iter_forward_char(&iter)) {
-							break;
-						}
-						ch = gtk_text_iter_get_char(&iter);
-					} while(!(ch == '_' || g_unichar_isalnum(ch)));
-				}
-	
-				gtk_text_buffer_select_range(buffer, &iter, &selection_start);
+			if(mouse_before_original) {
+				GtkTextIter new_start = mouse_position;
+				prev_word_boundary(&new_start);
+				gtk_text_buffer_select_range(buffer, &new_start, &original_end);
+			} else if(mouse_after_original) {
+				GtkTextIter new_start = mouse_position;
+				next_word_boundary(&new_start);
+				gtk_text_buffer_select_range(buffer, &new_start, &original_start);
 			} else {
-				// mouse at original
-
-				gtk_text_buffer_select_range(buffer, &selection_start, &selection_end);
+				gtk_text_buffer_select_range(buffer, &original_start, &original_end);
 			}
-		} else if(button_press_selection_granularity == SELECTION_GRANULARITY_LINE) {
+		} else if(state->selection_granularity == SELECTION_GRANULARITY_LINE) {
 //			assert(button_press_selection_start != NULL);
 //			assert(button_press_selection_end != NULL);
 //			assert(button_press_position == NULL);
 
-			GtkTextIter selection_start, selection_end;
-			GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
-			gtk_text_buffer_get_iter_at_mark(buffer, &selection_start, button_press_selection_start);
-			gtk_text_buffer_get_iter_at_mark(buffer, &selection_end, button_press_selection_end);
+			GtkTextIter original_start, original_end;
+			gtk_text_buffer_get_iter_at_mark(buffer, &original_start, state->original_selection_start);
+			gtk_text_buffer_get_iter_at_mark(buffer, &original_end, state->original_selection_end);
 
-			gint start_line = gtk_text_iter_get_line(&selection_start);
-//			gint end_line = gtk_text_iter_get_line(&selection_end);
-//			printf("start line: %d, end line: %d\n", start_line, end_line);
-			gint mouse_line = gtk_text_iter_get_line(&mouse_pos);
-//			printf("mouse line: %d\n", mouse_line);
+			gint original_line = gtk_text_iter_get_line(&original_start);
+			gint mouse_line = gtk_text_iter_get_line(&mouse_position);
 
-			if(mouse_line < start_line) {
-				GtkTextIter iter = mouse_pos;
+			if(mouse_line < original_line) {
+				GtkTextIter iter = mouse_position;
 				gtk_text_iter_set_line_offset(&iter, 0);
-				gtk_text_buffer_select_range(buffer, &iter, &selection_end);
-			} else if(mouse_line > start_line) {
-				GtkTextIter iter = mouse_pos;
+				gtk_text_buffer_select_range(buffer, &iter, &original_end);
+			} else if(mouse_line > original_line) {
+				GtkTextIter iter = mouse_position;
 				gtk_text_iter_forward_line(&iter);
-				gtk_text_buffer_select_range(buffer, &iter, &selection_start);
+				gtk_text_buffer_select_range(buffer, &iter, &original_start);
 			} else {
-				assert(mouse_line == start_line);
-				gtk_text_buffer_select_range(buffer, &selection_start, &selection_end);
+				assert(mouse_line == original_line);
+				gtk_text_buffer_select_range(buffer, &original_start, &original_end);
 			}
 		} else {
 			assert(false);
@@ -1567,7 +1601,7 @@ gboolean text_view_mouse_move(GtkTextView *view, GdkEventMotion *event, gpointer
 		GdkRectangle visible_rect;
 		gtk_text_view_get_visible_rect(view, &visible_rect);
 		if(buf_x <= visible_rect.x || buf_x >= visible_rect.x + visible_rect.width || buf_y <= visible_rect.y || buf_y >= visible_rect.y + visible_rect.height) {
-			gtk_text_view_scroll_to_iter(view, &mouse_pos, 0.0, FALSE, 0.0, 0.0);
+			gtk_text_view_scroll_to_iter(view, &mouse_position, 0.0, FALSE, 0.0, 0.0);
 		}
 	}
 
@@ -1575,27 +1609,17 @@ gboolean text_view_mouse_move(GtkTextView *view, GdkEventMotion *event, gpointer
 }
 
 void text_view_mouse__buffer_changed(GtkTextBuffer *buffer, gpointer _view) {
-	GtkTextView *view = GTK_TEXT_VIEW(_view);
-
-	GdkWindow *window = gtk_text_view_get_window(view, GTK_TEXT_WINDOW_TEXT);
-	GdkCursor *cursor = gdk_window_get_cursor(window);
-	GdkCursorType cursor_type = gdk_cursor_get_cursor_type(cursor);
-	if(cursor_type != GDK_BLANK_CURSOR) {
-		GdkDisplay *display = gtk_widget_get_display (GTK_WIDGET (view));
-		GdkCursor *new_cursor = gdk_cursor_new_from_name(display, "none");
-//		GdkCursor *new_cursor = gdk_cursor_new_for_display(display, GDK_X_CURSOR);
-//		GdkCursor *new_cursor = gdk_cursor_new_for_display(display, GDK_LAST_CURSOR); //?
-		gdk_window_set_cursor(window, new_cursor); //@@ cleans up the old cursor?
-		g_object_unref(new_cursor);
-	}
+	printf("this will be called\n");
+	show_cursor(GTK_TEXT_VIEW(_view), false);
 }
 
 GtkWidget *create_tab(const char *file_name)
 {
-	static unsigned int count = 1;//@ why not from 0? invalid tab id?
+//	static unsigned int count = 1;//@ why not from 0? invalid tab id?
+	assert(first_unused_page_id < NOTEBOOK_MAX_PAGES);
+
 	char *tab_title;
 	gchar *contents, *base_name;
-	//GFile *file;
 
 	LOG_MSG("%s()\n", __FUNCTION__);
 
@@ -1604,18 +1628,25 @@ GtkWidget *create_tab(const char *file_name)
 
 	struct TabInfo *tab_info;
 	tab_info = (TabInfo *) malloc(sizeof(struct TabInfo));
+	tab_info->id = first_unused_page_id;
 	if (file_name == NULL) {
 		tab_info->file_name = NULL;
 
 		tab_title = (char *) malloc(100);
-		snprintf(tab_title, 100, "%s %d", "Untitled", count);
+//		snprintf(tab_title, 100, "%s %d", "Untitled", count);
+		snprintf(tab_title, 100, "Untitled %d", tab_info->id + 1);
 		tab_info->title = tab_title;
 	} else {
 		tab_info->file_name = file_name; //@ shouldnt we malloc a new buffer?
 		tab_info->title = get_base_name(file_name);
 	}
-	tab_info->id = count;
-	count += 1;
+
+	NotebookPage *page = &notebook_pages[first_unused_page_id];
+	page->id = first_unused_page_id;
+
+//	tab_info->id = count;
+//	count += 1;
+	first_unused_page_id += 1;
 	g_object_set_data(G_OBJECT(tab), "tab-info", tab_info);
 
 	GtkWidget *scrolled_window = gtk_scrolled_window_new(NULL, NULL);
@@ -1691,8 +1722,8 @@ GtkWidget *create_tab(const char *file_name)
 
 	gtk_widget_show_all(GTK_WIDGET(tab));
 
-	int page = gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, NULL);
-	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page);
+	int page_num = gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, NULL);
+	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page_num);
 
 	/*
 	If we combined line highlighting, '{}' highlighting and '()' highlighting into one callback, we would be more efficient, but I tested performance while all of them turned off, and honestly, the win would be insignificant. So I am too lazy to do that.
@@ -1778,9 +1809,10 @@ GtkWidget *create_tab(const char *file_name)
 //	printf("insert_handlers_count: %d, delete_handlers_count: %d\n", insert_handlers_count, delete_handlers_count);
 	undo_init(insert_handlers, insert_handlers_count, delete_handlers, delete_handlers_count, tab_info->id);
 
-	g_signal_connect(text_view, "button-press-event", G_CALLBACK(text_view_mouse_button_press), NULL);
-	g_signal_connect(text_view, "button-release-event", G_CALLBACK(text_view_mouse_button_release), NULL);
-	g_signal_connect(text_view, "motion-notify-event", G_CALLBACK(text_view_mouse_move), NULL);
+	/* text view mouse text selection*/
+	g_signal_connect(text_view, "button-press-event", G_CALLBACK(textview_button_press), page);
+	g_signal_connect(text_view, "button-release-event", G_CALLBACK(textview_button_release), page);
+	g_signal_connect(text_view, "motion-notify-event", G_CALLBACK(textview_mouse_move), page);
 
 	/*
 	GTK seems to have some default handler that makes the mouse pointer disappear as we start typing.
@@ -1790,7 +1822,7 @@ GtkWidget *create_tab(const char *file_name)
 	As far as GTK is concerned the cursor is still gone.
 	Because GTK will not make the cursor disappear when it thinks its already disappeared, GTK will make the cursor disappear only once, and from then on, it refuses to do it again.
 	At least something along those lines seems to be happening. I havent really read the GTK code or anything.
-	This means that we have to make the cursor disappear and make it visible again ourselves.
+	This means that we have to hide/show the cursor ourselves.
 	*/
 	g_signal_connect_after(text_buffer, "changed", G_CALLBACK(text_view_mouse__buffer_changed), text_view);
 
@@ -2593,6 +2625,39 @@ void activate_handler(GtkApplication *app, gpointer data)
 {
 	LOG_MSG("%s()\n", __FUNCTION__);
 
+//	unsigned char c = 32; //space
+//	while(true) {
+//		putchar(c);
+////		printf("%d\n", c);
+//		if(c == 255) {break;}
+//		c += 1;
+//	}
+//	puts("");
+
+//	for(int i = 0; i <= 0xff; ++i) {
+//		is_word[i] = true;
+//	}
+//
+//	const char *whitespace = " \n\t";
+//	for(int i = 0; whitespace[i] != '\0'; ++i) {
+//		is_word[whitespace[i]] = false;
+//	}
+
+	for(int ch = 0; ch < NUM_ASCII_CHARS; ++ch) {
+		ascii_chars[ch] = false;
+	}
+
+	const char *word_chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_";
+	for(int i = 0; word_chars[i] != '\0'; ++i) {
+		char ch = word_chars[i];
+		ascii_chars[ch] = true;
+	}
+
+//	const char *all_ascii = "\t\n !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+//	for(int i = 0; all_ascii[i] != '\0'; ++i) {
+//		is_word[all_ascii[i]] = true;
+//	}
+
 	tabs = new_list(); // temp
 
 /*
@@ -2653,6 +2718,11 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(CTRL, 113, cursor_jump_backward); // ctrl + <left arrow>
 	add_keycombination_handler(CTRL | SHIFT, 114, cursor_jump_forward); // ctrl + shift + <right arrow>
 	add_keycombination_handler(CTRL | SHIFT, 113, cursor_jump_backward); // ctrl + shift + <left arrow>
+
+	add_keycombination_handler(ALT, 114, cursor_jump_forward); // ctrl + <right arrow>
+	add_keycombination_handler(ALT, 113, cursor_jump_backward); // ctrl + <left arrow>
+	add_keycombination_handler(ALT | SHIFT, 114, cursor_jump_forward); // ctrl + shift + <right arrow>
+	add_keycombination_handler(ALT | SHIFT, 113, cursor_jump_backward); // ctrl + shift + <left arrow>
 
 	add_keycombination_handler(CTRL, 111, move_cursor_up); // ctrl + <up>
 	add_keycombination_handler(CTRL, 116, move_cursor_down); // ctrl + <down>

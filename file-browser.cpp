@@ -549,7 +549,7 @@ static void on_menu_delete_selected(GtkMenuItem *item, gpointer data)
 
 	/* It works on Ubuntu 16.04 LTS bla-bla, no idea if it works on anything else.. */
 	char command[256];
-	snprintf(command, 256, "mv \"%s\" /home/eero/.local/share/Trash/files", full_path);
+	snprintf(command, 256, "mv \"%s\" /home/eero/.local/share/Trash/files", full_path); //@ hardcoded path
 	ret = system(command);
 	LOG_MSG("on_menu_delete_selected(): system() returned %d\n", ret);
 	if (ret != 0) {

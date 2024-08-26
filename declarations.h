@@ -201,6 +201,8 @@ void line_highlighting_on_text_buffer_cursor_position_changed(GObject *object, G
 void scope_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data);
 void matching_char_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data);
 
+bool is_word(unsigned int ch);
+
 /* search-replace.cpp */
 GtkWidget *create_search_widget(GtkWidget *tab);
 gboolean toggle_search_entry(GdkEventKey *key_event);
@@ -335,7 +337,7 @@ void MultiCursor_AddTextTags(GtkTextBuffer *TextBuffer);
 void MultiCursor_RemoveTextTags(GtkTextBuffer *TextBuffer);
 
 
-#define PRINT_LOG_MESSAGES
+//#define PRINT_LOG_MESSAGES
 #ifdef PRINT_LOG_MESSAGES
 	//#define LOG_MSG(...) printf(__VA_ARGS__)
 //	#define LOG_MSG(format, ...) printf("[%s:%d] " format, __FILE__, __LINE__, ##__VA_ARGS__)

@@ -1,11 +1,16 @@
----
-Get rid of numpad keybindings
----
-Did I brake bold font support for 3.18?
----
-Search box animation doesnt feel good. Maybe get rid of it entirely. Simplify.
----
-Fix @@!
+
+- Get rid of numpad keybindings
+- Did I brake bold font support for 3.18?
+- Search box animation doesnt feel good. Maybe get rid of it entirely. Simplify.
+- 2 marks is not enough. need more! maybe improve interface somehow?
+- if, if/else, if/else if/else, for, while etc. -- collapsing these quickly might be useful
+- What function/method am I in? Could display this in statusbar?
+- struct fields, would really like to see them
+- Fix @@!
+- ctrl + ö/ä when on last line
+- undo double single quote (generates GTK-errors)
+- Should/could scrolling while selecting text with the mouse be improved?
+
 ---
 ctrl[ + shift] + left/right
 
@@ -55,16 +60,9 @@ Sublime also does that.
 
 ---
 
-/*
-return value: TRUE/FALSE, whether it found the boundry or hit the end of buffer
-*/
-gboolean next_word_boundry(GtkTextIter *iter, GtkTextBuffer *buffer)
-
----
-
 imagine I could filter files and directories in file browser. say, switch off directories, or, switch on .cpp files and .hpp files. and it would be really easy. you just toggle some buttons. and you can define your own button based on simple rules. would that be a cool feature?
 
-or show all image files in this directory, but also image files in subdirectories recursively
+or, say, I have a directory and I want to see all image files, but not only in that directory, but in all subdirectories as well and then I want to sort them based on their dimensions. or I want to sort them somehow by what colors they contain. it would be interesting, but would it actually be useful?
 
 ---
 
@@ -73,3 +71,16 @@ Jump to a function definition. A function definition in where? Internet? Local p
 We can think of a project as a list of files. And then we predigest data in these files into some helpful data structures which are going to make searching for function definitions, type definitions etc. super fast. What if we updated them every time new data is saved on disk? Just parse everything all over again? Sounds very simple, but how slow is it gonna get?
 
 Can a project be thought of as a directory? Just a branch of a filesystem tree? We already have a file browser. So what if it was possible to just click on a directory or a file and select "make this into a C++ project" or "make this into a HTML, CSS, JS project" or "make this into my custom whatver project". For "C++ project" you would maybe write code that parses throught .cpp or .cxx etc. files. But really anything you can do with a directory or a file could happen.
+
+A project is a group of files and info about how to compile and link and run the resulting program. But you wouldnt necessarily compile and link a python-project for example. Or what if I have a collection of text files containing notes, or maybe they are XML-files. Could think about these as projects as well?
+
+---
+
+variable -> definition
+function call -> definition
+type -> definition
+
+---
+
+open file feature is currently terrible!
+Should redesign open file widget into a more general search functionality. Instead of merely searching for files, we could make it search for anything of interest (function definitions, type definitions, files). Difference between it and search-in-files feature would be that search-in-files actually does all the work, while the new search feature would rely on already processed data. This would mean, that the new feature can (hopefully) be very fast, but it searches for project-specific stuff, the kind of things I might be interested in while working with a codebase. And if I switch from one project mode (like C) to another (like Make?) it would look for different things. So, basically, you have one directory, but you can look at it as a C-project or a Make-project or simply bunch of text. Which makes me think that we could actually combine search in files feature with it and search in files behaviour would occur when any project-mode is not selected (project specific preproccesing is not done). What about search and replace across multiple files? Honestly, I dont know who would use it and when...

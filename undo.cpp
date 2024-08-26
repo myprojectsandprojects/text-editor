@@ -240,7 +240,8 @@ void undo_init(gulong insert_handlers[], int insert_handlers_count, gulong *dele
 	LOG_MSG("%s()\n", __FUNCTION__);
 //	printf("tab_id: %d\n", tab_id);
 
-	unsigned int index = tab_id - 1;
+//	unsigned int index = tab_id - 1;
+	unsigned int index = tab_id;
 	assert(index < MAX_TABS);
 	for(int i = 0; i < insert_handlers_count; ++i) {
 		per_tab_undo_data[index].insert_handlers[i] = insert_handlers[i];

@@ -1892,6 +1892,9 @@ gboolean move_cursor_closing(GdkEventKey *key_event)
 gboolean cursor_jump_forward(GdkEventKey *key_event) {
 	printf("cursor_jump_forward()\n");
 
+//	const int ctrl_flag = 4;
+//	bool *is_word = (key_event->state & ctrl_flag) ? get_char_table_ctrl() : get_char_table_alt();
+
 	GtkTextView *text_view = NULL;
 	GtkTextBuffer *text_buffer = NULL;
 	if (!init(&text_view, &text_buffer)) {
@@ -1904,18 +1907,15 @@ gboolean cursor_jump_forward(GdkEventKey *key_event) {
 
 	GtkTextIter cursor_pos = iter;
 
-	gunichar ch;
-	
-	ch = gtk_text_iter_get_char(&iter);
-	while(!(ch == '_' || g_unichar_isalnum(ch))) {
+	gunichar ch = gtk_text_iter_get_char(&iter);
+	while(!is_word(ch)) {
 		if(!gtk_text_iter_forward_char(&iter)) {
 			break;
 		}
 		ch = gtk_text_iter_get_char(&iter);
 	}
 
-//	ch = gtk_text_iter_get_char(&iter);
-	while(ch == '_' || g_unichar_isalnum(ch)) {
+	while(is_word(ch)) {
 		if(!gtk_text_iter_forward_char(&iter)) {
 			break;
 		}
@@ -1952,6 +1952,9 @@ gboolean cursor_jump_forward(GdkEventKey *key_event) {
 gboolean cursor_jump_backward(GdkEventKey *key_event) {
 	printf("cursor_jump_backward()\n");
 
+//	const int ctrl_flag = 4;
+//	bool *is_word = (key_event->state & ctrl_flag) ? get_char_table_ctrl() : get_char_table_alt();
+
 	GtkTextView *text_view = NULL;
 	GtkTextBuffer *text_buffer = NULL;
 	if (!init(&text_view, &text_buffer)) {
@@ -1970,7 +1973,7 @@ gboolean cursor_jump_backward(GdkEventKey *key_event) {
 	bool hit_start_buffer = false;
 	
 	ch = gtk_text_iter_get_char(&iter);
-	while(!(ch == '_' || g_unichar_isalnum(ch))) {
+	while(!is_word(ch)) {
 		if(!gtk_text_iter_backward_char(&iter)) {
 			hit_start_buffer = true;
 			break;
@@ -1978,8 +1981,7 @@ gboolean cursor_jump_backward(GdkEventKey *key_event) {
 		ch = gtk_text_iter_get_char(&iter);
 	}
 
-//	ch = gtk_text_iter_get_char(&iter);
-	while(ch == '_' || g_unichar_isalnum(ch)) {
+	while(is_word(ch)) {
 		if(!gtk_text_iter_backward_char(&iter)) {
 			hit_start_buffer = true;
 			break;

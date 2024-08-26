@@ -52,4 +52,3 @@ void *tab_retrieve_widget(GtkWidget *tab, enum WidgetName widget_name)
 	return tab_widgets[tab_info->id][widget_name];
 }
 
-
