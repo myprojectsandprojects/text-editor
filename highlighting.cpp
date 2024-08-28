@@ -52,20 +52,20 @@ void highlighting_init(GtkWidget *tab, Node *settings){
 			assert(attribute_value); // attribute has to have a value (for example: "foreground {black}")
 
 // 		style-attribute is a special case, cant use string from the file directly:
-//			if (strcmp(attribute_name->name, "style") == 0) {
-//				PangoStyle translated_value;
-//				if (strcmp(value->name, "PANGO_STYLE_NORMAL") == 0) {
-//					translated_value = PANGO_STYLE_NORMAL;
-//				} else if (strcmp(value->name, "PANGO_STYLE_ITALIC") == 0) {
-//					translated_value = PANGO_STYLE_ITALIC;
-//				} else if (strcmp(value->name, "PANGO_STYLE_OBLIQUE") == 0) {
-//					translated_value = PANGO_STYLE_OBLIQUE;
-//				} else {
-//					assert(false); //@ more elegant error handling, inform the user
-//				}
-//				g_object_set(G_OBJECT(gtk_tag), name->name, translated_value, NULL);
-//				continue;
-//			}
+			if (strcmp(attribute_name->name, "style") == 0) {
+				PangoStyle translated_value;
+				if (strcmp(attribute_value->name, "PANGO_STYLE_NORMAL") == 0) {
+					translated_value = PANGO_STYLE_NORMAL;
+				} else if (strcmp(attribute_value->name, "PANGO_STYLE_ITALIC") == 0) {
+					translated_value = PANGO_STYLE_ITALIC;
+				} else if (strcmp(attribute_value->name, "PANGO_STYLE_OBLIQUE") == 0) {
+					translated_value = PANGO_STYLE_OBLIQUE;
+				} else {
+					assert(false); //@ more elegant error handling, inform the user
+				}
+				g_object_set(G_OBJECT(gtk_text_tag), attribute_name->name, translated_value, NULL);
+				continue;
+			}
 
 			if(strcmp(attribute_name->name, "weight") == 0) {
 				int num_value = atoi(attribute_value->name);

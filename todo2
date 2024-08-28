@@ -8,8 +8,15 @@
 - struct fields, would really like to see them
 - Fix @@!
 - ctrl + ö/ä when on last line
-- undo double single quote (generates GTK-errors)
+- undo double single quote (generates GTK-errors), undo enclosing within parenthesis
 - Should/could scrolling while selecting text with the mouse be improved?
+- scope/matching-char highlighting shouldnt highlight plain text
+- ctrl up/down keycombination handler itself could clean up technically empty lines which contain whitespace only
+- <enter> at the end of the file doesnt scroll
+
+---
+
+automatic completion ('', "" etc.) vs snippets (you press a key to trigger a completion) vs (suggestion?) completion
 
 ---
 ctrl[ + shift] + left/right
@@ -84,3 +91,15 @@ type -> definition
 
 open file feature is currently terrible!
 Should redesign open file widget into a more general search functionality. Instead of merely searching for files, we could make it search for anything of interest (function definitions, type definitions, files). Difference between it and search-in-files feature would be that search-in-files actually does all the work, while the new search feature would rely on already processed data. This would mean, that the new feature can (hopefully) be very fast, but it searches for project-specific stuff, the kind of things I might be interested in while working with a codebase. And if I switch from one project mode (like C) to another (like Make?) it would look for different things. So, basically, you have one directory, but you can look at it as a C-project or a Make-project or simply bunch of text. Which makes me think that we could actually combine search in files feature with it and search in files behaviour would occur when any project-mode is not selected (project specific preproccesing is not done). What about search and replace across multiple files? Honestly, I dont know who would use it and when...
+
+---
+
+searching:
+
+live searching
+preprocessed data
+
+boyer-moore
+sort and binary search
+hash table
+

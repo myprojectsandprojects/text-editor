@@ -1608,7 +1608,7 @@ gboolean textview_mouse_move(GtkTextView *view, GdkEventMotion *event, gpointer 
 	return TRUE;
 }
 
-void text_view_mouse__buffer_changed(GtkTextBuffer *buffer, gpointer _view) {
+void textview_buffer_changed(GtkTextBuffer *buffer, gpointer _view) {
 	printf("this will be called\n");
 	show_cursor(GTK_TEXT_VIEW(_view), false);
 }
@@ -1640,6 +1640,7 @@ GtkWidget *create_tab(const char *file_name)
 		tab_info->file_name = file_name; //@ shouldnt we malloc a new buffer?
 		tab_info->title = get_base_name(file_name);
 	}
+	g_object_set_data(G_OBJECT(tab), "tab-info", tab_info);
 
 	NotebookPage *page = &notebook_pages[first_unused_page_id];
 	page->id = first_unused_page_id;
@@ -1647,7 +1648,6 @@ GtkWidget *create_tab(const char *file_name)
 //	tab_info->id = count;
 //	count += 1;
 	first_unused_page_id += 1;
-	g_object_set_data(G_OBJECT(tab), "tab-info", tab_info);
 
 	GtkWidget *scrolled_window = gtk_scrolled_window_new(NULL, NULL);
 	//gtk_style_context_add_class (gtk_widget_get_style_context(scrolled_window), "scrolled-window");
@@ -1824,7 +1824,7 @@ GtkWidget *create_tab(const char *file_name)
 	At least something along those lines seems to be happening. I havent really read the GTK code or anything.
 	This means that we have to hide/show the cursor ourselves.
 	*/
-	g_signal_connect_after(text_buffer, "changed", G_CALLBACK(text_view_mouse__buffer_changed), text_view);
+	g_signal_connect_after(text_buffer, "changed", G_CALLBACK(textview_buffer_changed), text_view);
 
 	// I think it makes sense to do this as the very last thing,
 	// because, in theory, update_settings(), which iterates over these tabs,
