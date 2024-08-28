@@ -57,57 +57,11 @@ const char *settings_file_path_ifnotheme = "themes/settings-no-theme"; // if we 
 
 struct Node *settings;
 
-
-struct CList *tabs; // temp
-
-enum SelectionGranularity {
-	SELECTION_GRANULARITY_NONE = 0, // we are not updating a selection (left mouse button is not down)
-	SELECTION_GRANULARITY_CHARACTER,
-	SELECTION_GRANULARITY_WORD,
-	SELECTION_GRANULARITY_LINE,
-};
-
-// MouseState / MouseData / MouseSelectionState ?
-struct TextViewMouseSelectionState {
-	GtkTextMark *press_position; // single press
-	GtkTextMark *original_selection_start, *original_selection_end; // double- and triple-press
-	SelectionGranularity selection_granularity;
-	int mark_count; // 0
-};
-
-// 'Tab' could be confused with tab-key
-//struct SidebarNotebookPage
-struct NotebookPage {
-/*
-We store each NotebookPage in an array at an index which is also it's id.
-*/
-	int id; //-1 -- invalid id
-
-	bool in_use; // When a tab is closed, this is set to false
-
-	/*
-	This state is initialized at (left) mouse press and cleaned up at (left) mouse release.
-	So if we disallow user to switch between pages and close pages (everything that changes the visible page) while (left) mouse button is down,
-	then why not just have one instance of this as opposed to one for each page?
-	@@Right now we dont expect the visible page to change underneath us in between button press and button release.
-	One solution would be to not allow that to happen, ever. Block all keybindings while left mouse button is down, for example.
-	Another would be to somehow gracefully handle these situations.
-	*/
-	TextViewMouseSelectionState mouse_selection_state;
-//	struct {
-//		GtkTextMark *position;
-//		GtkTextMark *original_selection_start, *original_selection_end;
-//		SelectionGranularity selection_granularity;
-//	} textview_button_press;
-
-	//...
-	//GtkTextView *text_view;
-};
-
 const int NOTEBOOK_MAX_PAGES = 64;
 NotebookPage notebook_pages[NOTEBOOK_MAX_PAGES]; // index's are also id's
 NotebookPage *visible_page; // 0
 int first_unused_page_id; // 0
+/*@@ settings could change at any time!!!*/
 
 // currently we have (at least) 4 different ways of bookkeeping per tab data
 // - TabInfo
@@ -792,7 +746,7 @@ void on_adjustment_value_changed(GtkAdjustment *adj, gpointer user_data)
 */
 
 //@ should inform the user and/or use default values
-void configure_text_view(GtkTextView *text_view, struct Node *settings)
+void textview_apply_settings(GtkTextView *text_view, struct Node *settings)
 {
 	LOG_MSG("%s()\n", __FUNCTION__);
 
@@ -1642,8 +1596,14 @@ GtkWidget *create_tab(const char *file_name)
 	}
 	g_object_set_data(G_OBJECT(tab), "tab-info", tab_info);
 
+	/*@@
+	Shouldnt this be done at the very end when the tab is ready, because apply_settings() might be called at any time?
+	This is a thread synchronization issue.
+	*/
 	NotebookPage *page = &notebook_pages[first_unused_page_id];
 	page->id = first_unused_page_id;
+	page->in_use = true;
+	page->tab = tab;
 
 //	tab_info->id = count;
 //	count += 1;
@@ -1655,7 +1615,8 @@ GtkWidget *create_tab(const char *file_name)
 
 
 	GtkTextView *text_view = GTK_TEXT_VIEW(gtk_text_view_new());
-	configure_text_view(text_view, settings);
+	page->view = text_view;
+	textview_apply_settings(text_view, settings);
 
 	// set_tab_stops_internal() in gtksourceview:
 	gint position = 30;
@@ -1702,6 +1663,7 @@ GtkWidget *create_tab(const char *file_name)
 	add_class(status_bar, "status-bar");
 
 	GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
+	page->buffer = text_buffer;
 
 	if (file_name) {
 		char *contents = read_file(file_name); //@ error handling. if we cant open a file, we shouldnt create a tab?
@@ -1755,7 +1717,7 @@ GtkWidget *create_tab(const char *file_name)
 		}
 	}
 
-	highlighting_init(tab, settings); //@ get rid of this
+	highlighting_init(tab, page, settings); //@ get rid of this
 	set_highlighting_based_on_file_extension(tab, settings, file_name);
 
 	// autocomplete-identifier
@@ -1825,11 +1787,6 @@ GtkWidget *create_tab(const char *file_name)
 	This means that we have to hide/show the cursor ourselves.
 	*/
 	g_signal_connect_after(text_buffer, "changed", G_CALLBACK(textview_buffer_changed), text_view);
-
-	// I think it makes sense to do this as the very last thing,
-	// because, in theory, update_settings(), which iterates over these tabs,
-	// might be called at any time.
-	list_append(tabs, (void *) tab); // temp
 
 	return tab;
 }
@@ -2117,6 +2074,9 @@ gboolean close_tab(GdkEventKey *key_event)
 	//g_object_unref(text_buffer);
 
 	struct TabInfo *tab_info = (struct TabInfo *) g_object_get_data(G_OBJECT(tab), "tab-info");
+
+	notebook_pages[tab_info->id].in_use = false; //@@ hack, use 'visible_tab' instead
+
 	assert(tab_info);
 	free((void *) tab_info->title);
 	if (tab_info->file_name) {
@@ -2125,8 +2085,6 @@ gboolean close_tab(GdkEventKey *key_event)
 	free(tab_info);
 
 	gtk_widget_destroy(tab);
-
-	list_delete_item(tabs, tab); // temp
 
 	return TRUE;
 }
@@ -2575,23 +2533,30 @@ gboolean scroll_down(GdkEventKey *key_event)
 }
 
 
-gboolean update_settings(gpointer user_arg)
+gboolean apply_settings(gpointer user_arg)
 {
-	printf("update_settings()\n");
-	//printf("update_settings: user_arg: %s\n", (const char *) user_arg);
+	//printf("apply_settings: user_arg: %s\n", (const char *) user_arg);
 	struct Node *new_settings = parse_settings_file(settings_file_path);
-	//@ free old settings
+	//@@ free old settings
 	settings = new_settings;
 
-	assert(tabs);
-	for (int i = 0; i < tabs->i_end; ++i) {
-		GtkWidget *tab = (GtkWidget *) tabs->data[i];
-		struct TabInfo *tab_info = (struct TabInfo *) g_object_get_data(G_OBJECT(tab), "tab-info");
-		printf("todo: update tab: %d\n", tab_info->id);
+	for (int i = 0; i < first_unused_page_id; ++i) {
+//		GtkWidget *tab = (GtkWidget *) tabs->data[i];
+//		struct TabInfo *tab_info = (struct TabInfo *) g_object_get_data(G_OBJECT(tab), "tab-info");
+		if(notebook_pages[i].in_use) {
+			printf("Updating tab: %d\n", notebook_pages[i].id);
 
-		// update text-view
-		GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
-		configure_text_view(text_view, settings);
+			// apply SOME of the changed settings
+
+			textview_apply_settings(notebook_pages[i].view, settings);
+
+			highlighting_apply_settings(settings, &notebook_pages[i]);
+			Highlighter highlighter = (Highlighter)tab_retrieve_widget(notebook_pages[i].tab, HIGHLIGHTER);
+			printf("highlighter: %p\n", highlighter);
+			if(highlighter) highlighter(notebook_pages[i].buffer, NULL);
+
+			//...
+		}
 
 
 //		// we are trying to update the tags in a very hacky way
@@ -2657,8 +2622,6 @@ void activate_handler(GtkApplication *app, gpointer data)
 //	for(int i = 0; all_ascii[i] != '\0'; ++i) {
 //		is_word[all_ascii[i]] = true;
 //	}
-
-	tabs = new_list(); // temp
 
 /*
 Cant call set_root_dir() here because it expects file-browser and root-navigation to be already created.
@@ -2792,8 +2755,6 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 	//@ Different GTK versions require different CSS. Themes I wrote for 3.18.9 do not work on 3.24.34 and 3.24.43. So what should we do here?
 	
-	settings = parse_settings_file(settings_file_path);
-	
 	const char *css_file_used = NULL;
 	if(gtk_version_major == 3 && gtk_version_minor == 18 && gtk_version_micro == 9) {
 		css_file_used = "themes/style-3.18.9.css";
@@ -2808,8 +2769,9 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 	apply_css_from_file((void *)css_file_used);
 	hotloader_register_callback(css_file_used, apply_css_from_file, (void *)css_file_used);
-
-//	hotloader_register_callback(settings_file_path, update_settings, NULL);
+	
+	settings = parse_settings_file(settings_file_path);
+	hotloader_register_callback(settings_file_path, apply_settings, NULL);
 
 	//char *filename1 = strdup("/home/eero/test/file1");
 	//char *filename2 = strdup("/home/eero/test/file2");

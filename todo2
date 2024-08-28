@@ -18,6 +18,8 @@
 
 automatic completion ('', "" etc.) vs snippets (you press a key to trigger a completion) vs (suggestion?) completion
 
+autocomplete character -> text expansion
+
 ---
 ctrl[ + shift] + left/right
 
@@ -102,4 +104,12 @@ preprocessed data
 boyer-moore
 sort and binary search
 hash table
+
+---
+
+void apply_settings(settings, void *user_data) -> we'll call you with that when settings change
+text-view
+highlighting
+search
+...
 

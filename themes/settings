@@ -9,12 +9,12 @@ for your new language highlighting + add an entry and specify the tags used by y
 parser-function in here) or adding new stuff to the build itself and wishing to make your
 new stuff easily configurable in here. */
 
-wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
+wrap-mode {GTK_WRAP_NONE} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WRAP_WORD_CHAR */
 left-margin {10}
 search-case-sensitivity {true}
-pixels-above-lines {2}
-pixels-below-lines {2}
-pixels-inside-wrap {2}
+pixels-above-lines {3}
+pixels-below-lines {3}
+pixels-inside-wrap {3}
 
 search-replace {}
 
@@ -48,7 +48,7 @@ text-tags
 	comment
 	{
 		foreground{#666666}
-		style{PANGO_STYLE_ITALIC}
+		style{PANGO_STYLE_ITALIC} /*PANGO_STYLE_NORMAL, PANGO_STYLE_ITALIC*/
 	}
 	identifier
 	{
@@ -66,6 +66,7 @@ text-tags
 	function
 	{
 		foreground{#cc6633}
+		background{#661100}
 		/*foreground{#5533aa}*/
 		/*foreground{#cc3333}*/
 	}
@@ -75,7 +76,8 @@ text-tags
 	}
 	number
 	{
-		foreground{#117744}
+		/*foreground{#117744}*/
+		foreground{pink}
 	}
 	operator
 	{

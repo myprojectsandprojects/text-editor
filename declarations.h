@@ -201,6 +201,56 @@ void line_highlighting_on_text_buffer_cursor_position_changed(GObject *object, G
 void scope_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data);
 void matching_char_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data);
 
+enum SelectionGranularity {
+	SELECTION_GRANULARITY_NONE = 0, // we are not updating a selection (left mouse button is not down)
+	SELECTION_GRANULARITY_CHARACTER,
+	SELECTION_GRANULARITY_WORD,
+	SELECTION_GRANULARITY_LINE,
+};
+
+// MouseState / MouseData / MouseSelectionState ?
+struct TextViewMouseSelectionState {
+	GtkTextMark *press_position; // single press
+	GtkTextMark *original_selection_start, *original_selection_end; // double- and triple-press
+	SelectionGranularity selection_granularity;
+	int mark_count; // 0
+};
+
+// 'Tab' could be confused with tab-key
+//struct SidebarNotebookPage
+struct NotebookPage {
+/*
+We store each NotebookPage in an array at an index which is also it's id.
+*/
+	int id; //-1 -- invalid id
+
+	bool in_use; // When a tab is closed, this is set to false
+
+	/*
+	This state is initialized at (left) mouse press and cleaned up at (left) mouse release.
+	So if we disallow user to switch between pages and close pages (everything that changes the visible page) while (left) mouse button is down,
+	then why not just have one instance of this as opposed to one for each page?
+	@@Right now we dont expect the visible page to change underneath us in between button press and button release.
+	One solution would be to not allow that to happen, ever. Block all keybindings while left mouse button is down, for example.
+	Another would be to somehow gracefully handle these situations.
+	*/
+	TextViewMouseSelectionState mouse_selection_state;
+//	struct {
+//		GtkTextMark *position;
+//		GtkTextMark *original_selection_start, *original_selection_end;
+//		SelectionGranularity selection_granularity;
+//	} textview_button_press;
+
+	GtkTextTag *texttags[16];
+	int texttags_count; // 0
+
+	//...
+	GtkTextView *view;
+	GtkTextBuffer *buffer;
+
+	GtkWidget *tab; // temporary
+};
+
 bool is_word(unsigned int ch);
 
 /* search-replace.cpp */
@@ -226,10 +276,14 @@ void undo_text_buffer_delete_range(GtkTextBuffer *text_buffer, GtkTextIter *star
 void actually_undo_last_action(GtkWidget *tab);
 
 /* highlighting.cpp: */
-void highlighting_init(GtkWidget *tab, Node *settings);
+//typedef void (*Highlighter) (GtkTextBuffer *, GtkTextIter *, GtkTextIter *);
+typedef void (*Highlighter) (GtkTextBuffer *, GtkTextIter *);
+
+void highlighting_init(GtkWidget *tab, NotebookPage *page, Node *settings);
 void highlighting_set(GtkWidget *tab, const char *highlighting_type);
 void print_tags(GtkTextBuffer *text_buffer);
 GtkWidget *create_highlighting_selection_button(GtkWidget *tab, Node *settings);
+void highlighting_apply_settings(Node *settings, NotebookPage *page);
 
 /* highlighting.c: */
 //void select_highlighting_based_on_file_extension(GtkWidget *tab, struct Node *settings, const char *file_name);

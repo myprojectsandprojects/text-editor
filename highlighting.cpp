@@ -9,9 +9,6 @@ static void on_insert_text_after(GtkTextBuffer *text_buffer, GtkTextIter *locati
 static void on_delete_range_after(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end, gpointer tab);
 static void update_highlighting_selection_button(GtkWidget *tab, const char *new_highlighting);
 
-//typedef void (*Highlighter) (GtkTextBuffer *, GtkTextIter *, GtkTextIter *);
-typedef void (*Highlighter) (GtkTextBuffer *, GtkTextIter *);
-
 struct TableEntry {
 	const char *name;			// highlighting name
 	Highlighter highlighter;	// function that does the highlighting
@@ -33,26 +30,46 @@ Highlighter get_highlighter(const char *highlighting_type) {
 	return NULL;
 }
 
-void highlighting_init(GtkWidget *tab, Node *settings){
-	LOG_MSG("highlighting_init()\n");
+//void for_each_tag(GtkTextTag *tag, gpointer table) {
+//	const char *n;
+//	g_object_get(tag, "name", &n, NULL);
+//	printf("%s\n", n);
+//}
 
-	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
+void highlighting_apply_settings(Node *settings, NotebookPage *page) {
+	printf("%s()\n", __FUNCTION__);
+
+	GtkTextTagTable *table = gtk_text_buffer_get_tag_table(page->buffer);
+
+//	gint size = gtk_text_tag_table_get_size(table);
+//	printf("text tag table size: %d\n", size);
+//	printf("text tags stored: %d\n", page->texttags_count);
+
+	GtkTextIter buffer_start, buffer_end;
+	gtk_text_buffer_get_bounds(page->buffer, &buffer_start, &buffer_end);
+	for(int i = 0; i < page->texttags_count; ++i) {
+		gtk_text_buffer_remove_tag(page->buffer, page->texttags[i], &buffer_start, &buffer_end);
+		gtk_text_tag_table_remove((GtkTextTagTable *)table, page->texttags[i]);
+		printf("removed a tag\n");
+	}
+	page->texttags_count = 0;
+
+//	gtk_text_tag_table_foreach(table, for_each_tag, table);
 
 	Node *text_tags = get_node(settings, "text-tags");
 
-	for(int i = 0; i < text_tags->nodes.count; ++i){
+	for(int i = 0; i < text_tags->nodes.count; ++i) {
 		Node *text_tag = (Node *) text_tags->nodes.data[i];
 //		printf("text-tag: %s\n", text_tag->name);
 
-		GtkTextTag *gtk_text_tag = gtk_text_buffer_create_tag(text_buffer, text_tag->name, NULL);
+		GtkTextTag *gtk_text_tag = gtk_text_buffer_create_tag(page->buffer, text_tag->name, NULL);
 
 		for (int j = 0; j < text_tag->nodes.count; ++j) {
 			Node *attribute_name = (Node *) text_tag->nodes.data[j];
 			Node *attribute_value = (Node *) attribute_name->nodes.data[0];
 			assert(attribute_value); // attribute has to have a value (for example: "foreground {black}")
 
-// 		style-attribute is a special case, cant use string from the file directly:
-			if (strcmp(attribute_name->name, "style") == 0) {
+			if(strcmp(attribute_name->name, "style") == 0) {
 				PangoStyle translated_value;
 				if (strcmp(attribute_value->name, "PANGO_STYLE_NORMAL") == 0) {
 					translated_value = PANGO_STYLE_NORMAL;
@@ -64,17 +81,26 @@ void highlighting_init(GtkWidget *tab, Node *settings){
 					assert(false); //@ more elegant error handling, inform the user
 				}
 				g_object_set(G_OBJECT(gtk_text_tag), attribute_name->name, translated_value, NULL);
-				continue;
-			}
-
-			if(strcmp(attribute_name->name, "weight") == 0) {
+			} else if(strcmp(attribute_name->name, "weight") == 0) {
 				int num_value = atoi(attribute_value->name);
 				g_object_set(G_OBJECT(gtk_text_tag), attribute_name->name, num_value, NULL);
 			} else {
 				g_object_set(G_OBJECT(gtk_text_tag), attribute_name->name, attribute_value->name, NULL);
 			}
 		}
+
+		assert(page->texttags_count < (sizeof(page->texttags) / sizeof(GtkTextTag *)));
+		page->texttags[page->texttags_count] = gtk_text_tag;
+		page->texttags_count += 1;
 	}
+}
+
+void highlighting_init(GtkWidget *tab, NotebookPage *page, Node *settings){
+	LOG_MSG("highlighting_init()\n");
+
+	highlighting_apply_settings(settings, page);
+
+	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
 
 	// register event-handlers necessary to keep the highlighting uptodate
 	g_signal_connect_after(text_buffer, "insert-text", G_CALLBACK(on_insert_text_after), tab);
@@ -114,11 +140,11 @@ void highlighting_set(GtkWidget *tab, const char *highlighting){
 
 	if(f){
 //		f(text_buffer, &a, &b);
-		long before = get_time_us();
+//		long before = get_time_us();
 		f(text_buffer, NULL);
-		long after = get_time_us();
-		long elapsed = after - before;
-		printf("initial highlighting took %ld\n", elapsed);
+//		long after = get_time_us();
+//		long elapsed = after - before;
+//		printf("initial highlighting took %ld\n", elapsed);
 //		print_tags(text_buffer);
 	}else{
 		assert(strcmp(highlighting, "None") == 0);
