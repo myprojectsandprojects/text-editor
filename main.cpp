@@ -1312,7 +1312,7 @@ void prev_word_boundary(GtkTextIter *iter) {
 				break;
 			}
 			ch = gtk_text_iter_get_char(iter);
-		} while(is_word(ch));
+		} while(!is_word(ch));
 	}
 
 	if(!hit_start_buffer) {
@@ -2881,8 +2881,67 @@ bool get_executable_path(char *buffer, int buffer_size)
 	return ret;
 }
 
+const int MYBUFFER_MAX = 3;
+
+struct MyBuffer {
+	int data[MYBUFFER_MAX];
+	int index;
+	bool is_full;
+};
+
+void init_mybuffer(MyBuffer *buffer) {
+	buffer->index = 0;
+	buffer->is_full = false;
+}
+
+void add_number(MyBuffer *buffer, int n) {
+	assert(MYBUFFER_MAX > 0);
+
+	if(buffer->index == MYBUFFER_MAX) {
+		buffer->is_full = true;
+		buffer->index = 0;
+	}
+
+	if(buffer->is_full) {
+		// we are overwriting a value at 'numbers_index'
+		// so maybe you want to do something here		
+	}
+
+	buffer->data[buffer->index] = n;
+	buffer->index += 1;
+}
+
+void print_numbers(MyBuffer *buffer) {
+	if(buffer->is_full) {
+		for(int i = buffer->index; i < MYBUFFER_MAX; ++i) {
+			printf("%d\n", buffer->data[i]);
+		}
+		for(int i = 0; i < buffer->index; ++i) {
+			printf("%d\n", buffer->data[i]);
+		}
+	} else {
+		for(int i = 0; i < buffer->index; ++i) {
+			printf("%d\n", buffer->data[i]);
+		}
+	}
+}
+
 int main(int argc, char *argv[])
 {
+//	int add_these[] = {1,2,3,666,42,101,102,103};
+//	MyBuffer my_buffer;
+//	init_mybuffer(&my_buffer);
+//	printf("numbers:\n");
+//	print_numbers(&my_buffer);
+//	puts("");
+//	for(int i = 0; i < sizeof(add_these) / sizeof(add_these[0]); ++i) {
+//		add_number(&my_buffer, add_these[i]);
+//		printf("after adding '%d', 'numbers' contains:\n", add_these[i]);
+//		print_numbers(&my_buffer);
+//		puts("");
+//	}
+//	return 0;
+
 	LOG_MSG("main()\n");
 
 	// Make sure current working directory is the directory which contains the executable. (This might not be the case when the executable is executed through a symbolic link or through a Bash-shell from a different directory)

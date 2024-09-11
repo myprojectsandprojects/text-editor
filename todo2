@@ -8,11 +8,15 @@
 - struct fields, would really like to see them
 - Fix @@!
 - ctrl + ö/ä when on last line
+- ctrl + ö/ä : expanding/shrinking existing selection doesnt work the way it is supposed to work I think
 - undo double single quote (generates GTK-errors), undo enclosing within parenthesis
 - Should/could scrolling while selecting text with the mouse be improved?
 - scope/matching-char highlighting shouldnt highlight plain text
 - ctrl up/down keycombination handler itself could clean up technically empty lines which contain whitespace only
 - <enter> at the end of the file doesnt scroll
+- one tab key press should insert as many tabs as is necessary to avoid hitting tab key multiple times
+- '{' <-> '}' -- ignore '{}' in comments, string-literals, char-literals, ... (scope highlighting and ctrl + p/ü)
+- ctrl + shift + p/ü text selection
 
 ---
 

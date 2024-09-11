@@ -260,7 +260,8 @@ static void text_buffer_insert(GtkTextBuffer *text_buffer, int pos_offset, char 
 	GtkTextIter pos;
 	gtk_text_buffer_get_iter_at_offset(text_buffer, &pos, pos_offset);
 
-	unsigned int index = tab_id - 1;
+//	unsigned int index = tab_id - 1; //@@
+	unsigned int index = tab_id;
 
 	for(int handler_index = 0; handler_index < per_tab_undo_data[index].insert_handlers_count; ++handler_index) {
 		g_signal_handler_block(text_buffer, per_tab_undo_data[index].insert_handlers[handler_index]);
@@ -272,22 +273,23 @@ static void text_buffer_insert(GtkTextBuffer *text_buffer, int pos_offset, char 
 		g_signal_handler_unblock(text_buffer, per_tab_undo_data[index].insert_handlers[handler_index]);
 	}
 }
-static void text_buffer_delete(GtkTextBuffer *text_buffer, int start_offset, int end_offset, unsigned int tab_id)
+static void text_buffer_delete(GtkTextBuffer *buffer, int StartOffset, int EndOffset, unsigned int TabId)
 {
-	GtkTextIter start, end;
-	gtk_text_buffer_get_iter_at_offset(text_buffer, &start, start_offset);
-	gtk_text_buffer_get_iter_at_offset(text_buffer, &end, end_offset);
+	GtkTextIter Start, End;
+	gtk_text_buffer_get_iter_at_offset(buffer, &Start, StartOffset);
+	gtk_text_buffer_get_iter_at_offset(buffer, &End, EndOffset);
 
-	unsigned int index = tab_id - 1;
+//	unsigned int TabIndex = TabId - 1; //@@
+	unsigned int TabIndex = TabId;
 
-	for(int handler_index = 0; handler_index < per_tab_undo_data[index].delete_handlers_count; ++handler_index) {
-		g_signal_handler_block(text_buffer, per_tab_undo_data[index].delete_handlers[handler_index]);
+	for(int HandlerIndex = 0; HandlerIndex < per_tab_undo_data[TabIndex].delete_handlers_count; ++HandlerIndex) {
+		g_signal_handler_block(buffer, per_tab_undo_data[TabIndex].delete_handlers[HandlerIndex]);
 	}
 
-	gtk_text_buffer_delete(text_buffer, &start, &end);
+	gtk_text_buffer_delete(buffer, &Start, &End);
 
-	for(int handler_index = 0; handler_index < per_tab_undo_data[index].delete_handlers_count; ++handler_index) {
-		g_signal_handler_unblock(text_buffer, per_tab_undo_data[index].delete_handlers[handler_index]);
+	for(int HandlerIndex = 0; HandlerIndex < per_tab_undo_data[TabIndex].delete_handlers_count; ++HandlerIndex) {
+		g_signal_handler_unblock(buffer, per_tab_undo_data[TabIndex].delete_handlers[HandlerIndex]);
 	}
 }
 
