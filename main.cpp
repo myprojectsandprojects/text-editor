@@ -868,7 +868,7 @@ void line_highlighting_init(GtkTextBuffer *text_buffer, const char *color){
 }
 
 //@ also comments probably
-bool is_inside_literal(GtkTextIter *iter)
+bool is_inside_literal_or_comment(GtkTextIter *iter)
 {
 	bool result = false;
 
@@ -879,7 +879,7 @@ bool is_inside_literal(GtkTextIter *iter)
 		const char *name;
 		g_object_get(text_tag, "name", &name, NULL);
 //		printf("tag name: %s\n", name);
-		if ((strcmp(name, "string") == 0) || (strcmp(name, "char") == 0))
+		if ((strcmp(name, "string") == 0) || (strcmp(name, "char") == 0) || (strcmp(name, "comment") == 0))
 		{
 			result = true;
 			break;
@@ -1072,7 +1072,10 @@ void matching_char_highlighting_on_cursor_position_changed(GObject *object, GPar
 	GtkTextIter cursor_pos;
 	get_cursor_position(GTK_TEXT_BUFFER(text_buffer), NULL, &cursor_pos, NULL);
 
-	if (is_inside_literal(&cursor_pos)) return;
+	/*
+	@Wouldnt it be faster on average to check the character before we check the literal?
+	*/
+	if (is_inside_literal_or_comment(&cursor_pos)) return;
 
 	gunichar c = gtk_text_iter_get_char(&cursor_pos);
 	if (c == '(')
@@ -1081,7 +1084,7 @@ void matching_char_highlighting_on_cursor_position_changed(GObject *object, GPar
 		int level = 0;
 		while (gtk_text_iter_forward_char(&iter))
 		{
-			if (is_inside_literal(&iter)) continue;
+			if (is_inside_literal_or_comment(&iter)) continue;
 			c = gtk_text_iter_get_char(&iter);
 			if (c == '(')
 			{
@@ -1112,7 +1115,7 @@ void matching_char_highlighting_on_cursor_position_changed(GObject *object, GPar
 		int level = 0;
 		while (gtk_text_iter_backward_char(&iter))
 		{
-			if (is_inside_literal(&iter)) continue;
+			if (is_inside_literal_or_comment(&iter)) continue;
 			c = gtk_text_iter_get_char(&iter);
 			if (c == ')')
 			{
@@ -1156,7 +1159,7 @@ void scope_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *
 	GtkTextIter cursor_pos;
 	get_cursor_position(GTK_TEXT_BUFFER(text_buffer), NULL, &cursor_pos, NULL);
 	
-	if (is_inside_literal(&cursor_pos)) return;
+	if (is_inside_literal_or_comment(&cursor_pos)) return;
 	
 	gunichar c = gtk_text_iter_get_char(&cursor_pos);
 	if (c == '{')
@@ -1165,7 +1168,7 @@ void scope_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *
 		int level = 0;
 		while (gtk_text_iter_forward_char(&iter))
 		{
-			if (is_inside_literal(&iter)) continue;
+			if (is_inside_literal_or_comment(&iter)) continue;
 			c = gtk_text_iter_get_char(&iter);
 			if (c == '{')
 			{
@@ -1195,7 +1198,7 @@ void scope_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *
 		int level = 0;
 		while (gtk_text_iter_backward_char(&iter))
 		{
-			if (is_inside_literal(&iter)) continue;
+			if (is_inside_literal_or_comment(&iter)) continue;
 			c = gtk_text_iter_get_char(&iter);
 			if (c == '}')
 			{
@@ -2043,6 +2046,11 @@ gboolean create_empty_tab(GdkEventKey *key_event)
 }
 
 
+gboolean exit_app(GdkEventKey *key_event)
+{
+	exit(EXIT_SUCCESS);
+}
+
 gboolean close_tab(GdkEventKey *key_event)
 {
 //	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
@@ -2728,7 +2736,8 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(CTRL, 52, undo_last_action); // ctrl + z
 
 	add_keycombination_handler(CTRL, 57, create_empty_tab); // ctrl + n
-	add_keycombination_handler(CTRL, 58, close_tab); // ctrl + m
+	add_keycombination_handler(CTRL, 25, close_tab); // ctrl + w
+	add_keycombination_handler(CTRL, 24, exit_app); // ctrl + q
 
 //	add_keycombination_handler(CTRL, 21, tab_navigate_next); // ctrl + "the key left from backspace"
 //	add_keycombination_handler(CTRL, 20, tab_navigate_previous); // ctrl + "the key left from the key left from backspace"

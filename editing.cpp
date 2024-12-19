@@ -1380,16 +1380,22 @@ gboolean move_cursor_opening(GdkEventKey *key_event)
 	while (gtk_text_iter_backward_char(&i)) {
 		gunichar c = gtk_text_iter_get_char(&i);
 		if (c == '}') {
-			nestedness += 1;
+			// check if inside a comment/string-literal/char-literal
+			if (!is_inside_literal_or_comment(&i)) {
+				nestedness += 1;
+			}
 		} else if (c == '{') {
-			if (nestedness > 0) {
-				nestedness -= 1;
-			} else {
-				gtk_text_buffer_place_cursor(buffer, &i);
-//				// should scroll ONLY if necessary?
-//				gtk_text_view_scroll_to_iter(view, &i, 0.0, TRUE, 0.0, 0.1);
-				gtk_text_view_scroll_to_iter(view, &i, 0.0, FALSE, 0.0, 0.0);
-				break;
+			// check if inside a comment/string-literal/char-literal
+			if (!is_inside_literal_or_comment(&i)) {
+				if (nestedness > 0) {
+					nestedness -= 1;
+				} else {
+					gtk_text_buffer_place_cursor(buffer, &i);
+	//				// should scroll ONLY if necessary?
+	//				gtk_text_view_scroll_to_iter(view, &i, 0.0, TRUE, 0.0, 0.1);
+					gtk_text_view_scroll_to_iter(view, &i, 0.0, FALSE, 0.0, 0.0);
+					break;
+				}
 			}
 		}
 	}
@@ -1415,16 +1421,20 @@ gboolean move_cursor_closing(GdkEventKey *key_event)
 	while (gtk_text_iter_forward_char(&i)) {
 		gunichar c = gtk_text_iter_get_char(&i);
 		if (c == '{') {
-			nestedness += 1;
+			if (!is_inside_literal_or_comment(&i)) {
+				nestedness += 1;
+			}
 		} else if (c == '}') {
-			if (nestedness > 0) {
-				nestedness -= 1;
-			} else {
-				gtk_text_buffer_place_cursor(buffer, &i);
-//				// should scroll ONLY if necessary?
-//				gtk_text_view_scroll_to_iter(view, &i, 0.0, TRUE, 0.0, 0.1);
-				gtk_text_view_scroll_to_iter(view, &i, 0.0, FALSE, 0.0, 0.0);
-				break;
+			if (!is_inside_literal_or_comment(&i)) {
+				if (nestedness > 0) {
+					nestedness -= 1;
+				} else {
+					gtk_text_buffer_place_cursor(buffer, &i);
+	//				// should scroll ONLY if necessary?
+	//				gtk_text_view_scroll_to_iter(view, &i, 0.0, TRUE, 0.0, 0.1);
+					gtk_text_view_scroll_to_iter(view, &i, 0.0, FALSE, 0.0, 0.0);
+					break;
+				}
 			}
 		}
 	}

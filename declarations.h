@@ -252,6 +252,7 @@ We store each NotebookPage in an array at an index which is also it's id.
 };
 
 bool is_word(unsigned int ch);
+bool is_inside_literal_or_comment(GtkTextIter *iter);
 
 /* search-replace.cpp */
 GtkWidget *create_search_widget(GtkWidget *tab);

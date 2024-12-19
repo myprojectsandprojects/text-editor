@@ -17,6 +17,11 @@
 - one tab key press should insert as many tabs as is necessary to avoid hitting tab key multiple times
 - '{' <-> '}' -- ignore '{}' in comments, string-literals, char-literals, ... (scope highlighting and ctrl + p/ü)
 - ctrl + shift + p/ü text selection
+- ctrl + w -- close tab, ctrl + q -- close application (Sublime and Firefox both use these shortcuts for these purposes)
+- jump '(' -> ')' etc.
+- block highlighting should ignore '{' and '}' in comments
+- 'home' and 'end' should jump to the start/end of a wrapped line
+- indenting commented lines
 
 ---
 
