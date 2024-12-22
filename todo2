@@ -22,6 +22,9 @@
 - block highlighting should ignore '{' and '}' in comments
 - 'home' and 'end' should jump to the start/end of a wrapped line
 - indenting commented lines
+- funtion argument name, when declared, is an identifier, so it gets highlighted as an identifier, but it's also part of a function definition header, so it could additionally be highlighted as that. (For example: make function definition headers stand out more by highlighting them in bold.)
+- alt + left/right: could this be 'more intelligent jump'? Treat parts of identifiers, colors, URL's, file paths etc as words.
+http://abc.xy/123/asd
 
 ---
 

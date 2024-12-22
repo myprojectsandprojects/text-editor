@@ -13,14 +13,9 @@ wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WR
 left-margin {10}
 search-case-sensitivity {true}
 
-/*
 pixels-above-lines {0}
 pixels-below-lines {0}
 pixels-inside-wrap {0}
-*/
-pixels-above-lines {1}
-pixels-below-lines {1}
-pixels-inside-wrap {1}
 
 search-replace {}
 
@@ -53,54 +48,44 @@ text-tags
 {
 	comment
 	{
-		foreground{#444}
-		style{PANGO_STYLE_ITALIC}/* PANGO_STYLE_NORMAL, PANGO_STYLE_ITALIC*/
+		foreground{#666666}
+		style{PANGO_STYLE_ITALIC} /*PANGO_STYLE_NORMAL, PANGO_STYLE_ITALIC*/
 	}
 	identifier
 	{
-		foreground{#999}
+		foreground{#aaaaaa}
 	}
 	keyword
 	{
-		/*foreground{#aa6}*/
-		/*foreground{#ccc}*/
-		foreground{#a70}
-		/*weight{900}*/
+		foreground{#bbbbbb}
+		weight{900}
 	}
 	type
 	{
-		foreground{#666}
+		foreground{#3399aa}
 	}
 	function
 	{
-		/*foreground{#ccc}*/
-		foreground{#999}
+		foreground{#cc6633}
 		weight{900}
 	}
 	string
 	{
-		/*foreground{#6a3}*/
-		/*foreground{#261}*/
-		foreground{#371}
-		weight{900}
+		foreground{#55aa33}
 	}
 	number
 	{
-		/*foreground{#33a}*/
-		foreground{#116}
-		foreground{#632}
-		weight{900}
+		foreground{#117744}
+		foreground{#119966}
 	}
 	operator
 	{
-		foreground{#666}
+		foreground{#888888}
 		weight{900}
 	}
 	preprocessor
 	{
-		/*foreground{#a66}*/
-		foreground{#a70}
-		/*weight{900}*/
+		foreground{#aaaa00}
 	}
 	unknown
 	{
@@ -108,24 +93,23 @@ text-tags
 	}
 	char
 	{
-		foreground{#261}
-		weight{900}
+		foreground{#55aa33}
 	}
 }
 
 line-highlighting
 {
-	color {#000000}
+	color {#191919}
 }
 
 matching-char-highlighting
 {
-	color {#444}
+	color {#777}
 }
 
 scope-highlighting
 {
-	color {#000000}
+	color {#191919}
 }
 
 extra-cursor

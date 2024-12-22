@@ -1,33 +1,39 @@
-.text-view, .search-entry {
-	font-family: Sudo;
-	font-weight: 300;
-	font-size: 21px;
-	font-size: 17px;
-	font-size: 19px;
 
-	font-family: DejaVuSansM Nerd Font;
+* {
+	font-family: Ubuntu Condensed;
 	font-size: 14px;
-	font-size: 15px;
+}
+
+.text-view, .search-entry {
+	font-family: NotoSansM Nerd Font;
+	font-weight: 400;
+	/*
+	font-style: Italic;
+	font-stretch: ExtraCondensed;
+	font-stretch: SemiCondensed;
+	font-stretch: Condensed;
+	*/
+	font-size: 17px;
+	font-size: 16px;
+	font-size: 15.5px;
+	font-size: 14px;
+	font-size: 13.5px;
 }
 
 .text-view text {
-	background-color: #0b0b0b;
-	color: #999;
-	caret-color: #900;
+	background-color: #222222;
+	color: #aaaaaa;
+	caret-color: red;
 }
 
 .search-entry {
-	background-color: #000;
-	color: #999;
-	caret-color: #900;
-	border-color: #900;
-	border-width: 3px;
+	background-color: #222222;
+	color: #aaaaaa;
+	caret-color: red;
 }
-.search-entry:focus {
-	border-color: red;
-}
+
 .text-view > text > selection, .search-entry selection {
-	background-color: #900;
+	background-color: red;
 }
 
 /*

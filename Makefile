@@ -4,6 +4,7 @@ texty: $(objects)
 	g++ -g $^ $$(pkg-config --libs gtk+-3.0) -o texty
 
 $(objects): %.o : %.cpp
+	#g++ -g -Wall -Wextra -Wno-deprecated-declarations $$(pkg-config --cflags gtk+-3.0) -c $^ -o $@
 	g++ -g -Wno-deprecated-declarations $$(pkg-config --cflags gtk+-3.0) -c $^ -o $@
 
 clean:

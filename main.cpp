@@ -1072,14 +1072,11 @@ void matching_char_highlighting_on_cursor_position_changed(GObject *object, GPar
 	GtkTextIter cursor_pos;
 	get_cursor_position(GTK_TEXT_BUFFER(text_buffer), NULL, &cursor_pos, NULL);
 
-	/*
-	@Wouldnt it be faster on average to check the character before we check the literal?
-	*/
-	if (is_inside_literal_or_comment(&cursor_pos)) return;
-
 	gunichar c = gtk_text_iter_get_char(&cursor_pos);
 	if (c == '(')
 	{
+		if (is_inside_literal_or_comment(&cursor_pos)) return;
+
 		GtkTextIter iter = cursor_pos;
 		int level = 0;
 		while (gtk_text_iter_forward_char(&iter))
@@ -1111,6 +1108,8 @@ void matching_char_highlighting_on_cursor_position_changed(GObject *object, GPar
 	}
 	else if (c == ')')
 	{
+		if (is_inside_literal_or_comment(&cursor_pos)) return;
+
 		GtkTextIter iter = cursor_pos;
 		int level = 0;
 		while (gtk_text_iter_backward_char(&iter))
@@ -1151,7 +1150,7 @@ void scope_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *
 	long t1 = get_time_us();
 
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
-	
+
 	GtkTextIter start_buffer, end_buffer;
 	gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
 	gtk_text_buffer_remove_tag_by_name(text_buffer, "scope-highlighting", &start_buffer, &end_buffer);
@@ -1159,11 +1158,11 @@ void scope_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *
 	GtkTextIter cursor_pos;
 	get_cursor_position(GTK_TEXT_BUFFER(text_buffer), NULL, &cursor_pos, NULL);
 	
-	if (is_inside_literal_or_comment(&cursor_pos)) return;
-	
 	gunichar c = gtk_text_iter_get_char(&cursor_pos);
 	if (c == '{')
 	{
+		if (is_inside_literal_or_comment(&cursor_pos)) return;
+
 		GtkTextIter iter = cursor_pos;
 		int level = 0;
 		while (gtk_text_iter_forward_char(&iter))
@@ -1194,6 +1193,8 @@ void scope_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *
 	}
 	else if (c == '}')
 	{
+		if (is_inside_literal_or_comment(&cursor_pos)) return;
+
 		GtkTextIter iter = cursor_pos;
 		int level = 0;
 		while (gtk_text_iter_backward_char(&iter))
@@ -2659,6 +2660,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 	add_keycombination_handler(0, 23, handle_tab); // <tab>
 	add_keycombination_handler(SHIFT, 23, handle_tab); // <tab> + shift
+
 	add_keycombination_handler(0, 36, do_search);// <enter>
 	add_keycombination_handler(SHIFT, 36, do_search);// <enter> + shift
 	add_keycombination_handler(0, 36, handle_enter);// <enter>
@@ -2704,13 +2706,21 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(CTRL | SHIFT, 47, move_cursor_start_line_shift); // ctrl + shift + ö
 	add_keycombination_handler(CTRL, 48, move_cursor_end_line); // ctrl + ä
 	add_keycombination_handler(CTRL | SHIFT, 48, move_cursor_end_line_shift); // ctrl + shift + ä
-	add_keycombination_handler(CTRL, 60, move_cursor_start_word); // ctrl + .
-	add_keycombination_handler(CTRL | SHIFT, 60, move_cursor_start_word_shift); // ctrl + shift + .
-	add_keycombination_handler(CTRL, 61, move_cursor_end_word); // ctrl + -
-	add_keycombination_handler(CTRL | SHIFT, 61, move_cursor_end_word_shift); // ctrl + shift + -
+
+	// alt + home/end?
 	add_keycombination_handler(CTRL, 33, move_cursor_opening); // ctrl + p
 	add_keycombination_handler(CTRL, 34, move_cursor_closing); // ctrl + ü
+	add_keycombination_handler(CTRL | SHIFT, 33, move_cursor_opening); // shift + ctrl + p
+	add_keycombination_handler(CTRL | SHIFT, 34, move_cursor_closing); // shift + ctrl + ü
+
 	add_keycombination_handler(CTRL, 31, select_inside); // ctrl + i
+	add_keycombination_handler(ALT, 31, delete_inside); // alt + i
+
+	//@ We already have ctrl + left/right. These are not useful. Code in 'editing.cpp' should be deleted.
+//	add_keycombination_handler(CTRL, 60, move_cursor_start_word); // ctrl + .
+//	add_keycombination_handler(CTRL | SHIFT, 60, move_cursor_start_word_shift); // ctrl + shift + .
+//	add_keycombination_handler(CTRL, 61, move_cursor_end_word); // ctrl + -
+//	add_keycombination_handler(CTRL | SHIFT, 61, move_cursor_end_word_shift); // ctrl + shift + -
 
 //	add_keycombination_handler(CTRL, 35, jump_to_next_occurrence); // ctrl + õ (35)
 	add_keycombination_handler(0, 86, jump_to_previous_occurrence); // numpad +
@@ -2728,7 +2738,6 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(ALT, 34, change_line); // alt + ü
 	add_keycombination_handler(ALT, 33, delete_end_of_line); // alt + p
 	add_keycombination_handler(ALT, 32, delete_word); // alt + o
-	add_keycombination_handler(ALT, 31, delete_inside); // alt + i
 
 	add_keycombination_handler(ALT, 61, comment_block); // alt + -
 	add_keycombination_handler(SHIFT | ALT, 61, uncomment_block); // shift + alt + -
@@ -2763,7 +2772,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 
 
 	//@ Different GTK versions require different CSS. Themes I wrote for 3.18.9 do not work on 3.24.34 and 3.24.43. So what should we do here?
-	
+
 	const char *css_file_used = NULL;
 	if(gtk_version_major == 3 && gtk_version_minor == 18 && gtk_version_micro == 9) {
 		css_file_used = "themes/style-3.18.9.css";

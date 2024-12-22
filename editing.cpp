@@ -823,12 +823,14 @@ gboolean delete_inside(GdkEventKey *key_event)
 	}
 */
 
-	bool parenthesis_found_open,
-		parenthesis_found_close,
-		curlybrace_found_open,
-		curlybrace_found_close;
+	bool parenthesis_found_open;
+	bool parenthesis_found_close;
+	bool curlybrace_found_open;
+	bool curlybrace_found_close;
 	parenthesis_found_open = parenthesis_found_close = curlybrace_found_open = curlybrace_found_close = false;
-	int parenthesis_nestedness, curlybrace_nestedness;
+
+	int parenthesis_nestedness;
+	int curlybrace_nestedness;
 	curlybrace_nestedness = parenthesis_nestedness = 0;
 
 	GtkTextIter start, end;
@@ -1360,11 +1362,80 @@ gboolean move_cursor_end_word_shift(GdkEventKey *key_event)
 	return TRUE;
 }
 
+struct Scope {
+	gunichar start_char;
+	gunichar end_char;
+};
+
+void move_start_scope(GtkTextIter *iter, Scope *scopes, int num_scopes)
+{
+	int nesting_counts[num_scopes] = {0}; //@ alloca()?
+
+	while (gtk_text_iter_backward_char(iter)) {
+		gunichar iter_char = gtk_text_iter_get_char(iter);
+		for (int scope_index = 0; scope_index < num_scopes; ++scope_index) {
+			if (iter_char == scopes[scope_index].end_char) {
+				if (!is_inside_literal_or_comment(iter)) {
+					nesting_counts[scope_index] += 1;
+				} else {
+					// hmm... no need to check any further
+				}
+				break;
+			} else if (iter_char == scopes[scope_index].start_char) {
+				if (!is_inside_literal_or_comment(iter)) {
+					if (nesting_counts[scope_index] == 0) {
+						goto DONE;
+					} else {
+						nesting_counts[scope_index] -= 1;
+					}
+				} else {
+					// hmm... no need to check any further
+				}
+				break;
+			}
+		}
+	}
+	DONE:
+	return;
+}
+
+void move_end_scope(GtkTextIter *iter, Scope *scopes, int num_scopes)
+{
+	int nesting_counts[num_scopes] = {0}; //@ alloca()?
+
+	while (gtk_text_iter_forward_char(iter)) {
+		gunichar iter_char = gtk_text_iter_get_char(iter);
+		for (int scope_index = 0; scope_index < num_scopes; ++scope_index) {
+			if (iter_char == scopes[scope_index].start_char) {
+				if (!is_inside_literal_or_comment(iter)) {
+					nesting_counts[scope_index] += 1;
+				} else {
+					// hmm... no need to check any further
+				}
+				break;
+			} else if (iter_char == scopes[scope_index].end_char) {
+				if (!is_inside_literal_or_comment(iter)) {
+					if (nesting_counts[scope_index] == 0) {
+						goto DONE;
+					} else {
+						nesting_counts[scope_index] -= 1;
+					}
+				} else {
+					// hmm... no need to check any further
+				}
+				break;
+			}
+		}
+	}
+	DONE:
+	return;
+}
+
 // eventually we would like to deal with '()', '{}', '[]' and maybe '<>'
 // '<>' are also used as less than and greater than operators
 gboolean move_cursor_opening(GdkEventKey *key_event)
 {
-	printf("move_cursor_opening()\n");
+	LOG_MSG("move_cursor_opening()\n");
 
 	GtkTextView *view;
 	GtkTextBuffer *buffer;
@@ -1373,39 +1444,67 @@ gboolean move_cursor_opening(GdkEventKey *key_event)
 	if (!rv)
 		return rv;
 
-	GtkTextIter i;
-	get_cursor_position(buffer, NULL, &i, NULL);
+	GtkTextIter iter; get_cursor_position(buffer, NULL, &iter, NULL);
+	GtkTextIter cursor_pos = iter;
 
-	int nestedness = 0;
-	while (gtk_text_iter_backward_char(&i)) {
-		gunichar c = gtk_text_iter_get_char(&i);
-		if (c == '}') {
-			// check if inside a comment/string-literal/char-literal
-			if (!is_inside_literal_or_comment(&i)) {
-				nestedness += 1;
+//	int nestedness = 0;
+//	while (gtk_text_iter_backward_char(&i)) {
+//		gunichar c = gtk_text_iter_get_char(&i);
+//		if (c == '}') {
+//			if (!is_inside_literal_or_comment(&i)) {
+//				nestedness += 1;
+//			}
+//		} else if (c == '{') {
+//			if (!is_inside_literal_or_comment(&i)) {
+//				if (nestedness > 0) {
+//					nestedness -= 1;
+//				} else {
+//					gtk_text_buffer_place_cursor(buffer, &i);
+//	//				// should scroll ONLY if necessary?
+//	//				gtk_text_view_scroll_to_iter(view, &i, 0.0, TRUE, 0.0, 0.1);
+//					gtk_text_view_scroll_to_iter(view, &i, 0.0, FALSE, 0.0, 0.0);
+//					break;
+//				}
+//			}
+//		}
+//	}
+
+	Scope chars[] = {
+		{'{', '}'},
+		{'(', ')'},
+		{'[', ']'},
+	};
+	move_start_scope(&iter, chars, sizeof(chars) / sizeof(chars[0]));
+
+	if (key_event->state & GDK_SHIFT_MASK) {
+		// Check if we already have a selection.
+		// If so, then add to the existing selection
+		GtkTextIter sel_start, sel_end, new_sel_bound;
+		if (gtk_text_buffer_get_selection_bounds(buffer, &sel_start, &sel_end)) {
+			if (gtk_text_iter_compare(&sel_start, &cursor_pos) == 0) {
+				// sel_start is where the cursor is
+				new_sel_bound = sel_end;
+			} else {
+				// sel_end is where the cursor is
+				new_sel_bound = sel_start;
 			}
-		} else if (c == '{') {
-			// check if inside a comment/string-literal/char-literal
-			if (!is_inside_literal_or_comment(&i)) {
-				if (nestedness > 0) {
-					nestedness -= 1;
-				} else {
-					gtk_text_buffer_place_cursor(buffer, &i);
-	//				// should scroll ONLY if necessary?
-	//				gtk_text_view_scroll_to_iter(view, &i, 0.0, TRUE, 0.0, 0.1);
-					gtk_text_view_scroll_to_iter(view, &i, 0.0, FALSE, 0.0, 0.0);
-					break;
-				}
-			}
+		} else {
+			new_sel_bound = cursor_pos;
 		}
+		// 1st insertion, 2nd selection-bound
+		gtk_text_buffer_select_range(buffer, &iter, &new_sel_bound);
+	} else {
+		gtk_text_buffer_place_cursor(buffer, &iter);
 	}
+
+	gtk_text_view_scroll_to_iter(view, &iter, 0.0, FALSE, 0.0, 0.0);
 
 	return TRUE;
 }
 
 gboolean move_cursor_closing(GdkEventKey *key_event)
 {
-	printf("move_cursor_closing()\n");
+	LOG_MSG("move_cursor_closing()\n");
 
 	GtkTextView *view;
 	GtkTextBuffer *buffer;
@@ -1414,30 +1513,60 @@ gboolean move_cursor_closing(GdkEventKey *key_event)
 	if (!rv)
 		return rv;
 
-	GtkTextIter i;
-	get_cursor_position(buffer, NULL, &i, NULL);
+	GtkTextIter iter; get_cursor_position(buffer, NULL, &iter, NULL);
+	GtkTextIter cursor_pos = iter;
 
-	int nestedness = 0;
-	while (gtk_text_iter_forward_char(&i)) {
-		gunichar c = gtk_text_iter_get_char(&i);
-		if (c == '{') {
-			if (!is_inside_literal_or_comment(&i)) {
-				nestedness += 1;
+//	int nestedness = 0;
+//	while (gtk_text_iter_forward_char(&i)) {
+//		gunichar c = gtk_text_iter_get_char(&i);
+//		if (c == '{') {
+//			if (!is_inside_literal_or_comment(&i)) {
+//				nestedness += 1;
+//			}
+//		} else if (c == '}') {
+//			if (!is_inside_literal_or_comment(&i)) {
+//				if (nestedness > 0) {
+//					nestedness -= 1;
+//				} else {
+//					gtk_text_buffer_place_cursor(buffer, &i);
+//	//				// should scroll ONLY if necessary?
+//	//				gtk_text_view_scroll_to_iter(view, &i, 0.0, TRUE, 0.0, 0.1);
+//					gtk_text_view_scroll_to_iter(view, &i, 0.0, FALSE, 0.0, 0.0);
+//					break;
+//				}
+//			}
+//		}
+//	}
+
+	Scope chars[] = {
+		{'{', '}'},
+		{'(', ')'},
+		{'[', ']'},
+	};
+	move_end_scope(&iter, chars, sizeof(chars) / sizeof(chars[0]));
+
+	if (key_event->state & GDK_SHIFT_MASK) {
+		// Check if we already have a selection.
+		// If so, then add to the existing selection
+		GtkTextIter sel_start, sel_end, new_sel_bound;
+		if (gtk_text_buffer_get_selection_bounds(buffer, &sel_start, &sel_end)) {
+			if (gtk_text_iter_compare(&sel_start, &cursor_pos) == 0) {
+				// sel_start is where the cursor is
+				new_sel_bound = sel_end;
+			} else {
+				// sel_end is where the cursor is
+				new_sel_bound = sel_start;
 			}
-		} else if (c == '}') {
-			if (!is_inside_literal_or_comment(&i)) {
-				if (nestedness > 0) {
-					nestedness -= 1;
-				} else {
-					gtk_text_buffer_place_cursor(buffer, &i);
-	//				// should scroll ONLY if necessary?
-	//				gtk_text_view_scroll_to_iter(view, &i, 0.0, TRUE, 0.0, 0.1);
-					gtk_text_view_scroll_to_iter(view, &i, 0.0, FALSE, 0.0, 0.0);
-					break;
-				}
-			}
+		} else {
+			new_sel_bound = cursor_pos;
 		}
+		// 1st insertion, 2nd selection-bound
+		gtk_text_buffer_select_range(buffer, &iter, &new_sel_bound);
+	} else {
+		gtk_text_buffer_place_cursor(buffer, &iter);
 	}
+
+	gtk_text_view_scroll_to_iter(view, &iter, 0.0, FALSE, 0.0, 0.0);
 
 	return TRUE;
 }

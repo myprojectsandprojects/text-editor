@@ -9,7 +9,6 @@ These features are language specific (Python's scopes are not specified by '{' a
 
 ---
 
-- ctrl + w -- close tab, ctrl + q -- close application (Sublime and Firefox both use these shortcuts for these purposes)
 - jump '(' -> ')' etc.
 
 ---
