@@ -64,7 +64,14 @@ void create_nodes_for_dir(GtkTreeStore *store, GtkTreeIter *parent, const char *
 /* search-in-files.cpp: */
 GtkWidget *create_search_in_files_widget(void);
 
+
 /* editing.cpp: */
+
+struct Scope {
+	gunichar start_char;
+	gunichar end_char;
+};
+
 gboolean handle_tab_key(GtkTextBuffer *text_buffer, GdkEventKey *key_event);
 gboolean handle_enter(GdkEventKey *key_event);
 gboolean duplicate_line(GdkEventKey *key_event);
@@ -104,6 +111,9 @@ gboolean select_inside(GdkEventKey *key_event);
 gboolean comment_block(GdkEventKey *key_event);
 gboolean uncomment_block(GdkEventKey *key_event);
 void get_cursor_position(GtkTextBuffer *buffer, GtkTextMark **pm, GtkTextIter *pi, gint *po);
+bool move_start_scope(GtkTextIter *iter, Scope *scopes, int num_scopes);
+bool move_end_scope(GtkTextIter *iter, Scope *scopes, int num_scopes);
+
 
 /* main.cpp: */
 
@@ -392,7 +402,7 @@ void MultiCursor_AddTextTags(GtkTextBuffer *TextBuffer);
 void MultiCursor_RemoveTextTags(GtkTextBuffer *TextBuffer);
 
 
-#define PRINT_LOG_MESSAGES
+//#define PRINT_LOG_MESSAGES
 #ifdef PRINT_LOG_MESSAGES
 	//#define LOG_MSG(...) printf(__VA_ARGS__)
 //	#define LOG_MSG(format, ...) printf("[%s:%d] " format, __FILE__, __LINE__, ##__VA_ARGS__)

@@ -3,28 +3,6 @@
 
 ---
 
-- '{' <-> '}' -- ignore '{}' in comments, string-literals, char-literals, ... (scope highlighting and ctrl + p/ü)
-- ctrl + shift + p/ü text selection
-These features are language specific (Python's scopes are not specified by '{' and '}'. Lua uses different syntax for comments. And if no language is specified they probably shouldnt work at all)
-
----
-
-- jump '(' -> ')' etc.
-
----
-''
-""
-()
-[]
-
-{} -- jump start/end of scope functionality already handles this
-<> -- #include / less than and greater than
-
-jump from start to end
-
-* Should it work when the cursor/character is inside a comment? String? Char-literal?
-* Which one's do we want to highlight? We might want to be able to jump from '[' to ']' but we might not want to highlight them.
-
 
 
 

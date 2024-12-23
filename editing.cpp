@@ -1193,182 +1193,9 @@ gboolean move_cursor_end_line_shift(GdkEventKey *key_event)
 	return TRUE;
 }
 
-gboolean move_cursor_start_word(GdkEventKey *key_event)
+bool move_start_scope(GtkTextIter *iter, Scope *scopes, int num_scopes)
 {
-	printf("move_cursor_start_word()\n");
-
-	GtkTextView *view;
-	GtkTextBuffer *buffer;
-
-	gboolean rv = init(&view, &buffer);
-	if (!rv)
-		return rv;
-
-	GtkTextIter i;
-
-	get_cursor_position(buffer, NULL, &i, NULL);
-
-	//gboolean u = g_unichar_isalnum('ä');
-	//int a = isalnum('ä');
-	//printf("a: %d, u: %d\n", a, u); // a: 0, u: 1
-
-	gunichar c = gtk_text_iter_get_char(&i);
-
-	if (!g_unichar_isalnum(c) && c != '_') {
-		gtk_text_iter_backward_char(&i);
-		c = gtk_text_iter_get_char(&i);
-		if (!g_unichar_isalnum(c) && c != '_') {
-			// we are not "inside" a "word"
-			printf("we are NOT \"inside\" a \"word\"\n");
-			return TRUE;
-		}
-	}
-
-	//printf("we are \"inside\" a \"word\"\n");
-	while (gtk_text_iter_backward_char(&i)) {
-		c = gtk_text_iter_get_char(&i);
-		if (!g_unichar_isalnum(c) && c != '_') {
-			gtk_text_iter_forward_char(&i);
-			break;
-		}
-	}
-
-	gtk_text_buffer_place_cursor(buffer, &i);
-
-	return TRUE;
-}
-
-gboolean move_cursor_start_word_shift(GdkEventKey *key_event)
-{
-	printf("move_cursor_start_word()\n");
-
-	GtkTextView *view;
-	GtkTextBuffer *buffer;
-
-	gboolean rv = init(&view, &buffer);
-	if (!rv)
-		return rv;
-
-	GtkTextIter i, insertion, bound;
-
-	get_cursor_position(buffer, NULL, &i, NULL);
-
-	bound = i;
-
-	//gboolean u = g_unichar_isalnum('ä');
-	//int a = isalnum('ä');
-	//printf("a: %d, u: %d\n", a, u); // a: 0, u: 1
-
-	gunichar c = gtk_text_iter_get_char(&i);
-
-	if (!g_unichar_isalnum(c) && c != '_') {
-		gtk_text_iter_backward_char(&i);
-		c = gtk_text_iter_get_char(&i);
-		if (!g_unichar_isalnum(c) && c != '_') {
-			// we are not "inside" a "word"
-			printf("we are NOT \"inside\" a \"word\"\n");
-			return TRUE;
-		}
-	}
-
-	//printf("we are \"inside\" a \"word\"\n");
-	while (gtk_text_iter_backward_char(&i)) {
-		c = gtk_text_iter_get_char(&i);
-		if (!g_unichar_isalnum(c) && c != '_') {
-			gtk_text_iter_forward_char(&i);
-			break;
-		}
-	}
-
-	insertion = i;
-	gtk_text_buffer_select_range(buffer, &insertion, &bound);
-
-	return TRUE;
-}
-
-gboolean move_cursor_end_word(GdkEventKey *key_event)
-{
-	printf("move_cursor_end_word()\n");
-
-	GtkTextView *view;
-	GtkTextBuffer *buffer;
-
-	gboolean rv = init(&view, &buffer);
-	if (!rv)
-		return rv;
-
-	GtkTextIter i;
-
-	get_cursor_position(buffer, NULL, &i, NULL);
-
-	//gboolean u = g_unichar_isalnum('ä');
-	//int a = isalnum('ä');
-	//printf("a: %d, u: %d\n", a, u); // a: 0, u: 1
-
-	gunichar c = gtk_text_iter_get_char(&i);
-
-	if (!g_unichar_isalnum(c) && c != '_') {
-		return TRUE;
-	}
-
-	while (gtk_text_iter_forward_char(&i)) {
-		c = gtk_text_iter_get_char(&i);
-		if (!g_unichar_isalnum(c) && c != '_') {
-			break;
-		}
-	}
-
-	gtk_text_buffer_place_cursor(buffer, &i);
-
-	return TRUE;
-}
-
-gboolean move_cursor_end_word_shift(GdkEventKey *key_event)
-{
-	printf("move_cursor_end_word()\n");
-
-	GtkTextView *view;
-	GtkTextBuffer *buffer;
-
-	gboolean rv = init(&view, &buffer);
-	if (!rv)
-		return rv;
-
-	GtkTextIter i, insertion, bound;
-
-	get_cursor_position(buffer, NULL, &i, NULL);
-	bound = i;
-
-	//gboolean u = g_unichar_isalnum('ä');
-	//int a = isalnum('ä');
-	//printf("a: %d, u: %d\n", a, u); // a: 0, u: 1
-
-	gunichar c = gtk_text_iter_get_char(&i);
-
-	if (!g_unichar_isalnum(c) && c != '_') {
-		return TRUE;
-	}
-
-	while (gtk_text_iter_forward_char(&i)) {
-		c = gtk_text_iter_get_char(&i);
-		if (!g_unichar_isalnum(c) && c != '_') {
-			break;
-		}
-	}
-
-	insertion = i;
-	gtk_text_buffer_select_range(buffer, &insertion, &bound);
-
-	return TRUE;
-}
-
-struct Scope {
-	gunichar start_char;
-	gunichar end_char;
-};
-
-void move_start_scope(GtkTextIter *iter, Scope *scopes, int num_scopes)
-{
+	bool found = false;
 	int nesting_counts[num_scopes] = {0}; //@ alloca()?
 
 	while (gtk_text_iter_backward_char(iter)) {
@@ -1384,6 +1211,7 @@ void move_start_scope(GtkTextIter *iter, Scope *scopes, int num_scopes)
 			} else if (iter_char == scopes[scope_index].start_char) {
 				if (!is_inside_literal_or_comment(iter)) {
 					if (nesting_counts[scope_index] == 0) {
+						found = true;
 						goto DONE;
 					} else {
 						nesting_counts[scope_index] -= 1;
@@ -1396,11 +1224,12 @@ void move_start_scope(GtkTextIter *iter, Scope *scopes, int num_scopes)
 		}
 	}
 	DONE:
-	return;
+	return found;
 }
 
-void move_end_scope(GtkTextIter *iter, Scope *scopes, int num_scopes)
+bool move_end_scope(GtkTextIter *iter, Scope *scopes, int num_scopes)
 {
+	bool found = false;
 	int nesting_counts[num_scopes] = {0}; //@ alloca()?
 
 	while (gtk_text_iter_forward_char(iter)) {
@@ -1416,6 +1245,7 @@ void move_end_scope(GtkTextIter *iter, Scope *scopes, int num_scopes)
 			} else if (iter_char == scopes[scope_index].end_char) {
 				if (!is_inside_literal_or_comment(iter)) {
 					if (nesting_counts[scope_index] == 0) {
+						found = true;
 						goto DONE;
 					} else {
 						nesting_counts[scope_index] -= 1;
@@ -1428,11 +1258,9 @@ void move_end_scope(GtkTextIter *iter, Scope *scopes, int num_scopes)
 		}
 	}
 	DONE:
-	return;
+	return found;
 }
 
-// eventually we would like to deal with '()', '{}', '[]' and maybe '<>'
-// '<>' are also used as less than and greater than operators
 gboolean move_cursor_opening(GdkEventKey *key_event)
 {
 	LOG_MSG("move_cursor_opening()\n");
@@ -1446,28 +1274,6 @@ gboolean move_cursor_opening(GdkEventKey *key_event)
 
 	GtkTextIter iter; get_cursor_position(buffer, NULL, &iter, NULL);
 	GtkTextIter cursor_pos = iter;
-
-//	int nestedness = 0;
-//	while (gtk_text_iter_backward_char(&i)) {
-//		gunichar c = gtk_text_iter_get_char(&i);
-//		if (c == '}') {
-//			if (!is_inside_literal_or_comment(&i)) {
-//				nestedness += 1;
-//			}
-//		} else if (c == '{') {
-//			if (!is_inside_literal_or_comment(&i)) {
-//				if (nestedness > 0) {
-//					nestedness -= 1;
-//				} else {
-//					gtk_text_buffer_place_cursor(buffer, &i);
-//	//				// should scroll ONLY if necessary?
-//	//				gtk_text_view_scroll_to_iter(view, &i, 0.0, TRUE, 0.0, 0.1);
-//					gtk_text_view_scroll_to_iter(view, &i, 0.0, FALSE, 0.0, 0.0);
-//					break;
-//				}
-//			}
-//		}
-//	}
 
 	Scope chars[] = {
 		{'{', '}'},
@@ -1515,28 +1321,6 @@ gboolean move_cursor_closing(GdkEventKey *key_event)
 
 	GtkTextIter iter; get_cursor_position(buffer, NULL, &iter, NULL);
 	GtkTextIter cursor_pos = iter;
-
-//	int nestedness = 0;
-//	while (gtk_text_iter_forward_char(&i)) {
-//		gunichar c = gtk_text_iter_get_char(&i);
-//		if (c == '{') {
-//			if (!is_inside_literal_or_comment(&i)) {
-//				nestedness += 1;
-//			}
-//		} else if (c == '}') {
-//			if (!is_inside_literal_or_comment(&i)) {
-//				if (nestedness > 0) {
-//					nestedness -= 1;
-//				} else {
-//					gtk_text_buffer_place_cursor(buffer, &i);
-//	//				// should scroll ONLY if necessary?
-//	//				gtk_text_view_scroll_to_iter(view, &i, 0.0, TRUE, 0.0, 0.1);
-//					gtk_text_view_scroll_to_iter(view, &i, 0.0, FALSE, 0.0, 0.0);
-//					break;
-//				}
-//			}
-//		}
-//	}
 
 	Scope chars[] = {
 		{'{', '}'},
@@ -1676,354 +1460,6 @@ gboolean move_cursor_closing(GdkEventKey *key_event)
 //		//gtk_text_view_reset_cursor_blink(view); 3.20 or something..
 //	}
 //	gtk_text_view_scroll_to_iter(view, &i, 0.0, FALSE, 0.0, 0.0);
-//
-//	return TRUE;
-//}
-
-//gboolean cursor_short_jump_left(GdkEventKey *key_event) {
-//	printf("cursor_short_jump_left()\n");
-//
-//	GtkTextView *text_view;
-//	GtkTextBuffer *text_buffer;
-//	if (!init(&text_view, &text_buffer)) return FALSE;
-//
-//	GtkTextIter iter;
-//	get_cursor_position(text_buffer, NULL, &iter, NULL);
-//
-//	GtkTextIter cursor_pos = iter;
-//
-//	gtk_text_iter_backward_char(&iter);
-//	gunichar ch = gtk_text_iter_get_char(&iter);
-//
-//	if (g_unichar_isalpha(ch) && g_unichar_islower(ch))
-//	{
-//		// lowercase alpha
-//		do {
-//			if (!gtk_text_iter_backward_char(&iter)) break;
-//			ch = gtk_text_iter_get_char(&iter);
-//		} while (g_unichar_isalpha(ch) && g_unichar_islower(ch));
-//	}
-//	else if (g_unichar_isalpha(ch) && g_unichar_isupper(ch))
-//	{
-//		// uppercase alpha
-//		do {
-//			if (!gtk_text_iter_backward_char(&iter)) break;
-//			ch = gtk_text_iter_get_char(&iter);
-//		} while (g_unichar_isalpha(ch) && g_unichar_isupper(ch));
-//	}
-//	else if (g_unichar_isdigit(ch))
-//	{
-//		// digit
-//		do {
-//			if (!gtk_text_iter_backward_char(&iter)) break;
-//			ch = gtk_text_iter_get_char(&iter);
-//		} while (g_unichar_isdigit(ch));
-//	}
-//	else if (g_unichar_ispunct(ch))
-//	{
-//		// punctuation
-//		do {
-//			if (!gtk_text_iter_backward_char(&iter)) break;
-//			ch = gtk_text_iter_get_char(&iter);
-//		} while (g_unichar_ispunct(ch));
-//	}
-//	else if (g_unichar_isspace(ch))
-//	{
-//		// whitespace
-//		do {
-//			if (!gtk_text_iter_backward_char(&iter)) break;
-//			ch = gtk_text_iter_get_char(&iter);
-//		} while (g_unichar_isspace(ch));
-//	}
-//	else
-//	{
-//		// everything else?
-//	}
-//
-//	//@ this is not quite correct
-//	if (!gtk_text_iter_is_start(&iter))
-//		gtk_text_iter_forward_char(&iter);
-//
-//	if (key_event->state & GDK_SHIFT_MASK) {
-//		// Check if we already have a selection.
-//		// If so, then add to the existing selection
-//		GtkTextIter sel_start, sel_end, new_sel_bound;
-//		if (gtk_text_buffer_get_selection_bounds(text_buffer, &sel_start, &sel_end)) {
-//			if (gtk_text_iter_compare(&sel_start, &cursor_pos) == 0) {
-//				// sel_start is where the cursor is
-//				new_sel_bound = sel_end;
-//			} else {
-//				// sel_end is where the cursor is
-//				new_sel_bound = sel_start;
-//			}
-//		} else {
-//			new_sel_bound = cursor_pos;
-//		}
-//		// 1st insertion, 2nd selection-bound
-//		gtk_text_buffer_select_range(text_buffer, &iter, &new_sel_bound);
-//	} else {
-//		gtk_text_buffer_place_cursor(text_buffer, &iter);
-//	}
-//
-//	// if the cursor has moved outside the visible region, then scroll
-//	gtk_text_view_scroll_to_iter(text_view, &iter, 0.0, FALSE, 0.0, 0.0);
-//
-//	return TRUE;
-//}
-
-//gboolean cursor_short_jump_right(GdkEventKey *key_event) {
-//	printf("cursor_short_jump_right()\n");
-//
-//	GtkTextView *text_view;
-//	GtkTextBuffer *text_buffer;
-//	if (!init(&text_view, &text_buffer)) return FALSE;
-//
-//	GtkTextIter iter;
-//	get_cursor_position(text_buffer, NULL, &iter, NULL);
-//
-//	GtkTextIter cursor_pos = iter;
-//
-//	gunichar ch = gtk_text_iter_get_char(&iter);
-//
-//	if (g_unichar_isalpha(ch) && g_unichar_islower(ch))
-//	{
-//		// lowercase alpha
-//		do {
-//			if (!gtk_text_iter_forward_char(&iter)) break;
-//			ch = gtk_text_iter_get_char(&iter);
-//		} while (g_unichar_isalpha(ch) && g_unichar_islower(ch));
-//	}
-//	else if (g_unichar_isalpha(ch) && g_unichar_isupper(ch))
-//	{
-//		// uppercase alpha
-//		do {
-//			if (!gtk_text_iter_forward_char(&iter)) break;
-//			ch = gtk_text_iter_get_char(&iter);
-//		} while (g_unichar_isalpha(ch) && g_unichar_isupper(ch));
-//	}
-//	else if (g_unichar_isdigit(ch))
-//	{
-//		// digit
-//		do {
-//			if (!gtk_text_iter_forward_char(&iter)) break;
-//			ch = gtk_text_iter_get_char(&iter);
-//		} while (g_unichar_isdigit(ch));
-//	}
-//	else if (g_unichar_ispunct(ch))
-//	{
-//		// punctuation
-//		do {
-//			if (!gtk_text_iter_forward_char(&iter)) break;
-//			ch = gtk_text_iter_get_char(&iter);
-//		} while (g_unichar_ispunct(ch));
-//	}
-//	else if (g_unichar_isspace(ch))
-//	{
-//		// whitespace
-//		do {
-//			if (!gtk_text_iter_forward_char(&iter)) break;
-//			ch = gtk_text_iter_get_char(&iter);
-//		} while (g_unichar_isspace(ch));
-//	}
-//	else
-//	{
-//		// everything else?
-//	}
-//
-////	if (!gtk_text_iter_is_start(&iter))
-////		gtk_text_iter_forward_char(&iter);
-//
-//	if (key_event->state & GDK_SHIFT_MASK) {
-//		// Check if we already have a selection.
-//		// If so, then add to the existing selection
-//		GtkTextIter sel_start, sel_end, new_sel_bound;
-//		if (gtk_text_buffer_get_selection_bounds(text_buffer, &sel_start, &sel_end)) {
-//			if (gtk_text_iter_compare(&sel_start, &cursor_pos) == 0) {
-//				// sel_start is where the cursor is
-//				new_sel_bound = sel_end;
-//			} else {
-//				// sel_end is where the cursor is
-//				new_sel_bound = sel_start;
-//			}
-//		} else {
-//			new_sel_bound = cursor_pos;
-//		}
-//		// 1st insertion, 2nd selection-bound
-//		gtk_text_buffer_select_range(text_buffer, &iter, &new_sel_bound);
-//	} else {
-//		gtk_text_buffer_place_cursor(text_buffer, &iter);
-//	}
-//
-//	// if the cursor has moved outside the visible region, then scroll
-//	gtk_text_view_scroll_to_iter(text_view, &iter, 0.0, FALSE, 0.0, 0.0);
-//
-//	return TRUE;
-//}
-
-//gboolean cursor_long_jump_left(GdkEventKey *key_event) {
-//	printf("cursor_long_jump_left()\n");
-//
-//	GtkTextView *text_view;
-//	GtkTextBuffer *text_buffer;
-//	if (!init(&text_view, &text_buffer)) return FALSE;
-//
-//	GtkTextIter iter;
-//	get_cursor_position(text_buffer, NULL, &iter, NULL);
-//
-//	GtkTextIter cursor_pos = iter;
-//
-//	gtk_text_iter_backward_char(&iter);
-//	gunichar ch = gtk_text_iter_get_char(&iter);
-//
-//	if (g_unichar_isalnum(ch) || ch == '_') {
-//		do {
-//			if (!gtk_text_iter_backward_char(&iter)) break;
-//			ch = gtk_text_iter_get_char(&iter);
-//		} while (g_unichar_isalnum(ch) || ch == '_');
-//	} else {
-//		do {
-//			if (!gtk_text_iter_backward_char(&iter)) break;
-//			ch = gtk_text_iter_get_char(&iter);
-//		} while (!(g_unichar_isalnum(ch) || ch == '_'));
-//	}
-////	else if (g_unichar_ispunct(ch))
-////	{
-////		// punctuation
-////		do {
-////			if (!gtk_text_iter_backward_char(&iter)) break;
-////			ch = gtk_text_iter_get_char(&iter);
-////		} while (g_unichar_ispunct(ch));
-////	}
-////	else if (g_unichar_isspace(ch))
-////	{
-////		// whitespace
-////		do {
-////			if (!gtk_text_iter_backward_char(&iter)) break;
-////			ch = gtk_text_iter_get_char(&iter);
-////		} while (g_unichar_isspace(ch));
-////	}
-////	else
-////	{
-////		// everything else?
-////		assert(false);
-////	}
-//
-//	//@ this is not quite correct
-//	if (!gtk_text_iter_is_start(&iter))
-//		gtk_text_iter_forward_char(&iter);
-//
-//	if (key_event->state & GDK_SHIFT_MASK) {
-//		// Check if we already have a selection.
-//		// If so, then add to the existing selection
-//		GtkTextIter sel_start, sel_end, new_sel_bound;
-//		if (gtk_text_buffer_get_selection_bounds(text_buffer, &sel_start, &sel_end)) {
-//			if (gtk_text_iter_compare(&sel_start, &cursor_pos) == 0) {
-//				// sel_start is where the cursor is
-//				new_sel_bound = sel_end;
-//			} else {
-//				// sel_end is where the cursor is
-//				new_sel_bound = sel_start;
-//			}
-//		} else {
-//			new_sel_bound = cursor_pos;
-//		}
-//		// 1st insertion, 2nd selection-bound
-//		gtk_text_buffer_select_range(text_buffer, &iter, &new_sel_bound);
-//	} else {
-//		gtk_text_buffer_place_cursor(text_buffer, &iter);
-//	}
-//
-//	// if the cursor has moved outside the visible region, then scroll
-//	gtk_text_view_scroll_to_iter(text_view, &iter, 0.0, FALSE, 0.0, 0.0);
-//
-//	return TRUE;
-//}
-
-//gboolean cursor_long_jump_right(GdkEventKey *key_event) {
-//	LOG_MSG("cursor_long_jump_right()\n");
-//
-//	GtkTextView *text_view;
-//	GtkTextBuffer *text_buffer;
-//	if (!init(&text_view, &text_buffer)) {
-//		return FALSE;
-//	}
-//
-//	GtkTextIter iter;
-//	get_cursor_position(text_buffer, NULL, &iter, NULL);
-//
-//	GtkTextIter cursor_pos = iter;
-//
-//	gunichar ch = gtk_text_iter_get_char(&iter);
-//	if (g_unichar_isalnum(ch) || ch == '_') {
-//		while ((g_unichar_isalnum(ch) || ch == '_') && gtk_text_iter_forward_char(&iter)) {
-//			ch = gtk_text_iter_get_char(&iter);
-//		}
-//	} else {
-//		while ((!(g_unichar_isalnum(ch) || ch == '_')) && gtk_text_iter_forward_char(&iter)) {
-//			ch = gtk_text_iter_get_char(&iter);
-//		}
-//	}
-//
-////	if (g_unichar_isalnum(ch) || ch == '_')
-////	{
-////		do {
-////			if (!gtk_text_iter_forward_char(&iter)) break;
-////			ch = gtk_text_iter_get_char(&iter);
-////		} while (g_unichar_isalnum(ch) || ch == '_');
-////	} else {
-////		do {
-////			if (!gtk_text_iter_forward_char(&iter)) break;
-////			ch = gtk_text_iter_get_char(&iter);
-////		} while (!(g_unichar_isalnum(ch) || ch == '_'));
-////	}
-////	else if (g_unichar_ispunct(ch))
-////	{
-////		// punctuation
-////		do {
-////			if (!gtk_text_iter_forward_char(&iter)) break;
-////			ch = gtk_text_iter_get_char(&iter);
-////		} while (g_unichar_ispunct(ch));
-////	}
-////	else if (g_unichar_isspace(ch))
-////	{
-////		// whitespace
-////		do {
-////			if (!gtk_text_iter_forward_char(&iter)) break;
-////			ch = gtk_text_iter_get_char(&iter);
-////		} while (g_unichar_isspace(ch));
-////	}
-////	else
-////	{
-////		// everything else?
-////		assert(false);
-////	}
-//
-////	if (!gtk_text_iter_is_start(&iter))
-////		gtk_text_iter_forward_char(&iter);
-//
-//	if (key_event->state & GDK_SHIFT_MASK) {
-//		// Check if we already have a selection.
-//		// If so, then add to the existing selection
-//		GtkTextIter sel_start, sel_end, new_sel_bound;
-//		if (gtk_text_buffer_get_selection_bounds(text_buffer, &sel_start, &sel_end)) {
-//			if (gtk_text_iter_compare(&sel_start, &cursor_pos) == 0) {
-//				// sel_start is where the cursor is
-//				new_sel_bound = sel_end;
-//			} else {
-//				// sel_end is where the cursor is
-//				new_sel_bound = sel_start;
-//			}
-//		} else {
-//			new_sel_bound = cursor_pos;
-//		}
-//		// 1st insertion, 2nd selection-bound
-//		gtk_text_buffer_select_range(text_buffer, &iter, &new_sel_bound);
-//	} else {
-//		gtk_text_buffer_place_cursor(text_buffer, &iter);
-//	}
-//
-//	// if the cursor has moved outside the visible region, then scroll
-//	gtk_text_view_scroll_to_iter(text_view, &iter, 0.0, FALSE, 0.0, 0.0);
 //
 //	return TRUE;
 //}

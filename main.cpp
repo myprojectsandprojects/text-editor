@@ -1069,75 +1069,37 @@ void matching_char_highlighting_on_cursor_position_changed(GObject *object, GPar
 	gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
 	gtk_text_buffer_remove_tag_by_name(text_buffer, "matching-char-highlighting", &start_buffer, &end_buffer);
 	
-	GtkTextIter cursor_pos;
-	get_cursor_position(GTK_TEXT_BUFFER(text_buffer), NULL, &cursor_pos, NULL);
+	GtkTextIter cursor_pos; get_cursor_position(GTK_TEXT_BUFFER(text_buffer), NULL, &cursor_pos, NULL);
+	GtkTextIter iter = cursor_pos;
+	Scope chars[] = {
+		{'(', ')'},
+	};
 
 	gunichar c = gtk_text_iter_get_char(&cursor_pos);
 	if (c == '(')
 	{
 		if (is_inside_literal_or_comment(&cursor_pos)) return;
 
-		GtkTextIter iter = cursor_pos;
-		int level = 0;
-		while (gtk_text_iter_forward_char(&iter))
-		{
-			if (is_inside_literal_or_comment(&iter)) continue;
-			c = gtk_text_iter_get_char(&iter);
-			if (c == '(')
-			{
-				level += 1;
-			}
-			if (c == ')')
-			{
-				if (level == 0)
-				{
-					GtkTextIter end1 = cursor_pos;
-					GtkTextIter end2 = iter;
-					gtk_text_iter_forward_char(&end1);
-					gtk_text_iter_forward_char(&end2);
-					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-char-highlighting", &cursor_pos, &end1);
-					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-char-highlighting", &iter, &end2);
-					break;
-				}
-				else
-				{
-					level -= 1;
-				}
-			}
+		if (move_end_scope(&iter, chars, sizeof(chars) / sizeof(chars[0]))) {
+			GtkTextIter end1 = cursor_pos;
+			GtkTextIter end2 = iter;
+			gtk_text_iter_forward_char(&end1);
+			gtk_text_iter_forward_char(&end2);
+			gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-char-highlighting", &cursor_pos, &end1);
+			gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-char-highlighting", &iter, &end2);
 		}
 	}
 	else if (c == ')')
 	{
 		if (is_inside_literal_or_comment(&cursor_pos)) return;
 
-		GtkTextIter iter = cursor_pos;
-		int level = 0;
-		while (gtk_text_iter_backward_char(&iter))
-		{
-			if (is_inside_literal_or_comment(&iter)) continue;
-			c = gtk_text_iter_get_char(&iter);
-			if (c == ')')
-			{
-				level += 1;
-			}
-			
-			if (c == '(')
-			{
-				if (level == 0)
-				{
-					GtkTextIter end1 = cursor_pos;
-					GtkTextIter end2 = iter;
-					gtk_text_iter_forward_char(&end1);
-					gtk_text_iter_forward_char(&end2);
-					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-char-highlighting", &cursor_pos, &end1);
-					gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-char-highlighting", &iter, &end2);
-					break;
-				}
-				else
-				{
-					level -= 1;
-				}
-			}
+		if (move_start_scope(&iter, chars, sizeof(chars) / sizeof(chars[0]))) {
+			GtkTextIter end1 = cursor_pos;
+			GtkTextIter end2 = iter;
+			gtk_text_iter_forward_char(&end1);
+			gtk_text_iter_forward_char(&end2);
+			gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-char-highlighting", &cursor_pos, &end1);
+			gtk_text_buffer_apply_tag_by_name(text_buffer, "matching-char-highlighting", &iter, &end2);
 		}
 	}
 
@@ -1145,84 +1107,42 @@ void matching_char_highlighting_on_cursor_position_changed(GObject *object, GPar
 	LOG_MSG("matching char higlighting took: %ldus\n", t2 - t1);
 }
 
-void scope_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
+void scope_highlighting_on_cursor_position_changed(GObject *_text_buffer, GParamSpec *pspec, gpointer user_data)
 {
 	long t1 = get_time_us();
 
-	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
+	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(_text_buffer);
 
 	GtkTextIter start_buffer, end_buffer;
 	gtk_text_buffer_get_bounds(text_buffer, &start_buffer, &end_buffer);
 	gtk_text_buffer_remove_tag_by_name(text_buffer, "scope-highlighting", &start_buffer, &end_buffer);
-	
-	GtkTextIter cursor_pos;
-	get_cursor_position(GTK_TEXT_BUFFER(text_buffer), NULL, &cursor_pos, NULL);
-	
+
+	GtkTextIter cursor_pos; get_cursor_position(GTK_TEXT_BUFFER(text_buffer), NULL, &cursor_pos, NULL);
+	GtkTextIter iter = cursor_pos;
+	Scope chars[] = {
+		{'{', '}'},
+	};
+
 	gunichar c = gtk_text_iter_get_char(&cursor_pos);
+
 	if (c == '{')
 	{
 		if (is_inside_literal_or_comment(&cursor_pos)) return;
+//		if (has_tag(&cursor_pos, "comment") || has_tag(&cursor_pos, "string") || has_tag(&cursor_pos, "char")) {return;}
+//		if (has_tag(&cursor_pos, {"comment", "string", "char", NULL})) {return;}
 
-		GtkTextIter iter = cursor_pos;
-		int level = 0;
-		while (gtk_text_iter_forward_char(&iter))
-		{
-			if (is_inside_literal_or_comment(&iter)) continue;
-			c = gtk_text_iter_get_char(&iter);
-			if (c == '{')
-			{
-				level += 1;
-			}
-			if (c == '}')
-			{
-				if (level == 0)
-				{
-					gtk_text_iter_forward_char(&iter);
-					GtkTextIter start;
-					start = cursor_pos;
-					gtk_text_iter_set_line_offset(&start, 0);
-					gtk_text_buffer_apply_tag_by_name(text_buffer, "scope-highlighting", &start, &iter);
-					break;
-				}
-				else
-				{
-					level -= 1;
-				}
-			}
+		if (move_end_scope(&iter, chars, sizeof(chars) / sizeof(chars[0]))) {
+			gtk_text_iter_forward_char(&iter);
+			gtk_text_buffer_apply_tag_by_name(text_buffer, "scope-highlighting", &cursor_pos, &iter);
 		}
 	}
 	else if (c == '}')
 	{
 		if (is_inside_literal_or_comment(&cursor_pos)) return;
 
-		GtkTextIter iter = cursor_pos;
-		int level = 0;
-		while (gtk_text_iter_backward_char(&iter))
-		{
-			if (is_inside_literal_or_comment(&iter)) continue;
-			c = gtk_text_iter_get_char(&iter);
-			if (c == '}')
-			{
-				level += 1;
-			}
-			
-			if (c == '{')
-			{
-				if (level == 0)
-				{
-					GtkTextIter start, end;
-					start = iter;
-					end = cursor_pos;
-					gtk_text_iter_set_line_offset(&start, 0);
-					gtk_text_iter_forward_char(&end);
-					gtk_text_buffer_apply_tag_by_name(text_buffer, "scope-highlighting", &start, &end);
-					break;
-				}
-				else
-				{
-					level -= 1;
-				}
-			}
+		if (move_start_scope(&iter, chars, sizeof(chars) / sizeof(chars[0]))) {
+			gtk_text_iter_set_line_offset(&iter, 0);
+			gtk_text_buffer_apply_tag_by_name(text_buffer, "scope-highlighting", &iter, &cursor_pos);
 		}
 	}
 
@@ -2671,22 +2591,6 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 //	add_keycombination_handler(0, 36, do_autocomplete); // enter
 //	add_keycombination_handler(0, 23, do_autocomplete); // tab
 
-	// We'll overwrite the default handlers, because we want to do better
-	// Actually the default worked in the following way (if I remember correctly):
-	// if we go right and:
-	// if the cursor is at the beginning of a word, it jumps to the end of the word
-	// if the cursor is at the end of a word, it jumps to the end of the next word
-	// and I might like that more than what we currently have
-	// Its just that the default "steps into" identifiers, which I dont like.
-//	add_keycombination_handler(CTRL, 113, cursor_long_jump_left); // ctrl + <left arrow>
-//	add_keycombination_handler(CTRL, 114, cursor_long_jump_right); // ctrl + <right arrow>
-//	add_keycombination_handler(CTRL | SHIFT, 113, cursor_long_jump_left);
-//	add_keycombination_handler(CTRL | SHIFT, 114, cursor_long_jump_right);
-//	add_keycombination_handler(ALT, 113, cursor_short_jump_left); // ctrl + <left arrow>
-//	add_keycombination_handler(ALT, 114, cursor_short_jump_right); // ctrl + <right arrow>
-//	add_keycombination_handler(ALT | SHIFT, 113, cursor_short_jump_left);
-//	add_keycombination_handler(ALT | SHIFT, 114, cursor_short_jump_right);
-
 	add_keycombination_handler(CTRL, 114, cursor_jump_forward); // ctrl + <right arrow>
 	add_keycombination_handler(CTRL, 113, cursor_jump_backward); // ctrl + <left arrow>
 	add_keycombination_handler(CTRL | SHIFT, 114, cursor_jump_forward); // ctrl + shift + <right arrow>
@@ -2716,15 +2620,7 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	add_keycombination_handler(CTRL, 31, select_inside); // ctrl + i
 	add_keycombination_handler(ALT, 31, delete_inside); // alt + i
 
-	//@ We already have ctrl + left/right. These are not useful. Code in 'editing.cpp' should be deleted.
-//	add_keycombination_handler(CTRL, 60, move_cursor_start_word); // ctrl + .
-//	add_keycombination_handler(CTRL | SHIFT, 60, move_cursor_start_word_shift); // ctrl + shift + .
-//	add_keycombination_handler(CTRL, 61, move_cursor_end_word); // ctrl + -
-//	add_keycombination_handler(CTRL | SHIFT, 61, move_cursor_end_word_shift); // ctrl + shift + -
-
-//	add_keycombination_handler(CTRL, 35, jump_to_next_occurrence); // ctrl + õ (35)
 	add_keycombination_handler(0, 86, jump_to_previous_occurrence); // numpad +
-//	add_keycombination_handler(CTRL | SHIFT, 35, jump_to_next_occurrence); // ctrl + shift + õ (35)
 	add_keycombination_handler(0, 104, jump_to_next_occurrence); // numpad enter
 
 	add_keycombination_handler(ALT, 111, move_lines_up); // alt + <up arrow>
