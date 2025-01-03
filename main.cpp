@@ -2250,7 +2250,7 @@ gboolean apply_css_from_file(void *data)
 
 gboolean set_mark(GdkEventKey *key_event)
 {
-	printf("set_mark()\n");
+	LOG_MSG("set_mark()\n");
 
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
 	if (!tab) return FALSE;
@@ -2294,7 +2294,7 @@ gboolean set_mark(GdkEventKey *key_event)
 
 gboolean go_to_mark(GdkEventKey *key_event)
 {
-	printf("go_to_mark()\n");
+	LOG_MSG("go_to_mark()\n");
 
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
 	if (!tab) return FALSE;

@@ -80,7 +80,8 @@ text-tags
 	}
 	operator
 	{
-		foreground{#888888}
+		/*foreground{#888888}*/
+		foreground{#777}
 		weight{900}
 	}
 	preprocessor
@@ -104,7 +105,8 @@ line-highlighting
 
 matching-char-highlighting
 {
-	color {#777}
+	/*color {#777}*/
+	color {#555}
 }
 
 scope-highlighting

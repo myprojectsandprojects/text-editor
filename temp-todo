@@ -1,5 +1,8 @@
 
+- add lib as a submodule
 - 2 marks is not enough. need more! definately improve interface somehow!
+- #define, #ifdef, #endif
+- jump from scope to scope at the same level (?)
 
 ---
 

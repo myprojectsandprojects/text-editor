@@ -25,7 +25,12 @@
 - funtion argument name, when declared, is an identifier, so it gets highlighted as an identifier, but it's also part of a function definition header, so it could additionally be highlighted as that. (For example: make function definition headers stand out more by highlighting them in bold.)
 - alt + left/right: could this be 'more intelligent jump'? Treat parts of identifiers, colors, URL's, file paths etc as words.
 http://abc.xy/123/asd
-
+- jump to prev/next occurence should ignore stuff inside comments/literals?
+- ctrl + up + shift: it doesnt select the line the cursor is originally at
+- jump from scope to scope at the same level (?)
+- undo'ing search-replace
+- #define, #ifdef, #endif
+- autocomplete should consider scope (?)
 ---
 
 automatic completion ('', "" etc.) vs snippets (you press a key to trigger a completion) vs (suggestion?) completion
