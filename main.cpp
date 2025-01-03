@@ -2269,6 +2269,7 @@ gboolean set_mark(GdkEventKey *key_event)
 	}
 */
 
+/*
 	struct JumpToMarks *marks = (struct JumpToMarks*) tab_retrieve_widget(tab, JUMPTO_MARKS);
 	if (!marks) {
 		// if this tab doesnt have marks yet, lets create & store them
@@ -2288,6 +2289,7 @@ gboolean set_mark(GdkEventKey *key_event)
 		marks->current_mark_i = 0;
 	}
 
+*/
 	return TRUE;
 }
 
@@ -2299,6 +2301,7 @@ gboolean go_to_mark(GdkEventKey *key_event)
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
 	if (!tab) return FALSE;
 
+/*
 	struct JumpToMarks *marks = (struct JumpToMarks*) tab_retrieve_widget(tab, JUMPTO_MARKS);
 	if (!marks) return TRUE; // in case where we havent set the marks yet
 
@@ -2317,6 +2320,7 @@ gboolean go_to_mark(GdkEventKey *key_event)
 		0.0, // x-alignment
 		0.5); // y-alignment (in the middle of the screen)
 
+*/
 	return TRUE;
 }
 

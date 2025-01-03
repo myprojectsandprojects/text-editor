@@ -1,11 +1,16 @@
 
 * {
+/*
 	font-family: Ubuntu Condensed;
 	font-family: Sudo UI;
-	font-size: 15px;
 	font-size: 17px;
 	font-weight: 500;
 	font-weight: 400;
+*/
+	font-family: ChicagoFLF;
+	font-weight: 100;
+	font-size: 13px;
+	font-size: 11px;
 }
 
 .text-view, .search-entry {
