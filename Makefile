@@ -1,4 +1,4 @@
-objects := main.o tab.o search-replace.o undo.o editing.o highlighting.o highlighting-c.o highlighting-cpp.o highlighting-rust.o strings.o file-browser.o search-in-files.o autocomplete-identifier.o root-navigation.o open.o text-expansion.o hotloader.o tests.o multi-cursor-ability.o lib.o
+objects := main.o tab.o search-replace.o undo.o editing.o highlighting.o highlighting-c.o highlighting-cpp.o highlighting-rust.o strings.o file-browser.o search-in-files.o autocomplete-identifier.o root-navigation.o open.o text-expansion.o hotloader.o tests.o multi-cursor-ability.o bookmarks.o
 
 texty: $(objects)
 #texty: %.o

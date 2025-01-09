@@ -20,6 +20,7 @@ possible cursor positions:
 #include <gdk/gdkkeysyms.h>
 
 #include "declarations.h"
+#include "lib/lib.hpp"
 
 //@ multiple tabs
 static const int ExtraCursorsMax = 4;

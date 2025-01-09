@@ -1,6 +1,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "declarations.h"
+#include "lib/lib.hpp"
 
 const char *cpp_keywords[] = {
 	"asm",
@@ -68,7 +69,7 @@ const char *cpp_keywords[] = {
 	"template",
 };
 
-HashTable keywords_table;
+Lib::HashTable keywords_table;
 bool keywords_table_initialized = false;
 
 // Order is important here because we use these values as indices into the token_names array to get the name of the tag.
@@ -380,7 +381,7 @@ void get_next_token(Token *token, GtkTextBuffer *text_buffer, GtkTextIter *iter)
 //					}
 //				}
 				// it is a bit faster to use a hash-table lookup, but in the greater scheme of things the difference is insignificant
-				if (hash_table_has(&keywords_table, identifier)) {
+				if (Lib::hash_table_has(&keywords_table, identifier)) {
 					token->type = TOKEN_KEYWORD;
 				} else if (strcmp(identifier, "true") == 0|| strcmp(identifier, "false") == 0) {
 					token->type = TOKEN_NUMBER; // Let boolean-values receive the same highlighting numbers do
@@ -426,10 +427,10 @@ void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *location) {
 
 	if (!keywords_table_initialized)
 	{
-		hash_table_init(&keywords_table);
+		Lib::hash_table_init(&keywords_table);
 		for (int i = 0; i < COUNT(cpp_keywords); ++i)
 		{
-			hash_table_store(&keywords_table, cpp_keywords[i]);
+			Lib::hash_table_store(&keywords_table, cpp_keywords[i]);
 		}
 		keywords_table_initialized = true;
 	}
@@ -457,8 +458,8 @@ void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *location) {
 //	free(region_text);
 
 //	Array<Token *> tokens;
-	Array<Token> tokens;
-	array_init(&tokens);
+	array<Token> tokens;
+	ArrayInit(&tokens);
 
 	bool seen_matching_token = false; // Once the tokens we are generating begin matching up with the text-tags in the text buffer we want to stop parsing at the first semicolon we find. Because GTK merges consecutive one-character same-tagged-regions into one bigger region then in some cases (for example: ');') we wouldnt recognize that for all practical purposes a semicolon actually "matches up" with whats in the text buffer. So we can only stop if we have PREVIOUSLY seen tokens that "match up" with the tags in the text-buffer.
 
@@ -529,15 +530,15 @@ void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *location) {
 //			printf("\n");
 		}
 
-		array_add(&tokens, token);
+		ArrayAdd(&tokens, token);
 	}
 //	after = get_time_us();
 //	printf("ELAPSED ON GETTING TOKENS: %ld\n", after - before);
 
 //	before = get_time_us();
-	if (tokens.count > 0) {
-		Token *first = &(tokens.data[0]);
-		Token *last = &(tokens.data[tokens.count-1]);
+	if (tokens.Count > 0) {
+		Token *first = &(tokens.Data[0]);
+		Token *last = &(tokens.Data[tokens.Count-1]);
 		gtk_text_buffer_remove_all_tags(text_buffer, &first->start, &last->end);
 
 //		char *text = gtk_text_buffer_get_text(text_buffer, &(first->start), &(last->end), FALSE);
@@ -547,12 +548,12 @@ void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *location) {
 //	after = get_time_us();
 //	printf("ELAPSED ON REMOVING TAGS: %ld\n", after - before);
 
-	for (int i = 0; i < tokens.count; ++i)
+	for (int i = 0; i < tokens.Count; ++i)
 	{
-		Token *token = &tokens.data[i];
+		Token *token = &tokens.Data[i];
 		if (token->type == TOKEN_IDENTIFIER)
 		{
-			Token *next_token = ((i+1) < tokens.count) ? &tokens.data[i+1] : 0;
+			Token *next_token = ((i+1) < tokens.Count) ? &tokens.Data[i+1] : 0;
 			if (next_token && next_token->type == TOKEN_IDENTIFIER)
 			{
 				token->type = TOKEN_TYPE;
@@ -560,7 +561,7 @@ void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *location) {
 			}
 			if (next_token && next_token->type == TOKEN_POINTER_STAR)
 			{
-				Token *next_next_token = ((i+2) < tokens.count) ? &tokens.data[i+2] : 0;
+				Token *next_next_token = ((i+2) < tokens.Count) ? &tokens.Data[i+2] : 0;
 				if (next_next_token && next_next_token->type == TOKEN_IDENTIFIER)
 				{
 					token->type = TOKEN_TYPE;
@@ -569,7 +570,7 @@ void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *location) {
 			}
 			if (next_token && next_token->type == TOKEN_OPERATOR)
 			{
-				Token *next_next_token = ((i+2) < tokens.count) ? &tokens.data[i+2] : 0;
+				Token *next_next_token = ((i+2) < tokens.Count) ? &tokens.Data[i+2] : 0;
 				if (gtk_text_iter_get_char(&next_token->start) == '(')
 				{
 					token->type = TOKEN_FUNCTION;
@@ -580,9 +581,9 @@ void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *location) {
 	}
 
 //	before = get_time_us();
-	for (int i = 0; i < tokens.count; ++i)
+	for (int i = 0; i < tokens.Count; ++i)
 	{
-		Token *token = &tokens.data[i];
+		Token *token = &tokens.Data[i];
 		gtk_text_buffer_apply_tag_by_name(text_buffer, token_names[token->type], &token->start, &token->end);
 		//@ could try apply_tag() as opposed to apply_tag_by_name(), maybe we could maintain a list of tags ourselves, worth a try.
 	}

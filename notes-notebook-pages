@@ -1,0 +1,27 @@
+
+
+- get current page
+
+- new page added
+- page removed
+
+- go to next page
+- go to previous page
+- goto page at offset n
+
+- move page from offset n to offset m!!!!!!
+
+- iterate over pages (when applying settings)
+
+---
+
+GtkNotebook
+	page1
+	page2 <- current
+	page3
+
+key bindings:
+	ctrl + alt + s -> key combination handler
+
+data associated with pages
+

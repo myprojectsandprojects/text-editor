@@ -1,9 +1,5 @@
 
 * {
-	/*
-	font-family: Ubuntu Condensed;
-	font-size: 14px;
-	*/
 	font-family: ChicagoFLF;
 	font-weight: 100;
 	font-size: 13px;
@@ -11,41 +7,30 @@
 }
 
 .text-view, .search-entry {
-	font-family: NotoSansM Nerd Font;
+	font-family: Monaco;
+	font-family: Monaco Ligaturized;
 	font-weight: 400;
-	/*
-	font-style: Italic;
-	font-stretch: ExtraCondensed;
-	font-stretch: SemiCondensed;
-	font-stretch: Condensed;
-	*/
-	font-size: 17px;
-	font-size: 16px;
-	font-size: 15.5px;
-	font-size: 14px;
-	font-size: 13.5px;
-
-	font-family: JetBrains Mono NL;
-	font-family: JetBrains Mono;
 	font-weight: 500;
 	font-size: 12px;
+	font-size: 13.5px;
 	font-size: 15px;
 	font-size: 14px;
 }
 
 .text-view text {
-	background-color: #222222;
-	color: #aaaaaa;
+	background-color: #002b36;
+	color: #839496;
 	caret-color: red;
 }
 
 .search-entry {
-	background-color: #222222;
-	color: #aaaaaa;
+	background-color: #092230;
+	color: #268bd2;
 	caret-color: red;
 }
 
 .text-view > text > selection, .search-entry selection {
+	/*background-color: #44415a;*/
 	background-color: red;
 }
 

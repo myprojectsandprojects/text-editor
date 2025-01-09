@@ -1,5 +1,6 @@
 #include <string.h>
 #include "declarations.h"
+#include "lib/lib.hpp"
 
 //extern guint gtk_version_major;
 //extern guint gtk_version_minor;
@@ -58,15 +59,15 @@ void highlighting_apply_settings(Node *settings, NotebookPage *page) {
 
 	Node *text_tags = get_node(settings, "text-tags");
 
-	for(int i = 0; i < text_tags->nodes.count; ++i) {
-		Node *text_tag = (Node *) text_tags->nodes.data[i];
+	for(int i = 0; i < text_tags->nodes.Count; ++i) {
+		Node *text_tag = (Node *) text_tags->nodes.Data[i];
 //		printf("text-tag: %s\n", text_tag->name);
 
 		GtkTextTag *gtk_text_tag = gtk_text_buffer_create_tag(page->buffer, text_tag->name, NULL);
 
-		for (int j = 0; j < text_tag->nodes.count; ++j) {
-			Node *attribute_name = (Node *) text_tag->nodes.data[j];
-			Node *attribute_value = (Node *) attribute_name->nodes.data[0];
+		for (int j = 0; j < text_tag->nodes.Count; ++j) {
+			Node *attribute_name = (Node *) text_tag->nodes.Data[j];
+			Node *attribute_value = (Node *) attribute_name->nodes.Data[0];
 			assert(attribute_value); // attribute has to have a value (for example: "foreground {black}")
 
 			if(strcmp(attribute_name->name, "style") == 0) {
@@ -281,8 +282,8 @@ static GtkWidget *create_highlighting_selection_menu(Node *settings, GtkWidget *
 
 	Node *languages = get_node(settings, "languages");
 	if(languages){
-		for (int i = 0; i < languages->nodes.count; ++i){
-			Node *language = languages->nodes.data[i];
+		for (int i = 0; i < languages->nodes.Count; ++i){
+			Node *language = languages->nodes.Data[i];
 			add_menu_item(GTK_MENU(menu), language->name, G_CALLBACK(on_highlighting_selected), (void *) tab);
 		}
 	}

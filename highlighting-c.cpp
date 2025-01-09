@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "declarations.h"
+#include "lib/lib.hpp"
 
 gunichar peek_next_character(GtkTextIter *iter)
 {

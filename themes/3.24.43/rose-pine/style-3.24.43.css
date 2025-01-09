@@ -1,12 +1,5 @@
 
 * {
-/*
-	font-family: Ubuntu Condensed;
-	font-family: Sudo UI;
-	font-size: 17px;
-	font-weight: 500;
-	font-weight: 400;
-*/
 	font-family: ChicagoFLF;
 	font-weight: 100;
 	font-size: 13px;
@@ -15,42 +8,43 @@
 
 .text-view, .search-entry {
 /*
-	font-family: NotoSansM Nerd Font;
+	font-family: CaskaydiaMono Nerd Font;
+	font-weight: 300;
 	font-weight: 400;
-	font-size: 13px;
-	font-size: 15px;
+	font-size: 12.5px;
 	font-size: 14px;
+	font-size: 16px;
 */
-
-/*
 	font-family: JetBrains Mono;
+	font-family: ComicShannsMono Nerd Font;
+	font-family: CodeNewRoman Nerd Font Mono;
+	font-family: Monaco;
+	font-family: Monaco Ligaturized;
 	font-weight: 400;
 	font-weight: 500;
+	font-size: 12px;
+	font-size: 13.5px;
 	font-size: 15px;
 	font-size: 14px;
+/*
 */
 
 /*
-*/
 	font-family: Sudo;
 	font-size: 17px;
 	font-size: 19px;
 	font-weight: 400;
-
-/*
-	font-family: DEC Terminal Modern;
-	font-weight: 400;
-	font-size: 22px;
-	font-size: 19px;
 */
 }
 
 .text-view text {
 	background-color: #191724;
-	background-color: #232136;
-	background-color: #000;
-	background-color: #111;
 	background-color: #161616;
+	background-color: #222;
+	background-color: #232136;
+	background-color: #111;
+	background-color: #101016;
+	background-color: #000;
 	color: #aaaaaa;
 	color: #e0def4;
 	caret-color: red;
@@ -63,8 +57,8 @@
 }
 
 .text-view > text > selection, .search-entry selection {
+	/*background-color: #44415a;*/
 	background-color: red;
-	background-color: #44415a;
 }
 
 /*

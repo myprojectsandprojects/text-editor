@@ -10,6 +10,9 @@
 
 #include "declarations.h"
 
+#define LIB_INCLUDE_IMPLEMENTATION
+#include "lib/lib.hpp"
+
 guint gtk_version_major;
 guint gtk_version_minor;
 guint gtk_version_micro;
@@ -57,10 +60,16 @@ const char *settings_file_path_ifnotheme = "themes/settings-no-theme"; // if we 
 
 struct Node *settings;
 
-const int NOTEBOOK_MAX_PAGES = 64;
-NotebookPage notebook_pages[NOTEBOOK_MAX_PAGES]; // index's are also id's
-NotebookPage *visible_page; // 0
-int first_unused_page_id; // 0
+/*
+To refer to a specific page
+- we cant use a memory address if pages are stored in a dynamic array
+- we cant use an index if we expect pages to be reordered (we dont currently)
+so referring to a page by using a unique name (id) seems like a only solid solution
+*/
+int currentPageIndex = -1; // 0
+array<NotebookPage> notebookPages;
+static int firstUnusedNotebookPageId; // 0
+
 /*@@ settings could change at any time!!!*/
 
 // currently we have (at least) 4 different ways of bookkeeping per tab data
@@ -112,8 +121,8 @@ struct Node *get_node(struct Node *root, const char *apath) {
 		//printf("segment: %s\n", segment);
 		bool found = false;
 		struct Node *n;
-		for (int i = 0; i < node->nodes.count; ++i) {
-			n = (struct Node *) node->nodes.data[i];
+		for (int i = 0; i < node->nodes.Count; ++i) {
+			n = (struct Node *) node->nodes.Data[i];
 			//printf("looking at: %s\n", n->name);
 			if (strcmp(n->name, segment) == 0) {
 				found = true;
@@ -141,7 +150,7 @@ const char *settings_get_value(struct Node *settings, const char *path) {
 	const char *result = NULL;
 	struct Node *node = get_node(settings, path);
 	if (node) {
-		result = ((struct Node *) node->nodes.data[0])->name; // first child-node stores the value as its name
+		result = ((struct Node *) node->nodes.Data[0])->name; // first child-node stores the value as its name
 	}
 	return result;
 }
@@ -158,8 +167,8 @@ void print_node(struct Node *node, int depth) {
 
 	printf("%s%s\n", indent, node->name);
 
-	for (int i = 0; i < node->nodes.count; ++i) {
-		print_node((struct Node *) node->nodes.data[i], depth + 1);
+	for (int i = 0; i < node->nodes.Count; ++i) {
+		print_node((struct Node *) node->nodes.Data[i], depth + 1);
 	}
 }
 
@@ -171,13 +180,21 @@ struct Node *parse_settings_file(const char *file_path)
 {
 	LOG_MSG("parse_settings_file()\n");
 
-	char *contents = read_file(file_path);
-	if(!contents){
+//	char *contents = read_file(file_path);
+//	if(!contents){
+//		ERROR("Error: Cant read settings file: \"%s\" (We cant continue. Exiting.)", file_path);
+//		exit(1);
+//	}
+////	assert(contents);
+////	printf("contents:\n%s\n", contents);
+//
+//	INFO("Using settings from \"%s\"", file_path);
+
+	char *contents;
+	if(!Lib::ReadTextFile(file_path, &contents)){
 		ERROR("Error: Cant read settings file: \"%s\" (We cant continue. Exiting.)", file_path);
 		exit(1);
 	}
-//	assert(contents);
-//	printf("contents:\n%s\n", contents);
 
 	INFO("Using settings from \"%s\"", file_path);
 
@@ -194,7 +211,7 @@ struct Node *parse_settings_file(const char *file_path)
 	struct Node *root = (struct Node *) malloc(sizeof(struct Node));
 	root->name = "Root";
 //	root->nodes = new_list();
-	array_init(&(root->nodes));
+	ArrayInit(&(root->nodes));
 
 	node_path[path_index++] = root;
 
@@ -247,10 +264,10 @@ struct Node *parse_settings_file(const char *file_path)
 			struct Node *n = (struct Node *) malloc(sizeof(struct Node));
 			n->name = strdup(node_name);
 //			n->nodes = new_list();
-			array_init(&(n->nodes));
+			ArrayInit(&(n->nodes));
 
 //			list_append(node_path[path_index - 1]->nodes, n);
-			array_add(&(node_path[path_index-1]->nodes), n);
+			ArrayAdd(&(node_path[path_index-1]->nodes), n);
 			
 			node_path[path_index++] = n;
 			//list_add()
@@ -280,10 +297,10 @@ struct Node *parse_settings_file(const char *file_path)
 			struct Node *n = (struct Node *) malloc(sizeof(struct Node));
 			n->name = strdup(node_name);
 //			n->nodes = new_list();
-			array_init(&(n->nodes));
+			ArrayInit(&(n->nodes));
 
 //			list_append(node_path[path_index - 1]->nodes, n);
-			array_add(&(node_path[path_index-1]->nodes), n);
+			ArrayAdd(&(node_path[path_index-1]->nodes), n);
 			
 			path_index -= 1;
 			/*
@@ -799,7 +816,7 @@ static void set_highlighting_based_on_file_extension(GtkWidget *tab, Node *setti
 		return;
 	}
 
-	const char *extension = basename_get_extension(filepath_get_basename(file_name));
+	const char *extension = Lib::basename_get_extension(Lib::filepath_get_basename(file_name));
 
 	const char *language_found = NULL;
 	Node *languages = get_node(settings, "languages");
@@ -809,14 +826,14 @@ static void set_highlighting_based_on_file_extension(GtkWidget *tab, Node *setti
 		return;
 	}
 
-	for (int i = 0; !language_found && i < languages->nodes.count; ++i) {
-		Node *language = (Node *) languages->nodes.data[i];
+	for (int i = 0; !language_found && i < languages->nodes.Count; ++i) {
+		Node *language = (Node *) languages->nodes.Data[i];
 		
 		Node *extensions = get_node(language, "file-extensions");
 		if (!extensions) continue;
 
-		for (int i = 0; i < extensions->nodes.count; ++i) {
-			Node *n = (Node *) extensions->nodes.data[i];
+		for (int i = 0; i < extensions->nodes.Count; ++i) {
+			Node *n = (Node *) extensions->nodes.Data[i];
 
 			if(strcmp(n->name, extension) == 0){
 				language_found = language->name;
@@ -833,7 +850,7 @@ static void set_highlighting_based_on_file_extension(GtkWidget *tab, Node *setti
 }
 
 void line_highlighting_on_text_buffer_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data){
-	long t1 = get_time_us();
+	long t1 = Lib::get_time_us();
 
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
 
@@ -853,7 +870,7 @@ void line_highlighting_on_text_buffer_cursor_position_changed(GObject *object, G
 
 	gtk_text_buffer_apply_tag_by_name(text_buffer, "line-highlighting", &start_line, &end_line);
 
-	long t2 = get_time_us();
+	long t2 = Lib::get_time_us();
 	LOG_MSG("line higlighting took: %ldus\n", t2 - t1);
 }
 
@@ -1061,7 +1078,7 @@ bool is_inside_literal_or_comment(GtkTextIter *iter)
 
 void matching_char_highlighting_on_cursor_position_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
 {
-	long t1 = get_time_us();
+	long t1 = Lib::get_time_us();
 
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(object);
 	
@@ -1103,13 +1120,13 @@ void matching_char_highlighting_on_cursor_position_changed(GObject *object, GPar
 		}
 	}
 
-	long t2 = get_time_us();
+	long t2 = Lib::get_time_us();
 	LOG_MSG("matching char higlighting took: %ldus\n", t2 - t1);
 }
 
 void scope_highlighting_on_cursor_position_changed(GObject *_text_buffer, GParamSpec *pspec, gpointer user_data)
 {
-	long t1 = get_time_us();
+	long t1 = Lib::get_time_us();
 
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(_text_buffer);
 
@@ -1146,7 +1163,7 @@ void scope_highlighting_on_cursor_position_changed(GObject *_text_buffer, GParam
 		}
 	}
 
-	long t2 = get_time_us();
+	long t2 = Lib::get_time_us();
 	LOG_MSG("scope higlighting took: %ldus\n", t2 - t1);
 }
 
@@ -1257,12 +1274,12 @@ void show_cursor(GtkTextView *view, bool should_show_cursor) {
 	}
 }
 
-gboolean textview_button_press(GtkTextView *view, GdkEventButton *event, gpointer _page) {
+gboolean textview_button_press(GtkTextView *view, GdkEventButton *event, gpointer page_id) {
 	assert(event->type == GDK_BUTTON_PRESS
 		|| event->type == GDK_DOUBLE_BUTTON_PRESS
 		|| event->type == GDK_TRIPLE_BUTTON_PRESS);
 
-	NotebookPage *page = (NotebookPage *)_page;
+	NotebookPage *page = &notebookPages.Data[(unsigned long)page_id];
 	TextViewMouseSelectionState *state = &page->mouse_selection_state;
 
 	if(!gtk_widget_is_focus(GTK_WIDGET(view))) {
@@ -1333,12 +1350,12 @@ gboolean textview_button_press(GtkTextView *view, GdkEventButton *event, gpointe
 	}
 }
 
-gboolean textview_button_release(GtkTextView *view, GdkEventButton *event, gpointer _page) {
+gboolean textview_button_release(GtkTextView *view, GdkEventButton *event, gpointer page_id) {
 	assert(event->type == GDK_BUTTON_RELEASE);
 
 	//@@ We are assuming that we are on a same tab/page where the button went down!
 
-	NotebookPage *page = (NotebookPage *)_page;
+	NotebookPage *page = &notebookPages.Data[(unsigned long)page_id];
 	TextViewMouseSelectionState *state = &page->mouse_selection_state;
 
 	/*
@@ -1372,12 +1389,12 @@ gboolean textview_button_release(GtkTextView *view, GdkEventButton *event, gpoin
 	}
 }
 
-gboolean textview_mouse_move(GtkTextView *view, GdkEventMotion *event, gpointer _page) {
+gboolean textview_mouse_move(GtkTextView *view, GdkEventMotion *event, gpointer page_id) {
 //	printf("MOUSE MOVE (x: %f, y: %f)\n", event->x, event->y);
 
 	//@@ We are assuming that we are on a same tab/page where the button went down!
 
-	NotebookPage *page = (NotebookPage *)_page;
+	NotebookPage *page = &notebookPages.Data[(unsigned long)page_id];
 	TextViewMouseSelectionState *state = &page->mouse_selection_state;
 
 	show_cursor(view, true);
@@ -1487,14 +1504,13 @@ gboolean textview_mouse_move(GtkTextView *view, GdkEventMotion *event, gpointer 
 }
 
 void textview_buffer_changed(GtkTextBuffer *buffer, gpointer _view) {
-	printf("this will be called\n");
 	show_cursor(GTK_TEXT_VIEW(_view), false);
 }
 
 GtkWidget *create_tab(const char *file_name)
 {
-//	static unsigned int count = 1;//@ why not from 0? invalid tab id?
-	assert(first_unused_page_id < NOTEBOOK_MAX_PAGES);
+	int page_id = firstUnusedNotebookPageId;
+	firstUnusedNotebookPageId += 1;
 
 	char *tab_title;
 	gchar *contents, *base_name;
@@ -1506,7 +1522,8 @@ GtkWidget *create_tab(const char *file_name)
 
 	struct TabInfo *tab_info;
 	tab_info = (TabInfo *) malloc(sizeof(struct TabInfo));
-	tab_info->id = first_unused_page_id;
+//	tab_info->id = first_unused_page_id;
+	tab_info->id = page_id;
 	if (file_name == NULL) {
 		tab_info->file_name = NULL;
 
@@ -1524,14 +1541,13 @@ GtkWidget *create_tab(const char *file_name)
 	Shouldnt this be done at the very end when the tab is ready, because apply_settings() might be called at any time?
 	This is a thread synchronization issue.
 	*/
-	NotebookPage *page = &notebook_pages[first_unused_page_id];
-	page->id = first_unused_page_id;
-	page->in_use = true;
+	/*@@
+	GtkNotebook's "switch-page" handler is called before this function returns. Is there anything else like this?
+	*/
+	NotebookPage *page = ArrayAppend(&notebookPages);
+	Lib::ZeroMemory((uint8_t *)page, sizeof(NotebookPage)); // use calloc() in ArrayAppend() etc?
+	page->id = page_id;
 	page->tab = tab;
-
-//	tab_info->id = count;
-//	count += 1;
-	first_unused_page_id += 1;
 
 	GtkWidget *scrolled_window = gtk_scrolled_window_new(NULL, NULL);
 	//gtk_style_context_add_class (gtk_widget_get_style_context(scrolled_window), "scrolled-window");
@@ -1590,7 +1606,10 @@ GtkWidget *create_tab(const char *file_name)
 	page->buffer = text_buffer;
 
 	if (file_name) {
-		char *contents = read_file(file_name); //@ error handling. if we cant open a file, we shouldnt create a tab?
+		char *contents;
+		if(!Lib::ReadTextFile(file_name, &contents)) {
+			assert(false);
+		}
 		gtk_text_buffer_set_text(text_buffer, contents, -1);
 		free(contents);
 	}
@@ -1610,6 +1629,8 @@ GtkWidget *create_tab(const char *file_name)
 
 	int page_num = gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, NULL);
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page_num);
+
+	init_bookmarks(page);
 
 	/*
 	If we combined line highlighting, '{}' highlighting and '()' highlighting into one callback, we would be more efficient, but I tested performance while all of them turned off, and honestly, the win would be insignificant. So I am too lazy to do that.
@@ -1695,10 +1716,12 @@ GtkWidget *create_tab(const char *file_name)
 //	printf("insert_handlers_count: %d, delete_handlers_count: %d\n", insert_handlers_count, delete_handlers_count);
 	undo_init(insert_handlers, insert_handlers_count, delete_handlers, delete_handlers_count, tab_info->id);
 
-	/* text view mouse text selection*/
-	g_signal_connect(text_view, "button-press-event", G_CALLBACK(textview_button_press), page);
-	g_signal_connect(text_view, "button-release-event", G_CALLBACK(textview_button_release), page);
-	g_signal_connect(text_view, "motion-notify-event", G_CALLBACK(textview_mouse_move), page);
+	/*text view mouse text selection*/
+	/*@@NotebookPage *get_page(int id)*/
+	gpointer page_index = (gpointer)((unsigned long)(notebookPages.Count - 1));
+	g_signal_connect(text_view, "button-press-event", G_CALLBACK(textview_button_press), page_index);
+	g_signal_connect(text_view, "button-release-event", G_CALLBACK(textview_button_release), page_index);
+	g_signal_connect(text_view, "motion-notify-event", G_CALLBACK(textview_mouse_move), page_index);
 
 	/*
 	GTK seems to have some default handler that makes the mouse pointer disappear as we start typing.
@@ -1957,6 +1980,9 @@ void on_notebook_switch_page(GtkNotebook *notebook, GtkWidget *tab, guint page_n
 	GtkWidget *text_view = (GtkWidget *) tab_retrieve_widget(tab, TEXT_VIEW);
 	assert(text_view);
 	gtk_widget_grab_focus(text_view);
+
+	currentPageIndex = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
+	printf("%s(): currentPageIndex: %d\n", __FUNCTION__, currentPageIndex);
 }
 
 
@@ -1974,12 +2000,6 @@ gboolean exit_app(GdkEventKey *key_event)
 
 gboolean close_tab(GdkEventKey *key_event)
 {
-//	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
-//	if (page == -1) {
-//		// no tabs open
-//		return FALSE;
-//	}
-//	GtkWidget *tab = gtk_notebook_get_nth_page(GTK_NOTEBOOK(notebook), page);
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
 	if (!tab) {
 		return FALSE;
@@ -2003,17 +2023,24 @@ gboolean close_tab(GdkEventKey *key_event)
 	//g_object_unref(text_buffer);
 
 	struct TabInfo *tab_info = (struct TabInfo *) g_object_get_data(G_OBJECT(tab), "tab-info");
-
-	notebook_pages[tab_info->id].in_use = false; //@@ hack, use 'visible_tab' instead
-
 	assert(tab_info);
+
 	free((void *) tab_info->title);
 	if (tab_info->file_name) {
 		free((void *) tab_info->file_name);
 	}
 	free(tab_info);
 
+//	void gtk_notebook_remove_page(GtkNotebook* notebook, gint page_num)
 	gtk_widget_destroy(tab);
+
+	assert(notebookPages.Count);
+	ArrayRemove(&notebookPages, currentPageIndex);
+
+	/* If the last page got removed, we have to set 'currentPageIndex' here because 'switch-page' signal doesn't fire. (Otherwise we update 'currentPageIndex' in GtkNotebook's 'switch-page' handler.) */
+	if(!notebookPages.Count) {
+		currentPageIndex = -1;
+	}
 
 	return TRUE;
 }
@@ -2036,6 +2063,29 @@ gboolean tab_navigate_next(GdkEventKey *key_event) {
 
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), target_page);
 
+
+//	NotebookPage *after_last = &notebook_pages[first_unused_page_id];
+//	NotebookPage *first = &notebook_pages[0];
+//
+//	assert(visible_page >= first);
+//	assert(visible_page < after_last);
+//
+//	do {
+//		visible_page += 1;
+//		if (visible_page == after_last) {
+//			visible_page = first;
+//		}
+//	} while (!visible_page->in_use);
+//
+//	int num_pages_before = 0;
+//	for (NotebookPage *nth = first; nth < visible_page; ++nth) {
+//		if (nth->in_use) {
+//			num_pages_before += 1;
+//		}
+//	}
+//	assert(num_pages_before == target_page);
+//	printf("num pages before visible page: %d\n", num_pages_before);
+
 	return TRUE;
 }
 
@@ -2046,7 +2096,7 @@ gboolean tab_navigate_previous(GdkEventKey *key_event) {
 	int current_page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook)); // returns -1 if no pages, starts counting from 0
 
 	if (n_pages < 2) {
-		printf("tab_navigate_next(): less than 2 tabs open -> nowhere to go...\n");
+		printf("tab_navigate_previous(): less than 2 tabs open -> nowhere to go...\n");
 		return TRUE;
 	}
 
@@ -2055,6 +2105,26 @@ gboolean tab_navigate_previous(GdkEventKey *key_event) {
 	if (target_page < 0) target_page = last_page;
 
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), target_page);
+
+//	NotebookPage *first = &notebook_pages[0];
+//	assert(visible_page >= first);
+//	do {
+//		visible_page -= 1;
+//		if (visible_page < first) {
+//			visible_page = &notebook_pages[first_unused_page_id];
+//			visible_page -= 1;
+//		}
+//	} while (!visible_page->in_use);
+//
+//	int num_pages = 0;
+//	for (NotebookPage *nth_page = visible_page; nth_page >= first; nth_page -= 1) {
+//		if (nth_page->in_use) {
+//			num_pages += 1;
+//		}
+//	}
+//	int num_pages_before = num_pages - 1;
+//	assert(num_pages_before == target_page);
+//	printf("num pages before visible page: %d\n", num_pages_before);
 
 	return TRUE;
 }
@@ -2178,7 +2248,10 @@ gboolean do_save(GdkEventKey *key_event)
 		gtk_label_set_text(filepath_label, file_name);
 	}
 
-	write_file(tab_info->file_name, contents); //@ error handling
+	//@ strlen()?
+	if(!Lib::WriteFile(tab_info->file_name, (u8 *)contents, strlen(contents))) {
+		assert(false);
+	}
 
 	tab_set_unsaved_changes_to(tab, FALSE);
 
@@ -2247,83 +2320,6 @@ gboolean apply_css_from_file(void *data)
 
 	return FALSE; // Dont call again
 }
-
-gboolean set_mark(GdkEventKey *key_event)
-{
-	LOG_MSG("set_mark()\n");
-
-	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
-	if (!tab) return FALSE;
-
-	GtkTextIter iter_cursor;
-	GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
-	get_cursor_position(text_buffer, NULL, &iter_cursor, NULL);
-
-/*
-	GtkTextMark *goto_mark = (GtkTextMark *) tab_retrieve_widget(tab, GOTO_MARK);
-	if (!goto_mark) {
-		goto_mark = gtk_text_buffer_create_mark(text_buffer, "goto-mark", &iter, TRUE);
-		tab_add_widget_4_retrieval(tab, GOTO_MARK, goto_mark);
-	} else {
-		gtk_text_buffer_move_mark(text_buffer, goto_mark, &iter);
-	}
-*/
-
-/*
-	struct JumpToMarks *marks = (struct JumpToMarks*) tab_retrieve_widget(tab, JUMPTO_MARKS);
-	if (!marks) {
-		// if this tab doesnt have marks yet, lets create & store them
-		marks = (struct JumpToMarks *) malloc(sizeof(struct JumpToMarks));
-		GtkTextMark *mark1 = gtk_text_buffer_create_mark(text_buffer, NULL, &iter_cursor, TRUE);
-		GtkTextMark *mark2 = gtk_text_buffer_create_mark(text_buffer, NULL, &iter_cursor, TRUE);
-		marks->marks[0] = mark1;
-		marks->marks[1] = mark2;
-		marks->current_mark_i = 0;
-		tab_add_widget_4_retrieval(tab, JUMPTO_MARKS, (void *) marks);
-	} else {
-		GtkTextMark *new_mark = gtk_text_buffer_create_mark(text_buffer, NULL, &iter_cursor, TRUE);
-		gtk_text_buffer_delete_mark(text_buffer, marks->marks[1]);
-		marks->marks[1] = marks->marks[0];
-		marks->marks[0] = new_mark;
-		//marks->current_mark_i = !marks->current_mark_i;
-		marks->current_mark_i = 0;
-	}
-
-*/
-	return TRUE;
-}
-
-
-gboolean go_to_mark(GdkEventKey *key_event)
-{
-	LOG_MSG("go_to_mark()\n");
-
-	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
-	if (!tab) return FALSE;
-
-/*
-	struct JumpToMarks *marks = (struct JumpToMarks*) tab_retrieve_widget(tab, JUMPTO_MARKS);
-	if (!marks) return TRUE; // in case where we havent set the marks yet
-
-	marks->current_mark_i = !marks->current_mark_i;
-	GtkTextMark *mark = marks->marks[marks->current_mark_i];
-
-	GtkTextIter iter;
-	GtkTextBuffer *text_buffer = (GtkTextBuffer *) tab_retrieve_widget(tab, TEXT_BUFFER);
-	GtkTextView *text_view = (GtkTextView *) tab_retrieve_widget(tab, TEXT_VIEW);
-
-	gtk_text_buffer_get_iter_at_mark(text_buffer, &iter, mark);
-	gtk_text_buffer_place_cursor(text_buffer, &iter);
-	gtk_text_view_scroll_to_iter(text_view, &iter,
-		0.0,
-		TRUE, // use alignment?
-		0.0, // x-alignment
-		0.5); // y-alignment (in the middle of the screen)
-
-*/
-	return TRUE;
-}
-
 
 gboolean scroll_to_cursor_middle(GdkEventKey *key_event)
 {
@@ -2473,23 +2469,19 @@ gboolean apply_settings(gpointer user_arg)
 	//@@ free old settings
 	settings = new_settings;
 
-	for (int i = 0; i < first_unused_page_id; ++i) {
-//		GtkWidget *tab = (GtkWidget *) tabs->data[i];
-//		struct TabInfo *tab_info = (struct TabInfo *) g_object_get_data(G_OBJECT(tab), "tab-info");
-		if(notebook_pages[i].in_use) {
-			printf("Updating tab: %d\n", notebook_pages[i].id);
+	for (int i = 0; i < notebookPages.Count; ++i) {
+			printf("Updating tab: %d\n", notebookPages.Data[i].id);
 
 			// apply SOME of the changed settings
 
-			textview_apply_settings(notebook_pages[i].view, settings);
+			textview_apply_settings(notebookPages.Data[i].view, settings);
 
-			highlighting_apply_settings(settings, &notebook_pages[i]);
-			Highlighter highlighter = (Highlighter)tab_retrieve_widget(notebook_pages[i].tab, HIGHLIGHTER);
-			printf("highlighter: %p\n", highlighter);
-			if(highlighter) highlighter(notebook_pages[i].buffer, NULL);
+			highlighting_apply_settings(settings, &notebookPages.Data[i]);
+			Highlighter highlighter = (Highlighter)tab_retrieve_widget(notebookPages.Data[i].tab, HIGHLIGHTER);
+			if(highlighter) highlighter(notebookPages.Data[i].buffer, NULL);
 
 			//...
-		}
+//		}
 
 
 //		// we are trying to update the tags in a very hacky way
@@ -2573,8 +2565,9 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 //	add_keycombination_handler(0, 81, scroll_up); // 81 - numpad page-up
 //	add_keycombination_handler(0, 89, scroll_down); // 89 - numpad page-down
 
-	add_keycombination_handler(0, 91, set_mark); // numpad delete
-	add_keycombination_handler(0, 90, go_to_mark); // numpad 0
+	add_keycombination_handler(CTRL, 10, add_bookmark); // ctrl + 1
+	add_keycombination_handler(CTRL, 11, goto_next_bookmark); // ctrl + 2
+	add_keycombination_handler(CTRL, 12, clear_bookmarks); // ctrl + 3
 
 	// autocomplete-identifier
 //	add_keycombination_handler(0, 67, autocomplete_emacs_style); // F1
@@ -2728,10 +2721,11 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	gtk_widget_set_size_request(sidebar_container, 500, 100);
 
 
+	ArrayInit(&notebookPages);
+
 	notebook = gtk_notebook_new();
 	gtk_notebook_set_scrollable(GTK_NOTEBOOK(notebook), TRUE);
-	g_signal_connect_after(notebook,
-		"switch-page", G_CALLBACK(on_notebook_switch_page), NULL);
+	g_signal_connect_after(notebook, "switch-page", G_CALLBACK(on_notebook_switch_page), NULL);
 	add_class(notebook, "main-notebook");
 	gtk_widget_set_hexpand(notebook, TRUE);
 
@@ -2858,6 +2852,12 @@ int main(int argc, char *argv[])
 //		print_numbers(&my_buffer);
 //		puts("");
 //	}
+//	return 0;
+
+//	array<const char *> MyArray;
+//	ArrayInit(&MyArray);
+//	ArrayAdd(&MyArray, "Hello world!");
+//	printf("%s\n", MyArray.Data[0]);
 //	return 0;
 
 	LOG_MSG("main()\n");

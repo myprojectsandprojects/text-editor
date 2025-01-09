@@ -1,12 +1,14 @@
+#ifndef DECLARATIONS_H
+#define DECLARATIONS_H
 
 /* declarations.h -- well just pile up these function declarations here for now. so everything that wants to call an undeclared function can include this header.. whether the function be in the same or a different module. we could create a separate header file for each module (file) too but we would end up with thousand header files with almost no content whatsoever so.. */
 
 #include <gtk/gtk.h>
 
 #include <stdlib.h>
+#include <assert.h>
 
-#include "lib.h" // declares functions defined in lib.c and provides some useful macros
-
+#include "lib/array.hpp" // function definition templates can appear multiple times in the project
 
 /* tab.cpp */
 enum WidgetName{
@@ -167,7 +169,7 @@ void list_add(struct List<T> *l, T item) {
 struct Node {
 	const char *name;
 //	struct CList *nodes; // if this is NULL, then node is a leaf-node and name stores the value
-	Array<Node *> nodes;
+	array<Node *> nodes;
 };
 
 Node *get_node(Node *root, const char *apath);
@@ -233,8 +235,6 @@ We store each NotebookPage in an array at an index which is also it's id.
 */
 	int id; //-1 -- invalid id
 
-	bool in_use; // When a tab is closed, this is set to false
-
 	/*
 	This state is initialized at (left) mouse press and cleaned up at (left) mouse release.
 	So if we disallow user to switch between pages and close pages (everything that changes the visible page) while (left) mouse button is down,
@@ -252,6 +252,9 @@ We store each NotebookPage in an array at an index which is also it's id.
 
 	GtkTextTag *texttags[16];
 	int texttags_count; // 0
+
+	array<GtkTextMark *> bookmarks;
+	int activeBookmark = -1; // index
 
 	//...
 	GtkTextView *view;
@@ -360,10 +363,10 @@ autocomplete-identifier.cpp
 */
 #include "autocomplete-identifier.h"
 void autocomplete_identifier_init(GtkWidget *tab, GtkTextBuffer *text_buffer);
-AutocompleteState *autocomplete_state_new(Array<Identifier *> *identifiers);
+AutocompleteState *autocomplete_state_new(array<Identifier *> *identifiers);
 void autocomplete_state_free(AutocompleteState *state, GtkTextBuffer *text_buffer);
-Array<Identifier *> *autocomplete_get_identifiers(const char *text);
-void autocomplete_print_identifiers(Array<Identifier *> *identifiers);
+array<Identifier *> *autocomplete_get_identifiers(const char *text);
+void autocomplete_print_identifiers(array<Identifier *> *identifiers);
 gboolean autocomplete_emacs_style(GdkEventKey *key_event);
 gboolean autocomplete_clear(GdkEventKey *key_event);
 
@@ -401,6 +404,13 @@ void MultiCursor_AddTextTags(GtkTextBuffer *TextBuffer);
 void MultiCursor_RemoveTextTags(GtkTextBuffer *TextBuffer);
 
 
+/* bookmarks.cpp */
+void init_bookmarks(NotebookPage *page);
+gboolean add_bookmark(GdkEventKey *key);
+gboolean goto_next_bookmark(GdkEventKey *key);
+gboolean clear_bookmarks(GdkEventKey *key);
+
+
 //#define PRINT_LOG_MESSAGES
 #ifdef PRINT_LOG_MESSAGES
 	//#define LOG_MSG(...) printf(__VA_ARGS__)
@@ -408,4 +418,6 @@ void MultiCursor_RemoveTextTags(GtkTextBuffer *TextBuffer);
 	#define LOG_MSG(format, ...) printf("\x1b[38;5;242m[%s:%d]\x1b[0m " format, __FILE__, __LINE__, ##__VA_ARGS__) // Hardcoded terminal colors might not be compatible with a different color theme.
 #else
 	#define LOG_MSG(...) 0
+#endif
+
 #endif

@@ -31,6 +31,10 @@ http://abc.xy/123/asd
 - undo'ing search-replace
 - #define, #ifdef, #endif
 - autocomplete should consider scope (?)
+- search in files: why do I have to escape '"' with '\'?
+- it's a shame to lose opened files and currently active directory when I restart the editor...
+
+- could make a separate header file for data definitions. so we would have 2 files: declarations.h (function declarations) and definitions.h (structs, enums, unions)
 ---
 
 automatic completion ('', "" etc.) vs snippets (you press a key to trigger a completion) vs (suggestion?) completion

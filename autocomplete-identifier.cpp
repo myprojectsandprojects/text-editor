@@ -1,6 +1,7 @@
 
 #include <ctype.h>
 #include "declarations.h"
+#include "lib/lib.hpp"
 
 extern GtkWidget *notebook;
 
@@ -40,25 +41,25 @@ bool is_prefixed_with(const char *string, const char *prefix){
 	return is_prefixed;
 }
 
-Array<Identifier *> *find_prefixed_with(Array<Identifier *> *identifiers, const char *prefix){
-	Array<Identifier *> *prefixed_with = (Array<Identifier *> *) malloc(sizeof(Array<Identifier *>));
-	array_init(prefixed_with);
+array<Identifier *> *find_prefixed_with(array<Identifier *> *identifiers, const char *prefix){
+	array<Identifier *> *prefixed_with = (array<Identifier *> *) malloc(sizeof(array<Identifier *>));
+	ArrayInit(prefixed_with);
 
-	for(int i = 0; i < identifiers->count; ++i){
-		Identifier *identifier = identifiers->data[i];
+	for(int i = 0; i < identifiers->Count; ++i){
+		Identifier *identifier = identifiers->Data[i];
 		if(is_prefixed_with(identifier->name, prefix)){
-			array_add(prefixed_with, identifier); // copying the pointer only
+			ArrayAdd(prefixed_with, identifier); // copying the pointer only
 		}
 	}
 
 	return prefixed_with;
 }
 
-void count_identifier(Array<Identifier *> *identifiers, const char *identifier){
-	for(int i = 0; i < identifiers->count; ++i){
-		if(strcmp(((Identifier *) identifiers->data[i])->name, identifier) == 0){
+void count_identifier(array<Identifier *> *identifiers, const char *identifier){
+	for(int i = 0; i < identifiers->Count; ++i){
+		if(strcmp(((Identifier *) identifiers->Data[i])->name, identifier) == 0){
 //			((Identifier *) identifiers->data[i])->count += 1;
-			identifiers->data[i]->count += 1;
+			identifiers->Data[i]->count += 1;
 			return;
 		}
 	}
@@ -66,7 +67,7 @@ void count_identifier(Array<Identifier *> *identifiers, const char *identifier){
 	Identifier *identifier_count = (Identifier *) malloc(sizeof(Identifier));
 	identifier_count->count = 1;
 	identifier_count->name = strdup(identifier);
-	array_add(identifiers, identifier_count);
+	ArrayAdd(identifiers, identifier_count);
 }
 
 #define BUFFER_SIZE 100
@@ -116,13 +117,13 @@ void count_identifier(TrieNode *root, const char *identifier){
 	n->count += 1;
 }
 
-void walk_and_add(TrieNode *tree, Array<Identifier *> *array){
+void walk_and_add(TrieNode *tree, array<Identifier *> *array){
 	if(tree->count > 0){
 //		printf("%d -- %s\n", identifiers->count, identifiers->identifier);
 		Identifier *identifier = (Identifier *) malloc(sizeof(Identifier));
 		identifier->name = tree->identifier; // copy a pointer
 		identifier->count = tree->count;
-		array_add(array, identifier);
+		ArrayAdd(array, identifier);
 	}
 
 	for(int i = 0; i < COUNT(tree->chars); ++i){
@@ -136,9 +137,9 @@ void walk_and_add(TrieNode *tree, Array<Identifier *> *array){
 //	walk(identifiers);
 //}
 
-Array<Identifier *> *find_prefixed_with(TrieNode *identifiers, const char *prefix){
-	Array<Identifier *> *prefixed = (Array<Identifier *> *) malloc(sizeof(Array<Identifier *>));
-	array_init(prefixed);
+array<Identifier *> *find_prefixed_with(TrieNode *identifiers, const char *prefix){
+	array<Identifier *> *prefixed = (array<Identifier *> *) malloc(sizeof(array<Identifier *>));
+	ArrayInit(prefixed);
 
 	TrieNode *n = identifiers;
 	for(int i = 0; prefix[i] != 0; ++i){
@@ -161,15 +162,15 @@ Array<Identifier *> *find_prefixed_with(TrieNode *identifiers, const char *prefi
 	return prefixed;
 }
 
-void sort_identifiers(Array<Identifier *> *counts){
+void sort_identifiers(array<Identifier *> *counts){
 	while(true){
 		bool no_swaps = true;
-		for(int a = 0, b = 1; b < counts->count; a += 1, b += 1){
-			Identifier *count_a = (Identifier *) counts->data[a];
-			Identifier *count_b = (Identifier *) counts->data[b];
+		for(int a = 0, b = 1; b < counts->Count; a += 1, b += 1){
+			Identifier *count_a = (Identifier *) counts->Data[a];
+			Identifier *count_b = (Identifier *) counts->Data[b];
 			if(count_a->count < count_b->count){ // sort in ascending order
-				counts->data[a] = count_b;
-				counts->data[b] = count_a;
+				counts->Data[a] = count_b;
+				counts->Data[b] = count_a;
 				no_swaps = false;
 			}
 		}
@@ -177,11 +178,11 @@ void sort_identifiers(Array<Identifier *> *counts){
 	}
 }
 
-void print_identifiers_beautified(Array<Identifier *> *identifiers){
+void print_identifiers_beautified(array<Identifier *> *identifiers){
 	int longest = 0;
 //	const char *name = NULL;
-	for(int i = 0; i < identifiers->count; ++i){
-		Identifier *identifier = (Identifier *) identifiers->data[i];
+	for(int i = 0; i < identifiers->Count; ++i){
+		Identifier *identifier = (Identifier *) identifiers->Data[i];
 		int l = strlen(identifier->name);
 		if(l > longest){
 			longest = l;
@@ -191,8 +192,8 @@ void print_identifiers_beautified(Array<Identifier *> *identifiers){
 //	printf("longest identifier: %s (%d)\n", name, longest);
 	int x = longest + 3;
 
-	for(int i = 0; i < identifiers->count; ++i){
-		Identifier *identifier = (Identifier *) identifiers->data[i];
+	for(int i = 0; i < identifiers->Count; ++i){
+		Identifier *identifier = (Identifier *) identifiers->Data[i];
 		int indent = x - strlen(identifier->name);
 		printf("%s ", identifier->name);
 		for(int i = 0; i < indent; ++i) printf(".");
@@ -200,7 +201,7 @@ void print_identifiers_beautified(Array<Identifier *> *identifiers){
 		printf("\n");
 	}
 	printf("---\n");
-	printf("%d total\n\n", identifiers->count);
+	printf("%d total\n\n", identifiers->Count);
 }
 
 //void clear_suggestions(GObject *object, GParamSpec *pspec, gpointer _tab)
@@ -242,16 +243,16 @@ void print_identifiers_beautified(Array<Identifier *> *identifiers){
 // EXPORTED STUFF:
 /////////
 
-void autocomplete_print_identifiers(Array<Identifier *> *identifiers){
-	for(int i = 0; i < identifiers->count; ++i){
-		Identifier *identifier_count = (Identifier *) identifiers->data[i];
+void autocomplete_print_identifiers(array<Identifier *> *identifiers){
+	for(int i = 0; i < identifiers->Count; ++i){
+		Identifier *identifier_count = (Identifier *) identifiers->Data[i];
 		printf("%s (%d)\n", identifier_count->name, identifier_count->count);
 	}
 }
 
-Array<Identifier *> *autocomplete_get_identifiers(const char *text)
+array<Identifier *> *autocomplete_get_identifiers(const char *text)
 {
-	Array<Identifier *> *identifiers = array_new<Identifier *>();
+	array<Identifier *> *identifiers = ArrayNew<Identifier *>();
 
 	//@ UTF8
 	int i = 0;
@@ -287,7 +288,7 @@ Array<Identifier *> *autocomplete_get_identifiers(const char *text)
 	return identifiers;
 }
 
-AutocompleteState *autocomplete_state_new(Array<Identifier *> *identifiers)
+AutocompleteState *autocomplete_state_new(array<Identifier *> *identifiers)
 {
 	AutocompleteState *state = (AutocompleteState *) malloc(sizeof(AutocompleteState));
 	state->identifiers = identifiers;
@@ -300,17 +301,17 @@ AutocompleteState *autocomplete_state_new(Array<Identifier *> *identifiers)
 
 void autocomplete_state_free(AutocompleteState *state, GtkTextBuffer *text_buffer)
 {
-	for (int i = 0; i < state->identifiers->count; ++i)
+	for (int i = 0; i < state->identifiers->Count; ++i)
 	{
-		free(state->identifiers->data[i]->name);
-		free(state->identifiers->data[i]);
+		free(state->identifiers->Data[i]->name);
+		free(state->identifiers->Data[i]);
 	}
-	free(state->identifiers->data);
+	free(state->identifiers->Data);
 	free(state->identifiers);
 
 	if (state->possible_completions)
 	{
-		free(state->possible_completions->data); // These are just "Identifier *"
+		free(state->possible_completions->Data); // These are just "Identifier *"
 		free(state->possible_completions);
 	}
 
@@ -502,16 +503,16 @@ gboolean autocomplete_emacs_style(GdkEventKey *key_event)
 	if (!state->possible_completions || keep_last_completion)
 	{
 		printf("GETTING A NEW SET OF POSSIBLE COMPLETIONS\n");
-		Array<Identifier *> *possible_completions = find_prefixed_with(state->identifiers, text_to_autocomplete);
+		array<Identifier *> *possible_completions = find_prefixed_with(state->identifiers, text_to_autocomplete);
 		state->possible_completions = possible_completions;
 		state->possible_completions_next = 0;
 	}
 
-	if (state->possible_completions->count)
+	if (state->possible_completions->Count)
 	{
 		int len = strlen(text_to_autocomplete);
 		const char *text_to_insert =
-			&state->possible_completions->data[state->possible_completions_next]->name[len];
+			&state->possible_completions->Data[state->possible_completions_next]->name[len];
 	//	const char *text_to_insert = state->possible_completions->data[state->possible_completions_next]->name;
 		
 		// After insertion the mark with the left gravity should stay at the beginning of the inserted text and the mark with the right gravity should move to the end of the inserted text.
@@ -524,7 +525,7 @@ gboolean autocomplete_emacs_style(GdkEventKey *key_event)
 		state->last_completion->end = right;
 	
 		state->possible_completions_next += 1;
-		state->possible_completions_next %= state->possible_completions->count;
+		state->possible_completions_next %= state->possible_completions->Count;
 	}
 	else
 	{
@@ -547,7 +548,7 @@ void autocomplete_identifier_init(GtkWidget *tab, GtkTextBuffer *text_buffer)
 	gtk_text_buffer_get_bounds(text_buffer, &start, &end);
 	char *contents = gtk_text_buffer_get_text(text_buffer, &start, &end, FALSE);
 
-	Array<Identifier *> *identifiers = autocomplete_get_identifiers(contents);
+	array<Identifier *> *identifiers = autocomplete_get_identifiers(contents);
 	sort_identifiers(identifiers);
 //	autocomplete_print_identifiers(identifiers);
 

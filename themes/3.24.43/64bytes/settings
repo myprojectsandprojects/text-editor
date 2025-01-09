@@ -48,44 +48,43 @@ text-tags
 {
 	comment
 	{
-		foreground{#908caa}
-		/*style{PANGO_STYLE_ITALIC}*/ /*PANGO_STYLE_NORMAL, PANGO_STYLE_ITALIC*/
-		/*weight{900}*/
+		foreground{#757775}
 	}
 	identifier
 	{
-		foreground{#e0def4}
+		foreground{#9b9e9b}
 	}
 	keyword
 	{
-		foreground{#3e8fb0}
-		weight{900}
+		/*foreground{#334c77}*/
+		foreground{#385382}
 	}
 	type
 	{
-		foreground{#9ccfd8}
+		foreground{#517681}
 	}
 	function
 	{
-		foreground{#ea9a97}
-		/*weight{900}*/
+		/*foreground{#bebeb9}*/
+		foreground{#9b9e9b}
 	}
 	string
 	{
-		foreground{#f6c177}
+		foreground{#915656}
 	}
 	number
 	{
-		foreground{#f6c177}
+		foreground{#915656}
 	}
 	operator
 	{
-		foreground{#908caa}
-		weight{400}
+		/*foreground{#9b9e9b}*/
+		foreground{#828280}
 	}
 	preprocessor
 	{
-		foreground{#eb6f92}
+		/*foreground{#bebeb9}*/
+		foreground{#334c77}
 	}
 	unknown
 	{
@@ -93,30 +92,26 @@ text-tags
 	}
 	char
 	{
-		foreground{#f6c177}
+		foreground{#915656}
 	}
-}
-
-line-highlighting
-{
-	/*color {#2a283e}*/
-	color {#111}
-	/*color {#000}*/
-}
-
-matching-char-highlighting
-{
-	color {#44415a}
-}
-
-scope-highlighting
-{
-	/*color {#2a283e}*/
-	color {#111}
-	/*color {#000}*/
 }
 
 extra-cursor
 {
-	color {red}
+	color {#0f0}
+}
+
+line-highlighting
+{
+	color {#111313}
+}
+
+matching-char-highlighting
+{
+	color {#685c43}
+}
+
+scope-highlighting
+{
+	color {#111313}
 }

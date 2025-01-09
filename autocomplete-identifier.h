@@ -11,10 +11,10 @@ struct CompletionInfo
 
 struct AutocompleteState
 {
-	Array<Identifier *> *identifiers;
+	array<Identifier *> *identifiers;
 
 	int possible_completions_next;
-	Array<Identifier *> *possible_completions;
+	array<Identifier *> *possible_completions;
 
 	CompletionInfo *last_completion;
 
