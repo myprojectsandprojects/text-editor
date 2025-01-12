@@ -105,7 +105,6 @@ static Undo per_tab_undo_data[MAX_TABS]; // 64 tabs
 void undo_text_buffer_delete_range(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end, gpointer data)
 {
 	LOG_MSG("%s()\n", __FUNCTION__);
-	printf("%s()\n", __FUNCTION__);
 
 //	if(ignore == TRUE) {
 //		ignore = FALSE;
@@ -238,7 +237,6 @@ void undo_text_buffer_insert_text(GtkTextBuffer *text_buffer, GtkTextIter *locat
 void undo_init(gulong insert_handlers[], int insert_handlers_count, gulong *delete_handlers, int delete_handlers_count, unsigned int tab_id)
 {
 	LOG_MSG("%s()\n", __FUNCTION__);
-//	printf("tab_id: %d\n", tab_id);
 
 //	unsigned int index = tab_id - 1;
 	unsigned int index = tab_id;
@@ -298,13 +296,12 @@ void actually_undo_last_action(GtkWidget *tab)
 	LOG_MSG("%s()\n", __FUNCTION__);
 
 	struct TabInfo *tab_info = (struct TabInfo *) g_object_get_data(G_OBJECT(tab), "tab-info");
-	//printf("actually_undo_last_action() for tab number %d called.\n", tab_info->id);
 	unsigned index = tab_info->id;
 	assert(index < 100);
 
 	struct UserAction *action = get_action(tab_actions[index]);
 	if(action == NULL) {
-		printf("No actions to undo for tab %d!\n", index);
+		LOG_MSG("No actions to undo for tab %d!\n", index);
 		return;
 	}
 

@@ -33,8 +33,57 @@ http://abc.xy/123/asd
 - autocomplete should consider scope (?)
 - search in files: why do I have to escape '"' with '\'?
 - it's a shame to lose opened files and currently active directory when I restart the editor...
+- triple-click should select a line without the newline at the end
 
 - could make a separate header file for data definitions. so we would have 2 files: declarations.h (function declarations) and definitions.h (structs, enums, unions)
+- option to turn timing measurements on/off (like logs)
+
+- crashes: ctrl + z on a page with no actions
+- apply_settings() runs on a separate thread!!! (thread synchronization)
+- bug: css changes not hotloaded if editor has run for a long time?
+- indenting a block of text with empty lines is buggy
+- crash:
+[multi-cursor-ability.cpp:97] MultiCursor_TextBuffer_InsertText()
+[main.cpp:1870] on_app_window_key_press(): hardware keycode: 37
+[main.cpp:1870] on_app_window_key_press(): hardware keycode: 39
+[main.cpp:2285] do_save()
+file ("themes/settings") changed
+file ("themes/settings") changed
+Successfully wrote 1882 bytes to "/home/eero/texty/themes/settings"
+[main.cpp:543] tab_set_unsaved_changes_to()
+[main.cpp:208] parse_settings_file()
+Using settings from "themes/settings"
+Updating tab: 5
+[main.cpp:795] textview_apply_settings()
+
+(texty:33199): Gtk-CRITICAL **: 14:00:07.719: gtk_text_view_set_pixels_above_lines: assertion 'GTK_IS_TEXT_VIEW (text_view)' failed
+
+(texty:33199): Gtk-CRITICAL **: 14:00:07.719: gtk_text_view_set_pixels_below_lines: assertion 'GTK_IS_TEXT_VIEW (text_view)' failed
+
+(texty:33199): Gtk-CRITICAL **: 14:00:07.719: gtk_text_view_set_pixels_inside_wrap: assertion 'GTK_IS_TEXT_VIEW (text_view)' failed
+
+(texty:33199): Gtk-CRITICAL **: 14:00:07.719: gtk_text_view_set_left_margin: assertion 'GTK_IS_TEXT_VIEW (text_view)' failed
+
+(texty:33199): Gtk-CRITICAL **: 14:00:07.719: gtk_text_view_set_wrap_mode: assertion 'GTK_IS_TEXT_VIEW (text_view)' failed
+highlighting_apply_settings()
+
+(texty:33199): Gtk-CRITICAL **: 14:00:07.719: gtk_text_buffer_get_tag_table: assertion 'GTK_IS_TEXT_BUFFER (buffer)' failed
+
+(texty:33199): Gtk-CRITICAL **: 14:00:07.719: gtk_text_buffer_get_bounds: assertion 'GTK_IS_TEXT_BUFFER (buffer)' failed
+
+- crash:
+add_bookmark()
+currentPageIndex: 2
+[editing.cpp:44] get_cursor_position()
+
+(texty:43425): Gtk-CRITICAL **: 17:14:03.173: gtk_text_buffer_get_mark: assertion 'GTK_IS_TEXT_BUFFER (buffer)' failed
+texty: editing.cpp:52: void get_cursor_position(GtkTextBuffer*, GtkTextMark**, GtkTextIter*, gint*): Assertion `m' failed.
+
+- crash:
+add_bookmark()
+currentPageIndex: 0
+[editing.cpp:44] get_cursor_position()
+Segmentation fault (core dumped)
 ---
 
 automatic completion ('', "" etc.) vs snippets (you press a key to trigger a completion) vs (suggestion?) completion

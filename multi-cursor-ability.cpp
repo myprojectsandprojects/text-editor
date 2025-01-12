@@ -50,6 +50,7 @@ void MultiCursor_AddTextTags(GtkTextBuffer *TextBuffer)
 
 gboolean MultiCursor_TextView_ButtonPress(GtkWidget *self, GdkEventButton *event, gpointer text_buffer)
 {
+	LOG_MSG("%s()\n", __FUNCTION__);
 //	printf("button (%u) press!\n", event->button);
 	bool ControlDown = (event->state & GDK_CONTROL_MASK);
 //	printf("%d\n", ControlDown);
@@ -117,7 +118,7 @@ void MultiCursor_TextBuffer_InsertText(GtkTextBuffer *Self, /*const*/ GtkTextIte
 static bool IsOurDelete = false;
 void MultiCursor_TextBuffer_DeleteRange(GtkTextBuffer *Self, /*const*/ GtkTextIter *Start, /*const*/ GtkTextIter *End, gpointer UserData)
 {
-	printf("%s()\n", __FUNCTION__);
+	LOG_MSG("%s()\n", __FUNCTION__);
 
 	if(!IsOurDelete)
 	{
@@ -125,7 +126,7 @@ void MultiCursor_TextBuffer_DeleteRange(GtkTextBuffer *Self, /*const*/ GtkTextIt
 		get_cursor_position(GTK_TEXT_BUFFER(Self), NULL, NULL, &CursorOffset);
 		int StartOffset = gtk_text_iter_get_offset(Start);
 		int EndOffset = gtk_text_iter_get_offset(End);
-		printf("cursor: %d, start: %d, end: %d\n", CursorOffset, StartOffset, EndOffset);
+//		printf("cursor: %d, start: %d, end: %d\n", CursorOffset, StartOffset, EndOffset);
 
 		/*
 		if End == CursorPos then it was backspace-key
@@ -146,7 +147,7 @@ void MultiCursor_TextBuffer_DeleteRange(GtkTextBuffer *Self, /*const*/ GtkTextIt
 				
 				if(CursorOffset == EndOffset)
 				{
-					printf("character BEFORE the cursor was deleted\n");
+//					printf("character BEFORE the cursor was deleted\n");
 
 					EndRange = Iter;
 					gtk_text_iter_backward_char(&Iter);//@ start buffer
@@ -154,7 +155,7 @@ void MultiCursor_TextBuffer_DeleteRange(GtkTextBuffer *Self, /*const*/ GtkTextIt
 				}
 				else if(CursorOffset == StartOffset)
 				{
-					printf("character AT the cursor was deleted\n");
+//					printf("character AT the cursor was deleted\n");
 
 					StartRange = Iter;
 					gtk_text_iter_forward_char(&Iter);//@ start buffer
@@ -172,7 +173,7 @@ void MultiCursor_TextBuffer_DeleteRange(GtkTextBuffer *Self, /*const*/ GtkTextIt
 		}
 		else
 		{
-			printf("multiple characters were deleted: we dont handle that yet\n");
+//			printf("multiple characters were deleted: we dont handle that yet\n");
 		}
 
 		//@ what happens to our text tags when we delete tagged text?
@@ -226,7 +227,6 @@ void MultiCursor_TextBuffer_DeleteRange(GtkTextBuffer *Self, /*const*/ GtkTextIt
 
 void MultiCursor_Init(GtkTextBuffer *text_buffer, Node *settings)
 {
-//	fprintf(stderr, "%s\n", __FUNCTION__);
 	LOG_MSG("NEW: %s\n", __FUNCTION__);
 
 	const char *color_str = settings_get_value(settings, "extra-cursor/color");

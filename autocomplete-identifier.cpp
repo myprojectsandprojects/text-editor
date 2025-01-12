@@ -329,7 +329,7 @@ void autocomplete_state_free(AutocompleteState *state, GtkTextBuffer *text_buffe
 
 gboolean autocomplete_clear(GdkEventKey *key_event)
 {
-	printf("clear_autocompletion()\n");
+	LOG_MSG("%s()\n", __FUNCTION__);
 
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
 	if (!tab)
@@ -417,12 +417,11 @@ no:
 // use cursor position to determine if we need a new list of completions?
 gboolean autocomplete_emacs_style(GdkEventKey *key_event)
 {
-	printf("autocomplete_emacs_style()\n");
+	LOG_MSG("%s()\n", __FUNCTION__);
 
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
 	if (!tab)
 	{
-		printf("NO TABS\n");
 		return FALSE;
 	}
 	GtkTextBuffer *text_buffer = GTK_TEXT_BUFFER(tab_retrieve_widget(tab, TEXT_BUFFER));
@@ -447,13 +446,13 @@ gboolean autocomplete_emacs_style(GdkEventKey *key_event)
 	{
 		gtk_text_buffer_get_iter_at_mark(text_buffer, &cursor_pos, cursor_pos_mark);
 		guint cursor_pos_offset = gtk_text_iter_get_offset(&cursor_pos);
-		printf("current cursor position: %d, last cursor position: %d\n", cursor_pos_offset, state->last_cursor_offset);
+		LOG_MSG("current cursor position: %d, last cursor position: %d\n", cursor_pos_offset, state->last_cursor_offset);
 		if (cursor_pos_offset != state->last_cursor_offset)
 		{
 			keep_last_completion = true;
 		}
 	}
-	printf("keep_last_completion: %s\n", keep_last_completion ? "true" : "false");
+	LOG_MSG("keep_last_completion: %s\n", keep_last_completion ? "true" : "false");
 
 	if (state->last_completion)
 	{
@@ -493,16 +492,16 @@ gboolean autocomplete_emacs_style(GdkEventKey *key_event)
 
 	if (gtk_text_iter_compare(&start, &end) >= 0) // start - end >= 0 means that 'start' is greater or equal to 'end'
 	{
-		printf("nothing to autocomplete\n");
+		LOG_MSG("nothing to autocomplete\n");
 		return FALSE;
 	}
 
 	char *text_to_autocomplete = gtk_text_buffer_get_text(text_buffer, &start, &end, FALSE);
-	printf("we have text to autocomplete: %s\n", text_to_autocomplete);
+	LOG_MSG("we have text to autocomplete: %s\n", text_to_autocomplete);
 
 	if (!state->possible_completions || keep_last_completion)
 	{
-		printf("GETTING A NEW SET OF POSSIBLE COMPLETIONS\n");
+		LOG_MSG("GETTING A NEW SET OF POSSIBLE COMPLETIONS\n");
 		array<Identifier *> *possible_completions = find_prefixed_with(state->identifiers, text_to_autocomplete);
 		state->possible_completions = possible_completions;
 		state->possible_completions_next = 0;
@@ -529,7 +528,7 @@ gboolean autocomplete_emacs_style(GdkEventKey *key_event)
 	}
 	else
 	{
-		printf("no possible completions for '%s'\n", text_to_autocomplete);
+		LOG_MSG("no possible completions for '%s'\n", text_to_autocomplete);
 	}
 	
 	gtk_text_buffer_get_iter_at_mark(text_buffer, &cursor_pos, cursor_pos_mark);

@@ -241,7 +241,7 @@ gboolean move_to_token_end(GtkTextIter *iter)
 //@ Shouldnt call add_highlighting() every single time!
 void indent_selected_block(GtkTextBuffer *text_buffer, GtkTextIter *selection_start, GtkTextIter *selection_end)
 {
-	g_print("indent_selected_block: called!\n");
+	LOG_MSG("indent_selected_block: called!\n");
 
 	int last_line = gtk_text_iter_get_line(selection_end);
 
@@ -256,7 +256,7 @@ void indent_selected_block(GtkTextBuffer *text_buffer, GtkTextIter *selection_st
 
 void unindent_selected_block(GtkTextBuffer *text_buffer, GtkTextIter *selection_start, GtkTextIter *selection_end)
 {
-	g_print("unindent_selected_block: called!\n");
+	LOG_MSG("unindent_selected_block: called!\n");
 
 	GtkTextIter match_start, match_end;
 
@@ -295,7 +295,7 @@ void unindent_selected_block(GtkTextBuffer *text_buffer, GtkTextIter *selection_
 */
 gboolean handle_tab_key(GtkTextBuffer *text_buffer, GdkEventKey *key_event)
 {
-	g_print("handle_tab_key: called!\n");
+	LOG_MSG("%s()\n", __FUNCTION__);
 
 /* In Gedit tab + shift only unindents lines regardless of where in the line the cursor is... 
 tab inserts tabs or replaces selected text with a tab as long as the selection doesnt span across multiple lines in which case it indents the selected lines. */
@@ -307,7 +307,7 @@ tab inserts tabs or replaces selected text with a tab as long as the selection d
 
 
 	if(key_event->state & GDK_SHIFT_MASK) {
-		g_print("handle_tab_key: tab + shift\n");
+//		g_print("handle_tab_key: tab + shift\n");
 
 		/*if(gtk_text_iter_compare(&selection_start, &selection_end) == 0) {
 			g_print("handle_tab_key: no selection\n");
@@ -315,17 +315,17 @@ tab inserts tabs or replaces selected text with a tab as long as the selection d
 		}*/
 
 		if(gtk_text_iter_get_line(&selection_start) == gtk_text_iter_get_line(&selection_end)) {
-			g_print("handle_tab_key: selection: single line\n");
+//			g_print("handle_tab_key: selection: single line\n");
 			return FALSE;
 		}
 
-		g_print("handle_tab_key: selection offsets: %d, %d\n",
-				gtk_text_iter_get_offset(&selection_start),
-				gtk_text_iter_get_offset(&selection_end));
+//		g_print("handle_tab_key: selection offsets: %d, %d\n",
+//				gtk_text_iter_get_offset(&selection_start),
+//				gtk_text_iter_get_offset(&selection_end));
 
 		unindent_selected_block(text_buffer, &selection_start, &selection_end);
 	} else {
-		g_print("handle_tab_key: tab (without shift)\n");
+//		g_print("handle_tab_key: tab (without shift)\n");
 		/* Maybe we would like to rely on the default functionality (insert a tab or if selection then replace selected text with a tab) unless the selection spans over multiple lines... */
 		/*if(gtk_text_iter_compare(&selection_start, &selection_end) == 0) {
 			g_print("handle_tab_key: no selection\n");
@@ -337,9 +337,9 @@ tab inserts tabs or replaces selected text with a tab as long as the selection d
 			return FALSE;
 		}
 
-		g_print("handle_tab_key: selection offsets: %d, %d\n",
-				gtk_text_iter_get_offset(&selection_start),
-				gtk_text_iter_get_offset(&selection_end));
+//		g_print("handle_tab_key: selection offsets: %d, %d\n",
+//				gtk_text_iter_get_offset(&selection_start),
+//				gtk_text_iter_get_offset(&selection_end));
 
 		indent_selected_block(text_buffer, &selection_start, &selection_end);
 	}
@@ -423,7 +423,7 @@ gboolean insert_line_before(GdkEventKey *key_event)
 	GtkTextView *view;
 	GtkTextBuffer *buffer;
 
-	printf("insert_line_before()\n");
+	LOG_MSG("insert_line_before()\n");
 	
 	if (!init(&view, &buffer)) return FALSE;
 
@@ -455,7 +455,7 @@ gboolean insert_line_after(GdkEventKey *key_event)
 	GtkTextView *view;
 	GtkTextBuffer *buffer;
 
-	printf("insert_line_before()\n");
+	LOG_MSG("insert_line_before()\n");
 	
 	if (!init(&view, &buffer)) return FALSE;
 
@@ -636,7 +636,7 @@ gboolean delete_line(GdkEventKey *key_event)
 
 gboolean change_line(GdkEventKey *key_event)
 {
-	printf("change_line()\n");
+	LOG_MSG("change_line()\n");
 
 	GtkTextView *view;
 	GtkTextBuffer *buffer;
@@ -669,7 +669,7 @@ gboolean change_line(GdkEventKey *key_event)
 
 gboolean delete_end_of_line(GdkEventKey *key_event)
 {
-	printf("delete_end_of_line()\n");
+	LOG_MSG("delete_end_of_line()\n");
 
 	GtkTextView *view;
 	GtkTextBuffer *buffer;
@@ -703,7 +703,7 @@ gboolean delete_end_of_line(GdkEventKey *key_event)
 
 gboolean delete_word(GdkEventKey *key_event)
 {
-	printf("delete_word()\n");
+	LOG_MSG("delete_word()\n");
 
 	GtkTextBuffer *text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
 	if (!text_buffer) {
@@ -713,7 +713,7 @@ gboolean delete_word(GdkEventKey *key_event)
 	GtkTextIter i;
 	get_cursor_position(text_buffer, NULL, &i, NULL);
 	gunichar c = gtk_text_iter_get_char(&i);
-	printf("*** character at cursor: %c\n", c);
+//	printf("*** character at cursor: %c\n", c);
 
 	// check if we are at the beginning of a word
 	gboolean is_iterator_moved = gtk_text_iter_backward_char(&i);
@@ -755,7 +755,7 @@ gboolean delete_word(GdkEventKey *key_event)
 // counting doublequotes from the beginning of the file?
 gboolean delete_inside(GdkEventKey *key_event)
 {
-	printf("delete_inside()\n");
+	LOG_MSG("delete_inside()\n");
 
 	GtkTextBuffer *text_buffer =
 		(GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
@@ -894,7 +894,7 @@ gboolean delete_inside(GdkEventKey *key_event)
 
 gboolean select_inside(GdkEventKey *key_event)
 {
-	printf("select_inside()\n");
+	LOG_MSG("select_inside()\n");
 
 	GtkTextBuffer *text_buffer =
 		(GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
@@ -972,7 +972,7 @@ gboolean select_inside(GdkEventKey *key_event)
 
 gboolean comment_block(GdkEventKey *key_event)
 {
-	printf("comment_block()\n");
+	LOG_MSG("comment_block()\n");
 
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
 	if (!tab) {
@@ -1039,7 +1039,7 @@ gboolean comment_block(GdkEventKey *key_event)
 
 gboolean uncomment_block(GdkEventKey *key_event)
 {
-	printf("uncomment_block()\n");
+	LOG_MSG("uncomment_block()\n");
 
 	GtkWidget *tab = get_visible_tab(GTK_NOTEBOOK(notebook));
 	if (!tab) {
@@ -1080,7 +1080,7 @@ gboolean uncomment_block(GdkEventKey *key_event)
 
 gboolean move_cursor_start_line(GdkEventKey *key_event)
 {
-	printf("move_cursor_start_line()\n");
+	LOG_MSG("move_cursor_start_line()\n");
 
 	GtkTextView *view;
 	GtkTextBuffer *buffer;
@@ -1109,7 +1109,7 @@ gboolean move_cursor_start_line(GdkEventKey *key_event)
 
 gboolean move_cursor_start_line_shift(GdkEventKey *key_event)
 {
-	printf("move_cursor_start_line_shift()\n");
+	LOG_MSG("move_cursor_start_line_shift()\n");
 
 	GtkTextView *view;
 	GtkTextBuffer *buffer;
@@ -1143,7 +1143,7 @@ gboolean move_cursor_start_line_shift(GdkEventKey *key_event)
 
 gboolean move_cursor_end_line(GdkEventKey *key_event)
 {
-	printf("move_cursor_end_line()\n");
+	LOG_MSG("move_cursor_end_line()\n");
 
 	GtkTextView *view;
 	GtkTextBuffer *buffer;
@@ -1167,7 +1167,7 @@ gboolean move_cursor_end_line(GdkEventKey *key_event)
 
 gboolean move_cursor_end_line_shift(GdkEventKey *key_event)
 {
-	printf("move_cursor_end_line_shift()\n");
+	LOG_MSG("move_cursor_end_line_shift()\n");
 
 	GtkTextView *view;
 	GtkTextBuffer *buffer;
@@ -1465,7 +1465,7 @@ gboolean move_cursor_closing(GdkEventKey *key_event)
 //}
 
 gboolean cursor_jump_forward(GdkEventKey *key_event) {
-	printf("cursor_jump_forward()\n");
+	LOG_MSG("cursor_jump_forward()\n");
 
 //	const int ctrl_flag = 4;
 //	bool *is_word = (key_event->state & ctrl_flag) ? get_char_table_ctrl() : get_char_table_alt();
@@ -1525,7 +1525,7 @@ gboolean cursor_jump_forward(GdkEventKey *key_event) {
 }
 
 gboolean cursor_jump_backward(GdkEventKey *key_event) {
-	printf("cursor_jump_backward()\n");
+	LOG_MSG("cursor_jump_backward()\n");
 
 //	const int ctrl_flag = 4;
 //	bool *is_word = (key_event->state & ctrl_flag) ? get_char_table_ctrl() : get_char_table_alt();

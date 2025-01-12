@@ -7,32 +7,38 @@
 }
 
 .text-view, .search-entry {
+	/*
 	font-family: Monaco;
 	font-family: Monaco Ligaturized;
-	font-family: Liberation Mono;
+	font-weight: 100;
 	font-weight: 900;
+	font-size: 15px;
+	font-size: 12px;
+	font-size: 14px;
+	*/
+
+	font-family: JetBrains Mono;
+	font-weight: 700;
+	font-weight: 600;
 	font-size: 15px;
 	font-size: 14px;
 }
 
 .text-view text {
-	background-color: #191b1b;
-	color: #9b9e9b;
-	caret-color: green;
-	caret-color: #0f0;
+	background-color: #002b36;
+	color: #839496;
+	caret-color: red;
 }
 
 .search-entry {
 	background-color: #092230;
 	color: #268bd2;
-	caret-color: green;
-	caret-color: #0f0;
+	caret-color: red;
 }
 
 .text-view > text > selection, .search-entry selection {
-	background-color: #0f0;
-	color: black;
-	color: #fff;
+	/*background-color: #44415a;*/
+	background-color: red;
 }
 
 /*

@@ -13,9 +13,9 @@ wrap-mode {GTK_WRAP_WORD} /* GTK_WRAP_NONE, GTK_WRAP_CHAR, GTK_WRAP_WORD, GTK_WR
 left-margin {10}
 search-case-sensitivity {true}
 
-pixels-above-lines {1}
-pixels-below-lines {1}
-pixels-inside-wrap {1}
+pixels-above-lines {0}
+pixels-below-lines {0}
+pixels-inside-wrap {0}
 
 search-replace {}
 
@@ -48,45 +48,41 @@ text-tags
 {
 	comment
 	{
-		/*foreground{#9b9e9b}*/
-		/*foreground{#818381}*/
-		foreground{#757775}
+		foreground{#586e75}
 	}
 	identifier
 	{
-		foreground{#9b9e9b}
+		foreground{#839496}
+		/*weight{900}*/
 	}
 	keyword
 	{
-		/*foreground{#334c77}*/
-		foreground{#385382}
+		foreground{#268bd2}
 	}
 	type
 	{
-		foreground{#517681}
+		foreground{#859900}
 	}
 	function
 	{
-		/*foreground{#bebeb9}*/
-		foreground{#9b9e9b}
+		foreground{#b58900}
+		/*weight{900}*/
 	}
 	string
 	{
-		foreground{#915656}
+		foreground{#2aa198}
 	}
 	number
 	{
-		foreground{#915656}
+		foreground{#6c71c4}
 	}
 	operator
 	{
-		/*foreground{#828280}*/
-		foreground{#9b9e9b}
+		foreground{#60777f}
 	}
 	preprocessor
 	{
-		/*foreground{#bebeb9}*/
-		foreground{#334c77}
+		foreground{#cb4b16}
 	}
 	unknown
 	{
@@ -94,26 +90,26 @@ text-tags
 	}
 	char
 	{
-		foreground{#915656}
+		foreground{#2aa198}
 	}
 }
 
 extra-cursor
 {
-	color {#0f0}
+	color {red}
 }
 
 line-highlighting
 {
-	color {#111313}
+	color {#03181e}
 }
 
 matching-char-highlighting
 {
-	color {#685c43}
+	color {#268bd2}
 }
 
 scope-highlighting
 {
-	color {#111313}
+	color {#03181e}
 }

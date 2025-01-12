@@ -1303,7 +1303,7 @@ gboolean textview_button_press(GtkTextView *view, GdkEventButton *event, gpointe
 		}
 
 		if(event->type == GDK_2BUTTON_PRESS) {
-			printf("2PRESS (page id: %d)\n", page->id);
+			LOG_MSG("2PRESS (page id: %d)\n", page->id);
 //			printf("%p\n", view);
 
 			GtkTextIter start = button_press_position; // cursor
@@ -1317,7 +1317,7 @@ gboolean textview_button_press(GtkTextView *view, GdkEventButton *event, gpointe
 			state->original_selection_start = gtk_text_buffer_create_mark(buffer, NULL, &start, FALSE); state->mark_count += 1;
 			state->original_selection_end = gtk_text_buffer_create_mark(buffer, NULL, &end, FALSE); state->mark_count += 1;
 		} else if(event->type == GDK_3BUTTON_PRESS) {
-			printf("3PRESS (page id: %d)\n", page->id);
+			LOG_MSG("3PRESS (page id: %d)\n", page->id);
 //			printf("%p\n", view);
 
 			GtkTextIter start = button_press_position; // cursor
@@ -1331,7 +1331,7 @@ gboolean textview_button_press(GtkTextView *view, GdkEventButton *event, gpointe
 			state->original_selection_start = gtk_text_buffer_create_mark(buffer, NULL, &start, FALSE); state->mark_count += 1;
 			state->original_selection_end = gtk_text_buffer_create_mark(buffer, NULL, &end, FALSE); state->mark_count += 1;
 		} else {
-			printf("PRESS (page id: %d)\n", page->id);
+			LOG_MSG("PRESS (page id: %d)\n", page->id);
 //			printf("%p\n", view);
 
 			gtk_text_buffer_place_cursor(buffer, &button_press_position);
@@ -1362,7 +1362,7 @@ gboolean textview_button_release(GtkTextView *view, GdkEventButton *event, gpoin
 	Normally: 1 -- left, 2 -- middle, 3 -- right
 	*/
 	if(event->button == 1) {
-		printf("BUTTON RELEASE (page id: %d)\n", page->id);
+		LOG_MSG("BUTTON RELEASE (page id: %d)\n", page->id);
 //		printf("%p\n", view);
 
 		GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
@@ -1389,23 +1389,38 @@ gboolean textview_button_release(GtkTextView *view, GdkEventButton *event, gpoin
 	}
 }
 
+/* gtk_text_buffer_select_range() takes "99%" of the time */
 gboolean textview_mouse_move(GtkTextView *view, GdkEventMotion *event, gpointer page_id) {
 //	printf("MOUSE MOVE (x: %f, y: %f)\n", event->x, event->y);
 
 	//@@ We are assuming that we are on a same tab/page where the button went down!
+
+//	long t1 = Lib::get_time_us();
+
+//	long a1 = Lib::get_time_us();
 
 	NotebookPage *page = &notebookPages.Data[(unsigned long)page_id];
 	TextViewMouseSelectionState *state = &page->mouse_selection_state;
 
 	show_cursor(view, true);
 
+//	long a2 = Lib::get_time_us();
+//	printf("mouse move: a: %d\n", a2 - a1);
+
 	if(state->selection_granularity != SELECTION_GRANULARITY_NONE) {
+//		long b1 = Lib::get_time_us();
+
 		GtkTextIter mouse_position;
 		gint buf_x, buf_y;
 		gtk_text_view_window_to_buffer_coords(view, GTK_TEXT_WINDOW_TEXT, event->x, event->y, &buf_x, &buf_y);
 		gtk_text_view_get_iter_at_location(view, &mouse_position, buf_x, buf_y);
-	
+
 		GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
+
+//		long b2 = Lib::get_time_us();
+//		printf("mouse move: b: %d\n", b2 - b1);
+
+//		long c1 = Lib::get_time_us();
 
 		if(state->selection_granularity == SELECTION_GRANULARITY_CHARACTER) {
 //			assert(button_press_selection_start == NULL);
@@ -1422,7 +1437,10 @@ gboolean textview_mouse_move(GtkTextView *view, GdkEventMotion *event, gpointer 
 			gtk_text_buffer_get_iter_at_mark(buffer, &end, state->press_position);
 
 //			assert(gtk_text_iter_compare(&start, &end) != 0);
+			long e1 = Lib::get_time_us();
 			gtk_text_buffer_select_range(buffer, &start, &end);
+			long e2 = Lib::get_time_us();
+//			printf("mouse move: gtk_text_buffer_select_range(): %d\n", e2 - e1);
 		} else if(state->selection_granularity == SELECTION_GRANULARITY_WORD) {
 //			assert(button_press_selection_start != NULL);
 //			assert(button_press_selection_end != NULL);
@@ -1439,13 +1457,22 @@ gboolean textview_mouse_move(GtkTextView *view, GdkEventMotion *event, gpointer 
 			if(mouse_before_original) {
 				GtkTextIter new_start = mouse_position;
 				prev_word_boundary(&new_start);
+				long e1 = Lib::get_time_us();
 				gtk_text_buffer_select_range(buffer, &new_start, &original_end);
+				long e2 = Lib::get_time_us();
+//				printf("mouse move: gtk_text_buffer_select_range(): %d\n", e2 - e1);
 			} else if(mouse_after_original) {
 				GtkTextIter new_start = mouse_position;
 				next_word_boundary(&new_start);
+				long e1 = Lib::get_time_us();
 				gtk_text_buffer_select_range(buffer, &new_start, &original_start);
+				long e2 = Lib::get_time_us();
+//				printf("mouse move: gtk_text_buffer_select_range(): %d\n", e2 - e1);
 			} else {
+				long e1 = Lib::get_time_us();
 				gtk_text_buffer_select_range(buffer, &original_start, &original_end);
+				long e2 = Lib::get_time_us();
+//				printf("mouse move: gtk_text_buffer_select_range(): %d\n", e2 - e1);
 			}
 		} else if(state->selection_granularity == SELECTION_GRANULARITY_LINE) {
 //			assert(button_press_selection_start != NULL);
@@ -1475,6 +1502,9 @@ gboolean textview_mouse_move(GtkTextView *view, GdkEventMotion *event, gpointer 
 			assert(false);
 		}
 
+//		long c2 = Lib::get_time_us();
+//		printf("mouse move: c: %d\n", c2 - c1);
+
 //		bool scroll_up = false;
 //		bool scroll_down = false;
 //		bool scroll_left = false;
@@ -1492,13 +1522,21 @@ gboolean textview_mouse_move(GtkTextView *view, GdkEventMotion *event, gpointer 
 //			gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(view), &start, 0.0, TRUE, horizontal_alignment, vertical_alignment);
 //		}
 
+//		long d1 = Lib::get_time_us();
+
 		// scroll if the user has moved the mouse pointer outside the visible area of the text buffer
 		GdkRectangle visible_rect;
 		gtk_text_view_get_visible_rect(view, &visible_rect);
 		if(buf_x <= visible_rect.x || buf_x >= visible_rect.x + visible_rect.width || buf_y <= visible_rect.y || buf_y >= visible_rect.y + visible_rect.height) {
 			gtk_text_view_scroll_to_iter(view, &mouse_position, 0.0, FALSE, 0.0, 0.0);
 		}
+
+//		long d2 = Lib::get_time_us();
+//		printf("mouse move: d: %d\n", d2 - d1);
 	}
+
+//	long t2 = Lib::get_time_us();
+//	printf("mouse_move: %ldus\n", t2 - t1);
 
 	return TRUE;
 }
@@ -1975,14 +2013,14 @@ void refresh_application_title(void)
 
 void on_notebook_switch_page(GtkNotebook *notebook, GtkWidget *tab, guint page_num, gpointer data)
 {
-	LOG_MSG("on_notebook_switch_page()\n");
+	LOG_MSG("%s()\n", __FUNCTION__);
 
 	GtkWidget *text_view = (GtkWidget *) tab_retrieve_widget(tab, TEXT_VIEW);
 	assert(text_view);
 	gtk_widget_grab_focus(text_view);
 
 	currentPageIndex = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
-	printf("%s(): currentPageIndex: %d\n", __FUNCTION__, currentPageIndex);
+	LOG_MSG("%s(): currentPageIndex: %d\n", __FUNCTION__, currentPageIndex);
 }
 
 
@@ -2191,7 +2229,6 @@ gboolean handle_tab(GdkEventKey *key_event)
 {
 	GtkTextBuffer *text_buffer = (GtkTextBuffer *) visible_tab_retrieve_widget(GTK_NOTEBOOK(notebook), TEXT_BUFFER);
 	if (text_buffer == NULL) {
-		printf("no tabs open\n");
 		return FALSE;
 	}
 
@@ -2205,7 +2242,6 @@ gboolean undo_last_action(GdkEventKey *key_event)
 	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
 	if (page == -1) {
 		// no tabs open
-		printf("Ctrl + Z: No tabs open.\n");
 		return FALSE;
 	}
 	GtkWidget *tab = gtk_notebook_get_nth_page(GTK_NOTEBOOK(notebook), page);
@@ -2270,7 +2306,7 @@ gboolean do_save(GdkEventKey *key_event)
 				autocomplete_get_identifiers(
 					contents)));
 
-	AutocompleteState *new_state = (AutocompleteState *) tab_retrieve_widget(tab, AUTOCOMPLETE_STATE);
+//	AutocompleteState *new_state = (AutocompleteState *) tab_retrieve_widget(tab, AUTOCOMPLETE_STATE);
 //	autocomplete_print_identifiers(new_state->identifiers);
 
 	free(contents);
@@ -2464,25 +2500,24 @@ gboolean scroll_down(GdkEventKey *key_event)
 
 gboolean apply_settings(gpointer user_arg)
 {
-	//printf("apply_settings: user_arg: %s\n", (const char *) user_arg);
+	LOG_MSG("%s\n", __FUNCTION__);
+
 	struct Node *new_settings = parse_settings_file(settings_file_path);
 	//@@ free old settings
 	settings = new_settings;
 
 	for (int i = 0; i < notebookPages.Count; ++i) {
-			printf("Updating tab: %d\n", notebookPages.Data[i].id);
+		printf("Updating tab: %d\n", notebookPages.Data[i].id);
 
-			// apply SOME of the changed settings
+		// apply SOME of the changed settings
 
-			textview_apply_settings(notebookPages.Data[i].view, settings);
+		textview_apply_settings(notebookPages.Data[i].view, settings);
 
-			highlighting_apply_settings(settings, &notebookPages.Data[i]);
-			Highlighter highlighter = (Highlighter)tab_retrieve_widget(notebookPages.Data[i].tab, HIGHLIGHTER);
-			if(highlighter) highlighter(notebookPages.Data[i].buffer, NULL);
+		highlighting_apply_settings(settings, &notebookPages.Data[i]);
+		Highlighter highlighter = (Highlighter)tab_retrieve_widget(notebookPages.Data[i].tab, HIGHLIGHTER);
+		if(highlighter) highlighter(notebookPages.Data[i].buffer, NULL);
 
-			//...
-//		}
-
+		//...
 
 //		// we are trying to update the tags in a very hacky way
 //		char *highlighting = (char *) tab_retrieve_widget(tab, CURRENT_TEXT_HIGHLIGHTING);

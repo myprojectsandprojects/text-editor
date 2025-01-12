@@ -3,10 +3,52 @@
 - 2 marks is not enough. need more! definately improve interface somehow!
 - cleanup
 - #define, #ifdef, #endif
+- why is moving the mouse while selecting text so processor-intensive?
 - jump from scope to scope at the same level (?)
 
 ---
 
+- how does htop program measure CPU%
+/proc/stat
+    user: Time spent in user mode (non-kernel code).
+    nice: Time spent in user mode with low priority (nice).
+    system: Time spent in kernel mode.
+    idle: Time spent idle, waiting for tasks.
+    iowait: Time spent waiting for I/O operations to complete.
+    irq: Time spent servicing hardware interrupts.
+    softirq: Time spent servicing soft interrupts.
+    steal: Time spent in other operating systems when running in a virtualized environment (time stolen from this VM).
+    guest: Time spent running a virtual CPU for guest operating systems.
+    guest_nice: Time spent running a niced guest.
+USER_HZ (1/100 of a sec.)
 
+Idle Loop: The operating system manages idle states using an idle loop that continuously checks for runnable tasks. If none are available, it selects an appropriate idle state based on predicted idle time and power-saving potential
+
+
+- CPU% while typing, different file sizes, how other editors perform
+empty file, no highlighting: ~2-3%
+main.cpp file, no highlighting: ~7-8%
+sqlite3.h file, no highlighting: ~6-7%, 9%
+
+empty file, highlighting: ~4%
+highlighting.cpp file, highlighting: ~36%
+main.cpp file, highlighting: ~99%
+sqlite3.h file, highlighting: ~99%
+
+main.cpp on_insert_text_after(): ~500us
+if i am typing 2x per second we do 1ms (500us * 2) of cpu utilization per second. thats 0.1% cpu. what i am seeing is 99%. what is the explanation?
+
+* clearly highlighting causes an increase in workload, but maybe it's somehow not our highlighting code? Maybe simply the exitance of textags in the buffer cause an increase?
+main.cpp: only initial highlighting, no updating the highlighting: ~10%
+so nope, when our code doesnt run, thing uses significantly less cpu... so nothing makes any sense
+
+unless (500us - 1us (handler time without updating the highlighting) = 499us) increase in how long our handler takes to handle one character insertion into the buffer causes (99% - 10% = 89%) increase in cpu load, the only explanation remaining is that our handler code, which updates the highlighting, causes increase in workload somewhere else and we are not measuring it...
+
+htop
+/proc/[pid]/stat
+
+
+- compare cpu usage with a older editor version
+- find and organize all signal handlers (?). GTK vs my code
 
 

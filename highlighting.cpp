@@ -38,7 +38,7 @@ Highlighter get_highlighter(const char *highlighting_type) {
 //}
 
 void highlighting_apply_settings(Node *settings, NotebookPage *page) {
-	printf("%s()\n", __FUNCTION__);
+	LOG_MSG("%s()\n", __FUNCTION__);
 
 	GtkTextTagTable *table = gtk_text_buffer_get_tag_table(page->buffer);
 
@@ -51,7 +51,6 @@ void highlighting_apply_settings(Node *settings, NotebookPage *page) {
 	for(int i = 0; i < page->texttags_count; ++i) {
 		gtk_text_buffer_remove_tag(page->buffer, page->texttags[i], &buffer_start, &buffer_end);
 		gtk_text_tag_table_remove((GtkTextTagTable *)table, page->texttags[i]);
-		printf("removed a tag\n");
 	}
 	page->texttags_count = 0;
 
@@ -208,7 +207,8 @@ static void on_insert_text_after(GtkTextBuffer *text_buffer, GtkTextIter *locati
 //		printf("text inserted: \"%s\"\n", text_inserted);
 //	}
 
-//	cpp_highlight(text_buffer, location, NULL);
+	long t1 = Lib::get_time_us();
+
 	Highlighter highlight = (Highlighter) tab_retrieve_widget(GTK_WIDGET(tab), HIGHLIGHTER);
 	if (highlight) {
 		//@hack begin:
@@ -230,6 +230,9 @@ static void on_insert_text_after(GtkTextBuffer *text_buffer, GtkTextIter *locati
 		MultiCursor_AddTextTags(text_buffer);
 		//hack end:
 	}
+
+	long t2 = Lib::get_time_us();
+	printf("highlighting insert text: %ldus\n", t2 - t1);
 }
 
 static void on_delete_range_after(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end, gpointer tab){

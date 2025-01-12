@@ -3,6 +3,8 @@
 #include "declarations.h"
 #include "lib/lib.hpp"
 
+//long total_t;
+
 const char *cpp_keywords[] = {
 	"asm",
 	"else",
@@ -237,30 +239,90 @@ void get_next_token(Token *token, GtkTextBuffer *text_buffer, GtkTextIter *iter)
 
 		case '#':
 		{
-			GtkTextIter t = *iter;
-			bool is_directive = true;
-			const char *directive = "include";
-			for(int j = 0; directive[j]; ++j){
-				gtk_text_iter_forward_char(&t);
-				gunichar tc = gtk_text_iter_get_char(&t);
-				if(tc != directive[j]){
-					is_directive = false;
-					break;
-				}
-			}
-			if(is_directive){
-				// PREPROCCESSOR-DIRECTIVE
-				GtkTextIter start, end;
-				start = *iter;
-				*iter = t;
-				gtk_text_iter_forward_char(iter);
-				end = *iter;
+//			long t1 = Lib::get_time_us();
 
-				create_token(token, TOKEN_PREPROCESSOR, &start, &end);
+			/* '#' can be followed by any number of spaces and tabs: "# include <stdio.h>" */
+			GtkTextIter after_space = *iter;
+			gtk_text_iter_forward_char(&after_space);
+			for(gunichar c = gtk_text_iter_get_char(&after_space); c == ' ' || c == '\t'; gtk_text_iter_forward_char(&after_space), c = gtk_text_iter_get_char(&after_space));
+
+			bool is_directive = false;
+			const char *directives[] = {
+				"if", "include", "define", "undef", "ifdef", "ifndef", "elif", "else", "endif", "error", "warning", "pragma"
+			};
+
+//			GtkTextIter t;
+//			for(int dir_index = 0; dir_index < sizeof(directives) / sizeof(directives[0]); ++dir_index) {
+//				t = after_space;
+//				const char *directive = directives[dir_index];
+//				bool found = true;
+//				for(int j = 0; directive[j]; ++j){
+//					gunichar tc = gtk_text_iter_get_char(&t);
+//					if(tc != directive[j]){
+//						found = false;
+//						break;
+//					}
+//
+//					gtk_text_iter_forward_char(&t);
+//				}
+//				if(found) {
+//					is_directive = true;
+//					break;
+//				}
+//			}
+//			if(is_directive){
+//				// PREPROCCESSOR-DIRECTIVE
+//				GtkTextIter start, end;
+//				start = *iter;
+//				end = t;
+//				*iter = t;
+////				gtk_text_iter_forward_char(iter);
+////				end = *iter;
+//
+//				create_token(token, TOKEN_PREPROCESSOR, &start, &end);
+//			}else{
+//				create_token(token, TOKEN_UNKNOWN, iter);
+//				gtk_text_iter_forward_char(iter);
+//			}
+
+			GtkTextIter start_word, end_word;
+			start_word = end_word = after_space;
+
+			do{
+				gunichar temp_ch = gtk_text_iter_get_char(&end_word);
+				if(!isalpha(temp_ch)) {break;};
+				gtk_text_iter_forward_char(&end_word);
+			}while(true);
+
+			if(gtk_text_iter_compare(&start_word, &end_word) != 0){
+				char *identifier = gtk_text_buffer_get_text(text_buffer, &start_word, &end_word, FALSE);
+
+				for(int dir_index = 0; dir_index < sizeof(directives) / sizeof(directives[0]); ++dir_index) {
+					if(strcmp(identifier, directives[dir_index]) == 0) {
+						is_directive = true;
+						break;
+					}
+				}
+
+				free(identifier);
+			}else{
+				//...
+			}
+
+			if(is_directive){
+				create_token(token, TOKEN_PREPROCESSOR, iter, &end_word);
+				*iter = end_word;
 			}else{
 				create_token(token, TOKEN_UNKNOWN, iter);
 				gtk_text_iter_forward_char(iter);
 			}
+
+//			create_token(token, TOKEN_UNKNOWN, iter);
+//			gtk_text_iter_forward_char(iter);
+
+//			long t2 = Lib::get_time_us();
+//			total_t += t2 - t1;
+//			printf("# time: %dus\n", t2 - t1);
 
 			break;
 		}
@@ -399,7 +461,7 @@ void get_next_token(Token *token, GtkTextBuffer *text_buffer, GtkTextIter *iter)
 //			token->end = i;
 			create_token(token, TOKEN_UNKNOWN, iter);
 			gtk_text_iter_forward_char(iter);
-		}
+	}
 }
 
 /*
@@ -424,6 +486,8 @@ The region we will always parse will begin at the first ';' moving backwards fro
 
 void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *location) {
 	LOG_MSG("cpp_highlight()\n");
+
+//	total_t = 0;
 
 	if (!keywords_table_initialized)
 	{
@@ -457,7 +521,6 @@ void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *location) {
 //	printf("region: %s\n", region_text);
 //	free(region_text);
 
-//	Array<Token *> tokens;
 	array<Token> tokens;
 	ArrayInit(&tokens);
 
@@ -535,6 +598,8 @@ void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *location) {
 //	after = get_time_us();
 //	printf("ELAPSED ON GETTING TOKENS: %ld\n", after - before);
 
+//	printf("total_t: %dus\n", total_t);
+
 //	before = get_time_us();
 	if (tokens.Count > 0) {
 		Token *first = &(tokens.Data[0]);
@@ -570,7 +635,7 @@ void cpp_highlight(GtkTextBuffer *text_buffer, GtkTextIter *location) {
 			}
 			if (next_token && next_token->type == TOKEN_OPERATOR)
 			{
-				Token *next_next_token = ((i+2) < tokens.Count) ? &tokens.Data[i+2] : 0;
+//				Token *next_next_token = ((i+2) < tokens.Count) ? &tokens.Data[i+2] : 0;
 				if (gtk_text_iter_get_char(&next_token->start) == '(')
 				{
 					token->type = TOKEN_FUNCTION;

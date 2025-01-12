@@ -7,15 +7,15 @@ extern array<NotebookPage> notebookPages;
 
 void init_bookmarks(NotebookPage *page)
 {
-	printf("%s\n", __FUNCTION__);
+	LOG_MSG("%s\n", __FUNCTION__);
 	ArrayInit(&page->bookmarks);
 	page->activeBookmark = -1;
 }
 
 gboolean add_bookmark(GdkEventKey *key)
 {
-	printf("add_bookmark()\n");
-	printf("currentPageIndex: %d\n", currentPageIndex);
+	LOG_MSG("add_bookmark()\n");
+	LOG_MSG("currentPageIndex: %d\n", currentPageIndex);
 
 	if(currentPageIndex != -1) {
 		NotebookPage *current_page = &notebookPages.Data[currentPageIndex];
@@ -36,7 +36,7 @@ gboolean add_bookmark(GdkEventKey *key)
 
 gboolean goto_next_bookmark(GdkEventKey *key)
 {
-	printf("goto_next_bookmark()\n");
+	LOG_MSG("goto_next_bookmark()\n");
 
 	if(currentPageIndex != -1) {
 		NotebookPage *current_page = &notebookPages.Data[currentPageIndex];
@@ -58,7 +58,7 @@ gboolean goto_next_bookmark(GdkEventKey *key)
 				0.0, // x-alignment
 				0.5); // y-alignment (in the middle of the screen)
 		} else {
-			printf("goto_next_bookmark(): no bookmark to go to...\n");
+			LOG_MSG("goto_next_bookmark(): no bookmark to go to...\n");
 		}
 		return TRUE;
 	}
@@ -68,7 +68,7 @@ gboolean goto_next_bookmark(GdkEventKey *key)
 
 gboolean clear_bookmarks(GdkEventKey *key)
 {
-	printf("clear_bookmarks()\n");
+	LOG_MSG("clear_bookmarks()\n");
 
 	if(currentPageIndex != -1) {
 		NotebookPage *current_page = &notebookPages.Data[currentPageIndex];
