@@ -2,6 +2,9 @@
 #include "declarations.h"
 #include "lib/lib.hpp"
 
+#define LINUX_LIB_INCLUDE_IMPLEMENTATION
+#include "lib/linux_lib.hpp"
+
 //extern guint gtk_version_major;
 //extern guint gtk_version_minor;
 //extern guint gtk_version_micro;
@@ -207,7 +210,8 @@ static void on_insert_text_after(GtkTextBuffer *text_buffer, GtkTextIter *locati
 //		printf("text inserted: \"%s\"\n", text_inserted);
 //	}
 
-	long t1 = Lib::get_time_us();
+//	long t1 = Lib::get_time_us();
+	struct timespec t = {}; clock_gettime(CLOCK_MONOTONIC, &t);
 
 	Highlighter highlight = (Highlighter) tab_retrieve_widget(GTK_WIDGET(tab), HIGHLIGHTER);
 	if (highlight) {
@@ -231,8 +235,10 @@ static void on_insert_text_after(GtkTextBuffer *text_buffer, GtkTextIter *locati
 		//hack end:
 	}
 
-	long t2 = Lib::get_time_us();
-	printf("highlighting insert text: %ldus\n", t2 - t1);
+//	long t2 = Lib::get_time_us();
+//	printf("highlighting insert text: %ldus\n", t2 - t1);
+	double elapsed_ms = elapsed_since(t, MS);
+	printf("highlighting took: %.3f ms\n", elapsed_ms);
 }
 
 static void on_delete_range_after(GtkTextBuffer *text_buffer, GtkTextIter *start, GtkTextIter *end, gpointer tab){

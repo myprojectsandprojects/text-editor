@@ -12,6 +12,7 @@
 
 #define LIB_INCLUDE_IMPLEMENTATION
 #include "lib/lib.hpp"
+#include "lib/linux_lib.hpp"
 
 guint gtk_version_major;
 guint gtk_version_minor;
@@ -2806,27 +2807,27 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 */
 }
 
-bool get_executable_path(char *buffer, int buffer_size)
-{
-	bool ret;
-	ssize_t num_copied = readlink("/proc/self/exe", buffer, buffer_size);
-	if (num_copied == -1)
-	{
-		// something went wrong (errno should contain further info)
-		ret = false;
-	}
-	else if (num_copied == buffer_size)
-	{
-		// path too long
-		ret = false;
-	}
-	else
-	{
-		buffer[num_copied] = 0;
-		ret = true;
-	}
-	return ret;
-}
+//bool get_executable_path(char *buffer, int buffer_size)
+//{
+//	bool ret;
+//	ssize_t num_copied = readlink("/proc/self/exe", buffer, buffer_size);
+//	if (num_copied == -1)
+//	{
+//		// something went wrong (errno should contain further info)
+//		ret = false;
+//	}
+//	else if (num_copied == buffer_size)
+//	{
+//		// path too long
+//		ret = false;
+//	}
+//	else
+//	{
+//		buffer[num_copied] = 0;
+//		ret = true;
+//	}
+//	return ret;
+//}
 
 const int MYBUFFER_MAX = 3;
 

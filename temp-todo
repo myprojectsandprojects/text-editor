@@ -49,6 +49,9 @@ htop
 
 
 - compare cpu usage with a older editor version
+Older version: also high cpu%
+Sublime: 10-20%
+NeoVim: 40-50%
 - find and organize all signal handlers (?). GTK vs my code
 
 
