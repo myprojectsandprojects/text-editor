@@ -7,32 +7,57 @@
 }
 
 .text-view, .search-entry {
-	/*
+/*
+	font-family: CaskaydiaMono Nerd Font;
+	font-weight: 300;
+	font-weight: 400;
+	font-size: 12.5px;
+	font-size: 14px;
+	font-size: 16px;
+*/
+/*
+	font-family: JetBrains Mono;
+	font-family: ComicShannsMono Nerd Font;
+	font-family: CodeNewRoman Nerd Font Mono;
 	font-family: Monaco;
 	font-family: Monaco Ligaturized;
-	font-weight: 100;
-	font-weight: 900;
-	font-size: 15px;
+	font-weight: 400;
+	font-weight: 500;
 	font-size: 12px;
+	font-size: 13.5px;
+	font-size: 15px;
 	font-size: 14px;
-	*/
+*/
 
-	font-family: JetBrains Mono;
-	font-weight: 700;
-	font-weight: 600;
+/*
+	font-family: Sudo;
+	font-size: 17px;
+	font-size: 19px;
+	font-weight: 400;
+*/
+
+	font-family: CoolMono;
+	font-weight: 300;
 	font-size: 15px;
 	font-size: 14px;
 }
 
 .text-view text {
-	background-color: #002b36;
-	color: #839496;
+	background-color: #191724;
+	background-color: #161616;
+	background-color: #222;
+	background-color: #111;
+	background-color: #101016;
+	background-color: #000;
+	background-color: #232136;
+	color: #aaaaaa;
+	color: #e0def4;
 	caret-color: red;
 }
 
 .search-entry {
-	background-color: #092230;
-	color: #268bd2;
+	background-color: #232136;
+	color: #e0def4;
 	caret-color: red;
 }
 

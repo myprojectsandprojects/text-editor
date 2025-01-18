@@ -11,26 +11,18 @@
 }
 
 .text-view, .search-entry {
-	font-family: NotoSansM Nerd Font;
-	font-weight: 400;
 	/*
-	font-style: Italic;
-	font-stretch: ExtraCondensed;
-	font-stretch: SemiCondensed;
-	font-stretch: Condensed;
-	*/
-	font-size: 17px;
-	font-size: 16px;
-	font-size: 15.5px;
-	font-size: 14px;
-	font-size: 13.5px;
-
 	font-family: JetBrains Mono NL;
 	font-family: JetBrains Mono;
 	font-weight: 500;
 	font-size: 12px;
 	font-size: 15px;
 	font-size: 14px;
+	*/
+
+	font-family: BPMono;
+	font-size: 14px;
+	font-size: 15px;
 }
 
 .text-view text {

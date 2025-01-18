@@ -2070,16 +2070,15 @@ gboolean close_tab(GdkEventKey *key_event)
 	}
 	free(tab_info);
 
-//	void gtk_notebook_remove_page(GtkNotebook* notebook, gint page_num)
-	gtk_widget_destroy(tab);
-
-	assert(notebookPages.Count);
 	ArrayRemove(&notebookPages, currentPageIndex);
 
 	/* If the last page got removed, we have to set 'currentPageIndex' here because 'switch-page' signal doesn't fire. (Otherwise we update 'currentPageIndex' in GtkNotebook's 'switch-page' handler.) */
 	if(!notebookPages.Count) {
 		currentPageIndex = -1;
 	}
+
+//	void gtk_notebook_remove_page(GtkNotebook* notebook, gint page_num)
+	gtk_widget_destroy(tab); // triggers 'notebook-switch-page' and updates 'currentPageIndex' unless no pages left
 
 	return TRUE;
 }
@@ -2547,6 +2546,21 @@ gboolean apply_settings(gpointer user_arg)
 	return FALSE; // dont call us again
 }
 
+//gboolean debug_func(gpointer user_data) {
+//	printf("debug_func called!\n");
+//
+//	for (int i = 0; i < notebookPages.Count; ++i) {
+////		assert(GTK_IS_TEXT_VIEW(notebookPages.Data[i].view));
+////		assert(GTK_IS_TEXT_BUFFER(notebookPages.Data[i].buffer));
+//		if(!GTK_IS_TEXT_VIEW(notebookPages.Data[i].view) || !GTK_IS_TEXT_BUFFER(notebookPages.Data[i].buffer)) {
+//			printf("i: %d\n", i);
+//			assert(false);
+//		}
+//	}
+//
+//	return TRUE;
+//}
+
 void activate_handler(GtkApplication *app, gpointer data)
 {
 	LOG_MSG("%s()\n", __FUNCTION__);
@@ -2697,7 +2711,8 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 	// Overwrite global settings:
 	GtkSettings *gtk_settings = gtk_settings_get_default();
 	g_object_set(gtk_settings, "gtk-cursor-blink", FALSE, NULL);
-	g_object_set(gtk_settings, "gtk-cursor-aspect-ratio", 0.07, NULL); // default: 0.040000
+//	g_object_set(gtk_settings, "gtk-cursor-aspect-ratio", 0.07, NULL); // default: 0.040000
+	g_object_set(gtk_settings, "gtk-cursor-aspect-ratio", 0.1, NULL); // default: 0.040000
 
 
 	//@ Different GTK versions require different CSS. Themes I wrote for 3.18.9 do not work on 3.24.34 and 3.24.43. So what should we do here?
@@ -2805,6 +2820,8 @@ If we used some kind of event/signal-thing, which allows abstractions to registe
 		close_tab(NULL);
 	}
 */
+
+//	g_timeout_add_seconds(1, debug_func, NULL);
 }
 
 //bool get_executable_path(char *buffer, int buffer_size)

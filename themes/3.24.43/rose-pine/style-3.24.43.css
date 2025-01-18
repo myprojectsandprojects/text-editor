@@ -15,6 +15,7 @@
 	font-size: 14px;
 	font-size: 16px;
 */
+/*
 	font-family: JetBrains Mono;
 	font-family: ComicShannsMono Nerd Font;
 	font-family: CodeNewRoman Nerd Font Mono;
@@ -26,7 +27,6 @@
 	font-size: 13.5px;
 	font-size: 15px;
 	font-size: 14px;
-/*
 */
 
 /*
@@ -35,16 +35,21 @@
 	font-size: 19px;
 	font-weight: 400;
 */
+
+	font-family: CoolMono;
+	font-weight: 300;
+	font-size: 15px;
+	font-size: 14px;
 }
 
 .text-view text {
 	background-color: #191724;
 	background-color: #161616;
 	background-color: #222;
-	background-color: #232136;
 	background-color: #111;
 	background-color: #101016;
 	background-color: #000;
+	background-color: #232136;
 	color: #aaaaaa;
 	color: #e0def4;
 	caret-color: red;
