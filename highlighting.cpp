@@ -1,4 +1,4 @@
-#include <string.h>
+//#include <string.h>
 #include "declarations.h"
 #include "lib/lib.hpp"
 

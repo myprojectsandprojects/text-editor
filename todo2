@@ -34,6 +34,7 @@ http://abc.xy/123/asd
 - search in files: why do I have to escape '"' with '\'?
 - it's a shame to lose opened files and currently active directory when I restart the editor...
 - triple-click should select a line without the newline at the end
+- visible marker where bookmark is or some way to see all bookmarks (I am constantly forgetting if I already put a bookmark at a location)
 
 - could make a separate header file for data definitions. so we would have 2 files: declarations.h (function declarations) and definitions.h (structs, enums, unions)
 - option to turn timing measurements on/off (like logs)

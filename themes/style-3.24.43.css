@@ -16,18 +16,18 @@
 	font-size: 16px;
 */
 /*
-	font-family: JetBrains Mono;
+*/
 	font-family: ComicShannsMono Nerd Font;
 	font-family: CodeNewRoman Nerd Font Mono;
 	font-family: Monaco;
 	font-family: Monaco Ligaturized;
+	font-family: JetBrains Mono;
 	font-weight: 400;
 	font-weight: 500;
 	font-size: 12px;
 	font-size: 13.5px;
 	font-size: 15px;
 	font-size: 14px;
-*/
 
 /*
 	font-family: Sudo;
@@ -36,10 +36,23 @@
 	font-weight: 400;
 */
 
+/*
 	font-family: CoolMono;
 	font-weight: 300;
-	font-size: 15px;
 	font-size: 14px;
+	font-size: 15px;
+*/
+
+/*
+	font-family: GeistMono Nerd Font Mono;
+	font-weight: 500;
+	font-size: 14px;
+*/
+/*
+	font-family: ProFontWindows;
+	font-weight: 300;
+	font-size: 16px;
+*/
 }
 
 .text-view text {
